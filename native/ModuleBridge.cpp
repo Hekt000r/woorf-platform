@@ -1,5 +1,5 @@
 #include "LuauBridge.h"
-#include "Luau/Compiler.h"
+#include "CompileSource.h"
 
 static int loadModule(lua_State* state)
 {
@@ -16,7 +16,7 @@ static int loadModule(lua_State* state)
     luaL_sandboxthread(thread);
     woorf_push_instance(thread, id);
     lua_setglobal(thread, "script");
-    const std::string bytecode = Luau::compile(source);
+    const std::string bytecode = compileSource(source);
     const int status = luau_load(thread, name.c_str(), bytecode.data(), bytecode.size(), 0);
     lua_xmove(thread, state, 1);
     lua_settop(runtime->state, savedTop);

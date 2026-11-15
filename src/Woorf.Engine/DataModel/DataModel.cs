@@ -19,6 +19,8 @@ public sealed class DataModel : Instance
             throw new InvalidOperationException($"Unsupported service '{className}'.");
         var service = FindService(className);
         if (service is not null) return service;
-        return new Instance(className) { Parent = this };
+        Instance created = className == "Workspace" ? new Model(className) : Instance.CreateRuntime(className);
+        created.Parent = this;
+        return created;
     }
 }

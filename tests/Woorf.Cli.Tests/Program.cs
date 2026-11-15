@@ -11,7 +11,10 @@ var cases = new (string Name, string? Source, int Exit, string Output, string Er
     ("requires a file argument", null, 2, "", "Usage:"),
     ("reports missing files", "MISSING_FILE", 1, "", "missing.luau"),
     ("preserves UTF-8 output", "print('cześć 世界')", 0, "cześć 世界\n", ""),
-}.Concat(HierarchyCases.GetCases()).Concat(SignalCases.GetCases())
+}.Concat(Vector3Cases.GetCases()).Concat(CFrameCases.GetCases()).Concat(PartCases.GetCases()).Concat(PartCFrameCases.GetCases())
+    .Concat(HierarchyCases.GetCases()).Concat(SignalCases.GetCases())
+    .Concat(PartPivotCases.GetCases()).Concat(ModelPivotCases.GetCases())
+    .Concat(ModelBoundsCases.GetCases())
     .Concat(InstanceEventCases.GetCases()).Concat(SchedulerCases.GetCases()).ToArray();
 var failedCount = 0;
 foreach (var test in cases)
@@ -49,6 +52,7 @@ foreach (var test in cases)
     }
     finally { File.Delete(scriptPath); }
 }
+failedCount += await NetworkProjectTests.RunAsync(cliPath);
 failedCount += await ProjectTests.RunAsync(cliPath);
 failedCount += await ProjectValidationTests.RunAsync(cliPath);
 failedCount += RuntimeClockTests.Run();

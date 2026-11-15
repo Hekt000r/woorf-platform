@@ -50,7 +50,21 @@ public class Instance
     {
         if (!ClassCatalog.IsCreatable(className))
             throw new InvalidOperationException($"Cannot create unsupported or non-creatable class '{className}'.");
-        return new Instance(className);
+        return CreateRuntime(className);
+    }
+
+    internal static Instance CreateRuntime(string className)
+    {
+        return className switch
+        {
+            "Part" => new Part(),
+            "Model" => new Model(),
+            "Player" => new Player(),
+            "Players" => new Players(),
+            "RunService" => new RunService(),
+            "RemoteEvent" => new RemoteEvent(),
+            _ => new Instance(className),
+        };
     }
 
     public bool IsA(string className) => ClassCatalog.IsA(ClassName, className);
@@ -111,13 +125,23 @@ public class Instance
     public Instance? Clone()
     {
         if (!Archivable) return null;
-        var clone = Create(ClassName);
+        var clones = new Dictionary<Instance, Instance>();
+        var result = CloneTree(clones);
+        foreach (var (original, clone) in clones) original.ResolveCloneReferences(clone, clones);
+        return result;
+    }
+
+    private Instance CloneTree(Dictionary<Instance, Instance> clones)
+    {
+        var clone = ClassName is "PlayerScripts" or "PlayerGui" or "StarterPlayerScripts"
+            ? CreateRuntime(ClassName) : Create(ClassName);
+        clones.Add(this, clone);
         clone.Name = Name;
         clone.ScriptSource = ScriptSource;
+        CopyPropertiesTo(clone);
         foreach (var child in children)
         {
-            var copiedChild = child.Clone();
-            if (copiedChild is not null) copiedChild.Parent = clone;
+            if (child.Archivable) child.CloneTree(clones).Parent = clone;
         }
         return clone;
     }
@@ -133,11 +157,17 @@ public class Instance
 
     public ScriptSignal GetPropertyChangedSignal(string property)
     {
-        var isProperty = property is "Name" or "Parent" or "Archivable" or "ClassName"
-            || ClassName == "DataModel" && property == "Workspace";
-        if (!isProperty) throw new InvalidOperationException($"Unknown property '{property}'.");
+        if (!HasProperty(property)) throw new InvalidOperationException($"Unknown property '{property}'.");
         return GetOrCreateSignal(propertySignals, property);
     }
+
+    protected virtual bool HasProperty(string property) =>
+        property is "Name" or "Parent" or "Archivable" or "ClassName"
+        || ClassName == "DataModel" && property == "Workspace";
+
+    protected virtual void CopyPropertiesTo(Instance clone) { }
+
+    protected virtual void ResolveCloneReferences(Instance clone, IReadOnlyDictionary<Instance, Instance> clones) { }
 
     private ScriptSignal GetOrCreateSignal(Dictionary<string, ScriptSignal> source, string key)
     {
@@ -148,7 +178,7 @@ public class Instance
         return signal;
     }
 
-    private void FirePropertyChanged(string property)
+    protected void FirePropertyChanged(string property)
     {
         FireSignal("Changed", property);
         if (propertySignals.TryGetValue(property, out var signal)) signal.Fire();

@@ -1,0 +1,141 @@
+using System.Runtime.InteropServices;
+using System.Text;
+using Woorf.Engine.DataModel;
+using Woorf.Engine.Datatypes;
+using static Woorf.Engine.Scripting.NativeMethods;
+
+namespace Woorf.Engine.Scripting;
+
+internal sealed class LuaValueCodec(Func<Instance?, int> getInstanceId, Func<int, Instance?> findInstance)
+{
+    internal object?[] ReadArguments(nint state, int first)
+    {
+        var count = woorf_get_top(state) - first + 1;
+        var values = new object?[count];
+        for (var index = 0; index < count; index++)
+            values[index] = Read(state, first + index, [], 0);
+        return values;
+    }
+
+    internal int Invoke(nint handle, int reference, object?[] arguments)
+    {
+        PushArguments push = state =>
+        {
+            try
+            {
+                foreach (var argument in arguments) Push(state, argument);
+                return arguments.Length;
+            }
+            catch (Exception error)
+            {
+                PushString(state, error.Message);
+                return -1;
+            }
+        };
+        var result = woorf_invoke_values(handle, reference, push);
+        GC.KeepAlive(push);
+        return result;
+    }
+
+    private object? Read(nint state, int index, HashSet<nint> ancestors, int depth)
+    {
+        if (depth > 64) throw new InvalidOperationException("Remote values exceed the supported nesting depth.");
+        return woorf_value_kind(state, index) switch
+        {
+            0 => null,
+            1 => woorf_get_bool(state, index) != 0,
+            2 => ReadString(state, index),
+            3 => findInstance(woorf_get_id(state, index)),
+            7 => null,
+            8 => ReadNumber(state, index),
+            9 => ReadTable(state, index, ancestors, depth),
+            10 => Vector3Bindings.Read(state, index),
+            11 => CFrameBindings.Read(state, index),
+            _ => throw new InvalidOperationException("Unsupported remote argument type."),
+        };
+    }
+
+    private LuaTableValue ReadTable(nint state, int index, HashSet<nint> ancestors, int depth)
+    {
+        var originalTop = woorf_get_top(state);
+        var absoluteIndex = index > 0 ? index : originalTop + index + 1;
+        var identity = woorf_table_identity(state, absoluteIndex);
+        if (!ancestors.Add(identity)) throw new InvalidOperationException("Cyclic remote tables are not supported.");
+        var entries = new List<KeyValuePair<object, object?>>();
+        try
+        {
+            woorf_push_nil(state);
+            while (woorf_table_next(state, absoluteIndex) != 0)
+            {
+                var key = ReadKey(state, -2);
+                var value = Read(state, -1, ancestors, depth + 1);
+                entries.Add(new(key, value));
+                woorf_set_top(state, woorf_get_top(state) - 1);
+            }
+            return new(entries);
+        }
+        finally
+        {
+            woorf_set_top(state, originalTop);
+            ancestors.Remove(identity);
+        }
+    }
+
+    private static object ReadKey(nint state, int index) => woorf_value_kind(state, index) switch
+    {
+        2 => ReadString(state, index),
+        8 => ReadNumber(state, index),
+        _ => throw new InvalidOperationException("Remote table keys must be strings or numbers."),
+    };
+
+    internal void Push(nint state, object? value) => Push(state, value, 0);
+
+    private void Push(nint state, object? value, int depth)
+    {
+        if (depth > 64) throw new InvalidOperationException("Remote values exceed the supported nesting depth.");
+        switch (value)
+        {
+            case null: woorf_push_nil(state); break;
+            case bool boolean: woorf_push_bool(state, boolean ? 1 : 0); break;
+            case double number: woorf_push_number(state, number); break;
+            case int number: woorf_push_number(state, number); break;
+            case long number: woorf_push_number(state, number); break;
+            case string text: PushString(state, text); break;
+            case Instance instance: woorf_push_instance(state, getInstanceId(instance)); break;
+            case Vector3 vector: Vector3Bindings.Push(state, vector); break;
+            case CFrame frame: CFrameBindings.Push(state, frame); break;
+            case LuaTableValue table: PushTable(state, table, depth); break;
+            default: throw new InvalidOperationException("Unsupported callback argument type.");
+        }
+    }
+
+    private void PushTable(nint state, LuaTableValue table, int depth)
+    {
+        woorf_new_table(state);
+        var index = woorf_get_top(state);
+        foreach (var entry in table.Entries)
+        {
+            Push(state, entry.Key, depth + 1);
+            Push(state, entry.Value, depth + 1);
+            woorf_raw_set(state, index);
+        }
+    }
+
+    private static double ReadNumber(nint state, int index)
+    {
+        woorf_get_number(state, index, out var value);
+        return value;
+    }
+
+    private static string ReadString(nint state, int index)
+    {
+        var pointer = woorf_get_string(state, index, out var length);
+        return Marshal.PtrToStringUTF8(pointer, checked((int)length))!;
+    }
+
+    private static void PushString(nint state, string value)
+    {
+        var bytes = Encoding.UTF8.GetBytes(value);
+        woorf_push_string(state, bytes, (nuint)bytes.Length);
+    }
+}

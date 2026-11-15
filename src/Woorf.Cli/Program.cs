@@ -3,16 +3,21 @@ using Woorf.Engine;
 using Woorf.Engine.Projects;
 
 Console.OutputEncoding = new UTF8Encoding(false);
-if (args.Length != 1)
+var clientCount = 0;
+if (args.Length != 1 && (args.Length != 3 || args[1] != "--clients"
+    || !int.TryParse(args[2], out clientCount) || clientCount is < 1 or > 32 || !Directory.Exists(args[0])))
 {
-    Console.Error.WriteLine("Usage: woorf <file.luau | project-directory>");
+    Console.Error.WriteLine("Usage: woorf <file.luau | project-directory> [--clients 1..32]");
     return 2;
 }
 
 try
 {
     if (Directory.Exists(args[0]))
-        return LuauRuntime.ExecuteProject(ProjectLoader.Load(args[0]));
+    {
+        var project = ProjectLoader.Load(args[0]);
+        return clientCount == 0 ? LuauRuntime.ExecuteProject(project) : LuauRuntime.ExecuteProject(project, clientCount);
+    }
     var source = File.ReadAllText(args[0]);
     return LuauRuntime.Execute(source, args[0]);
 }

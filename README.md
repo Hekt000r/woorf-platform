@@ -49,3 +49,11 @@ The native bridge uses portable CMake and the managed engine uses C#/.NET. Windo
 
 See [project.md](project.md) for the broader goals and [vendor/LUAU.md](vendor/LUAU.md) for upstream provenance and licenses.
 
+
+The headless spatial subset adds Vector3, core CFrame transforms, and Part CFrame, Position, Size, and Anchored properties. See [spatial types](docs/spatial-types.md) and run `examples/parts.luau` for a complete example.
+
+See [CFrame and Part transforms](docs/cframe.md) and run `examples/cframe.luau` to rotate and move a Part.
+
+[Part and Model pivots](docs/pivots.md) support moving groups while preserving relative transforms. Run `examples/pivots.luau` for an example.
+
+[Model bounds](docs/bounds.md) expose `GetBoundingBox()` and `GetExtentsSize()`. Try `examples/bounds.luau`.

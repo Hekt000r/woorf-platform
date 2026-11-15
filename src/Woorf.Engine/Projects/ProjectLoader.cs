@@ -40,7 +40,8 @@ public static class ProjectLoader
         foreach (var childPath in Directory.EnumerateDirectories(directory).Order(StringComparer.Ordinal))
         {
             RejectLink(childPath);
-            var child = LoadFolder(childPath);
+            var child = parent.ClassName == "StarterPlayer" && Path.GetFileName(childPath) == "StarterPlayerScripts"
+                ? Instance.CreateRuntime("StarterPlayerScripts") : LoadFolder(childPath);
             Attach(child, parent);
             LoadChildren(childPath, child, scripts);
         }

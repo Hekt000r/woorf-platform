@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Woorf.Engine.DataModel;
 using Woorf.Engine.Scheduling;
+using Woorf.Engine.Networking;
 using static Woorf.Engine.Scripting.NativeMethods;
 
 namespace Woorf.Engine.Scripting;
@@ -15,9 +16,9 @@ internal sealed class LuauSession : IDisposable
     private readonly nint handle;
     private bool isDisposed;
 
-    internal LuauSession(DataModel.DataModel game, IRuntimeClock clock)
+    internal LuauSession(DataModel.DataModel game, IRuntimeClock clock, RuntimeEndpoint? endpoint = null)
     {
-        bindings = new InstanceBindings(game);
+        bindings = new InstanceBindings(game, endpoint);
         write = Write;
         host = bindings.Dispatch;
         readClock = () => clock.ElapsedSeconds;
@@ -50,6 +51,9 @@ internal sealed class LuauSession : IDisposable
             if (delay > 0) clock.Sleep(TimeSpan.FromSeconds(delay));
         }
     }
+
+    internal double Step(double now) => woorf_step(handle, now);
+    internal bool HasFailed => woorf_scheduler_failed(handle) != 0;
 
     internal int Execute(string source, string filePath, Instance? script = null)
     {

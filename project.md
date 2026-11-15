@@ -73,3 +73,11 @@ This milestone order is a proposal, not a finalized architecture or API list. Re
 - The modules milestone adds ModuleScript `require()` with isolated environments, shared per-instance cached results, source cloning, cached failures, and fail-fast cycle diagnostics. Asset-ID/path requires remain unsupported.
 - The scheduler milestone adds cooperative task execution, waits and delays, signal waits and yielding callbacks, `WaitForChild`, and concurrent yielding module execution, driven by a C# monotonic-clock headless loop. See [scheduler behavior](docs/scheduler.md) for timing and shutdown conventions.
 - Unanswered proposals above remain open decisions.
+
+- The spatial milestone adds immutable C# Vector3 values with Luau bindings and headless Part properties (Position, Size, Anchored), including size bounds, cloning, and change notifications. See [spatial types](docs/spatial-types.md). Physics and rendering remain future work.
+
+- The CFrame milestone adds immutable managed transforms, Luau constructors and operations, and synchronized Part Position/CFrame properties. Documentation guides compatibility; local CLI tests verify implementation without a Studio comparison harness. See [CFrame and Part transforms](docs/cframe.md).
+
+- The pivot milestone adds Part PivotOffset, Part/Model GetPivot and PivotTo, Model PrimaryPart/WorldPivot, descendant movement with cached relative offsets, and cloned reference remapping. See [headless pivots](docs/pivots.md).
+
+- The bounds milestone exposes Model GetBoundingBox and GetExtentsSize using shared pivot-oriented descendant Part bounds. See [Model bounds](docs/bounds.md).

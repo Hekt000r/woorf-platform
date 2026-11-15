@@ -1,5 +1,5 @@
 #include "LuauBridge.h"
-#include "Luau/Compiler.h"
+#include "CompileSource.h"
 #include <exception>
 
 static int reportMessage(lua_State* state)
@@ -35,7 +35,7 @@ void initializeSchedulerHelpers(lua_State* state)
 WOORF_EXPORT int woorf_initialize_scheduler(void* handle, const char* source, size_t length)
 {
     auto* runtime = static_cast<Runtime*>(handle);
-    const std::string bytecode = Luau::compile(std::string(source, length));
+    const std::string bytecode = compileSource(std::string(source, length));
     int status = luau_load(runtime->state, "=WoorfScheduler", bytecode.data(), bytecode.size(), 0);
     if (status == 0) status = lua_pcall(runtime->state, 0, 0, 0);
     if (status != 0)

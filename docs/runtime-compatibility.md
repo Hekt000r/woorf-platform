@@ -7,6 +7,11 @@ The C# graph is authoritative. Native Luau userdata hold object identifiers and 
 | Area | Supported behavior |
 | --- | --- |
 | Globals | `game`, `workspace`, `Instance.new(className, parent?)`; project scripts also receive `script` |
+| Spatial types | `Vector3` construction, constants, components, arithmetic, magnitude, normalization, `Dot`, `Cross`, `Lerp`; see [spatial types](spatial-types.md) |
+| CFrame | Position/rotation constructors, composition, inversion, frame/point/direction transforms; see [CFrame](cframe.md) |
+| Model bounds | `GetBoundingBox`, `GetExtentsSize`; pivot-oriented bounds of descendant Parts; see [bounds](bounds.md) |
+| Pivots | Part `PivotOffset`, Part/Model `GetPivot` and `PivotTo`, Model `PrimaryPart`/`WorldPivot`, nested movement; see [pivots](pivots.md) |
+| Part properties | Synchronized `CFrame`/`Position`, `Size`, `Anchored`, size bounds, change signals, cloning; no physics |
 | Instance properties | `Name`, `Parent`, `Archivable`; read-only `ClassName` |
 | Classification | `IsA` follows the supported class inheritance chain; `tostring` returns the name |
 | Enumeration | `GetChildren`, `GetDescendants` return independent arrays of Instance references |
@@ -17,7 +22,7 @@ The C# graph is authoritative. Native Luau userdata hold object identifiers and 
 | Signals | `RBXScriptSignal:Connect`, `Once`; `RBXScriptConnection.Connected`, `Disconnect`; typed userdata with stable signal identity |
 | Notifications | `Changed`, `GetPropertyChangedSignal`, `ChildAdded`, `ChildRemoved`, `AncestryChanged`, `DescendantAdded`, `DescendantRemoving`, `Destroying` |
 
-Creatable classes: `Folder`, `Model`, `Configuration`, `Script`, `LocalScript`, `ModuleScript`. ModuleScripts support on-demand execution; Script/LocalScript class-specific APIs remain partial. Services: `Workspace`, `ReplicatedStorage`, `ReplicatedFirst`, `ServerStorage`, `ServerScriptService`, `StarterGui`, `StarterPack`, `StarterPlayer`. These containers provide hierarchy behavior, without their class-specific engine features. Workspace also reports its Model/PVInstance ancestry.
+Creatable classes: `Folder`, `Model`, `Configuration`, `Script`, `LocalScript`, `ModuleScript`, `Part`. ModuleScripts support on-demand execution; Script/LocalScript class-specific APIs remain partial. Services: `Workspace`, `ReplicatedStorage`, `ReplicatedFirst`, `ServerStorage`, `ServerScriptService`, `StarterGui`, `StarterPack`, `StarterPlayer`. These containers provide hierarchy behavior, without their class-specific engine features. Workspace also reports its Model/PVInstance ancestry. Part reports FormFactorPart/BasePart/PVInstance ancestry; abstract ancestors are not creatable.
 
 `GetService` creates a supported service on demand and finds it by class even after renaming. `FindService` never creates one. Workspace is created with the world. Loaded projects are complete before scripts execute, so `IsLoaded` is true during execution. Parent assignments reject cycles, invalid argument types, destroyed targets, and changes to the DataModel root. Unknown classes, services, properties, and methods raise errors.
 
@@ -67,4 +72,3 @@ Implementation consulted Roblox's official documentation on 2026-11-15:
 - [RBXScriptSignal](https://create.roblox.com/docs/reference/engine/datatypes/RBXScriptSignal) and [RBXScriptConnection](https://create.roblox.com/docs/reference/engine/datatypes/RBXScriptConnection)
 
 These are live references, not a pinned API snapshot. Future compatibility work should pin an API dump and extend behavior tests alongside each feature.
-

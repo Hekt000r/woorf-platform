@@ -43,6 +43,10 @@ internal sealed class InstanceBindings : IDisposable
         signalBindings.EnterDispatch();
         try
         {
+            if (operation.StartsWith("cframe_", StringComparison.Ordinal))
+                return CFrameBindings.Dispatch(state, operation);
+            if (operation.StartsWith("vector3_", StringComparison.Ordinal))
+                return Vector3Bindings.Dispatch(state, operation);
             if (operation is "signal_get" or "signal_set" or "connection_get" or "connection_set"
                 or "Connect" or "Once" or "Disconnect")
                 return signalBindings.Dispatch(state, operation);
@@ -88,6 +92,16 @@ internal sealed class InstanceBindings : IDisposable
     {
         var property = ReadString(state, 2);
         if (Instance.IsSignalName(property)) return signalBindings.PushSignal(state, instance.GetSignal(property));
+        if (instance is Model && property is "GetBoundingBox" or "GetExtentsSize")
+        {
+            woorf_push_method(state, property);
+            return 1;
+        }
+        if ((instance is BasePart || instance is Model) && (property is "GetPivot" or "PivotTo"))
+        {
+            woorf_push_method(state, property);
+            return 1;
+        }
         if (Methods.Contains(property) || instance == game && property is "GetService" or "FindService" or "IsLoaded")
         {
             woorf_push_method(state, property);
@@ -95,6 +109,13 @@ internal sealed class InstanceBindings : IDisposable
         }
         return property switch
         {
+            "PivotOffset" when instance is BasePart part => CFrameBindings.Push(state, part.PivotOffset),
+            "WorldPivot" when instance is Model model => CFrameBindings.Push(state, model.WorldPivot),
+            "PrimaryPart" when instance is Model model => PushInstance(state, model.PrimaryPart),
+            "CFrame" when instance is BasePart part => CFrameBindings.Push(state, part.CFrame),
+            "Position" when instance is BasePart part => Vector3Bindings.Push(state, part.Position),
+            "Size" when instance is BasePart part => Vector3Bindings.Push(state, part.Size),
+            "Anchored" when instance is BasePart part => PushBoolean(state, part.Anchored),
             "Name" or "ClassName" => PushString(state, property == "Name" ? instance.Name : instance.ClassName),
             "Parent" => PushInstance(state, instance.Parent),
             "Archivable" => PushBoolean(state, instance.Archivable),
@@ -109,6 +130,18 @@ internal sealed class InstanceBindings : IDisposable
         var property = ReadString(state, 2);
         switch (property)
         {
+            case "PivotOffset" when instance is BasePart part: part.PivotOffset = CFrameBindings.Read(state, 3); break;
+            case "WorldPivot" when instance is Model model: model.WorldPivot = CFrameBindings.Read(state, 3); break;
+            case "PrimaryPart" when instance is Model model:
+                var primary = ReadInstance(state, 3);
+                if (primary is not null && primary is not BasePart)
+                    throw new InvalidOperationException("PrimaryPart must be a BasePart or nil.");
+                model.PrimaryPart = (BasePart?)primary;
+                break;
+            case "CFrame" when instance is BasePart part: part.CFrame = CFrameBindings.Read(state, 3); break;
+            case "Position" when instance is BasePart part: part.Position = Vector3Bindings.Read(state, 3); break;
+            case "Size" when instance is BasePart part: part.Size = Vector3Bindings.Read(state, 3); break;
+            case "Anchored" when instance is BasePart part: part.Anchored = ReadBoolean(state, 3); break;
             case "Name": instance.Name = ReadString(state, 3); break;
             case "Parent": instance.Parent = ReadInstance(state, 3); break;
             case "Archivable": instance.Archivable = ReadBoolean(state, 3); break;
@@ -121,6 +154,17 @@ internal sealed class InstanceBindings : IDisposable
     {
         switch (method)
         {
+            case "GetBoundingBox" when instance is Model model:
+                var bounds = model.GetBoundingBox();
+                CFrameBindings.Push(state, bounds.Frame);
+                Vector3Bindings.Push(state, bounds.Size);
+                return 2;
+            case "GetExtentsSize" when instance is Model model:
+                return Vector3Bindings.Push(state, model.GetExtentsSize());
+            case "GetPivot" when instance is BasePart part: return CFrameBindings.Push(state, part.GetPivot());
+            case "GetPivot" when instance is Model model: return CFrameBindings.Push(state, model.GetPivot());
+            case "PivotTo" when instance is BasePart part: part.PivotTo(CFrameBindings.Read(state, 2)); return 0;
+            case "PivotTo" when instance is Model model: model.PivotTo(CFrameBindings.Read(state, 2)); return 0;
             case "GetPropertyChangedSignal":
                 return signalBindings.PushSignal(state, instance.GetPropertyChangedSignal(ReadString(state, 2)));
             case "IsA": return PushBoolean(state, instance.IsA(ReadString(state, 2)));

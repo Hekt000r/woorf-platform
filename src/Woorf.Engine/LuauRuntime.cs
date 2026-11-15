@@ -1,12 +1,19 @@
 using Woorf.Engine.Projects;
 using Woorf.Engine.Scripting;
 using Woorf.Engine.Scheduling;
+using Woorf.Engine.Networking;
 using GameDataModel = Woorf.Engine.DataModel.DataModel;
 
 namespace Woorf.Engine;
 
 public static class LuauRuntime
 {
+    public static int ExecuteProject(LoadedProject project, int clients)
+    {
+        if (clients is < 1 or > 32) throw new ArgumentOutOfRangeException(nameof(clients));
+        using var host = new LocalNetworkHost(project, clients, new MonotonicClock());
+        return host.Run();
+    }
     public static int Execute(string source, string filePath) => Execute(source, filePath, new MonotonicClock());
 
     public static int Execute(string source, string filePath, IRuntimeClock clock)

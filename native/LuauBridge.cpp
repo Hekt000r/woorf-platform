@@ -1,5 +1,5 @@
 #include "LuauBridge.h"
-#include "Luau/Compiler.h"
+#include "CompileSource.h"
 #include <exception>
 #include <memory>
 #include <string>
@@ -36,6 +36,8 @@ WOORF_EXPORT void* woorf_create(WriteOutput write, HostCall host, int gameId, in
         lua_pushcfunction(runtime->state, printValues, "print");
         lua_setglobal(runtime->state, "print");
         initializeInstances(runtime->state, gameId, workspaceId);
+        initializeVector3(runtime->state);
+        initializeCFrame(runtime->state);
         initializeSignals(runtime->state);
         initializeModules(runtime->state);
         initializeSchedulerHelpers(runtime->state);
@@ -74,7 +76,7 @@ WOORF_EXPORT int woorf_run(void* handle, const char* source, size_t length,
             woorf_push_instance(thread, scriptId);
             lua_setglobal(thread, "script");
         }
-        const std::string bytecode = Luau::compile(std::string(source, length));
+        const std::string bytecode = compileSource(std::string(source, length));
         int status = luau_load(thread, chunkName, bytecode.data(), bytecode.size(), 0);
         if (status == 0)
         {

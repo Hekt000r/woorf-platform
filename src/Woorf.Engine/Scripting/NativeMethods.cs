@@ -2,9 +2,23 @@ using System.Runtime.InteropServices;
 
 namespace Woorf.Engine.Scripting;
 
-internal static class NativeMethods
+internal static partial class NativeMethods
 {
     private const string Library = "woorf_luau";
+    [DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern void woorf_push_cframe(nint state, [In, MarshalAs(UnmanagedType.LPArray, SizeConst = 12)] float[] components);
+    [DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int woorf_get_cframe(nint state, int index, [Out, MarshalAs(UnmanagedType.LPArray, SizeConst = 12)] float[] components);
+    [DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int woorf_get_top(nint state);
+    [DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern void woorf_push_vector3(nint state, float x, float y, float z);
+    [DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int woorf_get_vector3(nint state, int index, out float x, out float y, out float z);
+    [DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int woorf_get_number(nint state, int index, out double value);
+    [DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern void woorf_push_number(nint state, double value);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     internal delegate void WriteOutput(nint bytes, nuint length, int isError);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
