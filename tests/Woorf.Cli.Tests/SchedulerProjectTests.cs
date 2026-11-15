@@ -9,6 +9,12 @@ static class SchedulerProjectTests
         yield return ("reports startup script errors after a wait", root =>
             Write(root, "src/ServerScriptService/Main.server.luau", "task.wait(0.001); error('yielded startup failure')"),
             1, "", "yielded startup failure");
+        yield return ("cancels a script's scheduled work when the script is destroyed", ArrangeDestroyedScript,
+            0, "destroyed\n", "");
+        yield return ("cancels a yielding callback when its script is destroyed", ArrangeDestroyedCallback,
+            0, "destroyed\n", "");
+        yield return ("releases module waiters when the loading script is destroyed", ArrangeDestroyedModuleLoader,
+            0, "continued\n", "");
     }
 
     private static void ArrangeSharedModule(string root)
@@ -63,6 +69,51 @@ static class SchedulerProjectTests
     {
         Write(root, "src/ServerScriptService/A.server.luau", "task.defer(function() print('deferred') end)");
         Write(root, "src/ServerScriptService/B.server.luau", "print('startup')");
+    }
+
+    private static void ArrangeDestroyedScript(string root)
+    {
+        Write(root, "src/ServerScriptService/A.server.luau", "task.delay(0.01, function() print('must not run') end)");
+        Write(root, "src/ServerScriptService/B.server.luau", """
+            task.delay(0.001, function()
+                game:GetService("ServerScriptService").A:Destroy()
+                print("destroyed")
+            end)
+            """);
+    }
+
+    private static void ArrangeDestroyedCallback(string root)
+    {
+        Write(root, "src/ServerScriptService/A.server.luau", """
+            workspace.ChildAdded:Connect(function()
+                task.wait(0.01)
+                print("callback survived destruction")
+            end)
+            """);
+        Write(root, "src/ServerScriptService/B.server.luau", """
+            task.delay(0.001, function() Instance.new("Folder", workspace) end)
+            task.delay(0.002, function()
+                game:GetService("ServerScriptService").A:Destroy()
+                print("destroyed")
+            end)
+            """);
+    }
+
+    private static void ArrangeDestroyedModuleLoader(string root)
+    {
+        Write(root, "src/ReplicatedStorage/Slow.luau", "task.wait(0.02); return true");
+        Write(root, "src/ServerScriptService/A.server.luau", """
+            local module = game:GetService("ReplicatedStorage").Slow
+            task.spawn(function() require(module) end)
+            """);
+        Write(root, "src/ServerScriptService/B.server.luau", """
+            local module = game:GetService("ReplicatedStorage").Slow
+            task.delay(0.001, function() game:GetService("ServerScriptService").A:Destroy() end)
+            task.delay(0.002, function()
+                pcall(require, module)
+                print("continued")
+            end)
+            """);
     }
 
     private static void Write(string root, string relative, string source)

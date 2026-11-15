@@ -10,6 +10,9 @@ static class SchedulerCases
         yield return GetWaitForChildCase();
         yield return GetValidationCase();
         yield return GetErrorCase();
+        yield return GetCancelCase();
+        yield return GetCancelSuspendedCase();
+        yield return GetReentrancyLimitCase();
         yield return GetIdleCase();
     }
 
@@ -111,4 +114,32 @@ static class SchedulerCases
             task.spawn(function() workspace.ChildAdded:Wait(); error("must stay suspended") end)
             print("idle")
             """, 0, "idle\n", "");
+
+    private static (string, string?, int, string, string) GetCancelCase() =>
+        ("cancels deferred and delayed work by coroutine", """
+            local ran = false
+            local deferred = task.defer(function() ran = true end)
+            local delayed = task.delay(0.001, function() ran = true end)
+            task.cancel(deferred)
+            task.cancel(delayed)
+            assert(coroutine.status(deferred) == "dead" and coroutine.status(delayed) == "dead")
+            task.wait(0.003)
+            assert(not ran)
+            print("cancelled")
+            """, 0, "cancelled\n", "");
+
+    private static (string, string?, int, string, string) GetCancelSuspendedCase() =>
+        ("cancels a task suspended on a signal", """
+            local thread = task.spawn(function() workspace.ChildAdded:Wait(); error("cancelled task resumed") end)
+            task.cancel(thread)
+            Instance.new("Folder", workspace)
+            task.wait(0.001)
+            print("suspended task cancelled")
+            """, 0, "suspended task cancelled\n", "");
+
+    private static (string, string?, int, string, string) GetReentrancyLimitCase() =>
+        ("bounds recursively spawned task reentrancy", """
+            local function recurse() task.spawn(recurse) end
+            recurse()
+            """, 0, "", "Scheduler reentrancy limit exceeded");
 }

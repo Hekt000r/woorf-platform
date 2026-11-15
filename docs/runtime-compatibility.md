@@ -48,7 +48,7 @@ Try `dotnet run --project src/Woorf.Cli -- examples/signals.luau` for a complete
 ## Limits and deliberate initial conventions
 
 - This is a structural foundation, not a complete Roblox compatibility layer or measured 99% coverage.
-- `task.spawn`, `task.defer`, `task.wait`, `task.delay`, signal `Wait`, yielding callbacks, and `WaitForChild` are supported; see [scheduler semantics](scheduler.md). `ConnectParallel`, deferred Instance event delivery, attributes, tags, and deprecated aliases remain unsupported.
+- `task.spawn`, `task.defer`, `task.wait`, `task.delay`, `task.cancel`, signal `Wait`, yielding callbacks, and `WaitForChild` are supported; see [scheduler semantics](scheduler.md). Destroying a Script cancels its suspended work. `ConnectParallel`, deferred Instance event delivery, attributes, tags, and deprecated aliases remain unsupported.
 - Supported service roots are locked to their DataModel after creation and cannot be destroyed or reparented. This preserves singleton identity; exact class-specific Roblox lifecycle rules remain to be expanded. Workspace starts without Terrain or Camera. Other containers are lazy-created rather than matching Studio's complete default tree.
 - Project scripts begin in deterministic source-path order and may yield while later scripts start. Roblox scheduling phases, Heartbeat, and RunContext semantics are not implemented.
 - LocalScripts load as objects only. There is no client runtime, source editing, or dynamic script startup. Cloning copies stored script source but does not execute a new script automatically.

@@ -80,7 +80,8 @@ WOORF_EXPORT int woorf_run(void* handle, const char* source, size_t length,
         {
             lua_getglobal(thread, "_woorf_start");
             lua_insert(thread, -2);
-            status = lua_pcall(thread, 1, 0, 0);
+            lua_getglobal(thread, "script");
+            status = lua_pcall(thread, 2, 0, 0);
         }
         const int result = status == 0 ? 0 : reportFailure(runtime, thread);
         lua_pop(runtime->state, 1);
