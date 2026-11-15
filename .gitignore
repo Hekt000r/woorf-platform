@@ -1,0 +1,6 @@
+**/bin/
+**/obj/
+artifacts/
+build/
+.local/
+vendor/luau/.git/
