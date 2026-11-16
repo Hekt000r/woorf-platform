@@ -56,7 +56,7 @@ internal sealed partial class BackendBindings : IDisposable
         || instance == game && name == "BindToClose"
         || instance.ClassName == "Teams" && name == "GetTeams"
         || instance.ClassName == "Team" && name == "GetPlayers"
-        || instance == game.Workspace && name is "Raycast" or "_Raycast"
+        || instance == game.Workspace && name is "Raycast" or "_Raycast" or "Spherecast" or "_Spherecast"
         || instance.ClassName == "DataStoreService" && name == "GetDataStore"
         || instance.ClassName == "GlobalDataStore" && name is "GetAsync" or "SetAsync" or "RemoveAsync" or "IncrementAsync" or "UpdateAsync";
 

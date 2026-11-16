@@ -105,9 +105,51 @@ function warn(...)
     _woorf_report(table.concat(arguments, "\t", 1, arguments.n))
 end
 
+local queryParameters = setmetatable({}, {__mode = "k"})
+RaycastParams = table.freeze({new = function()
+    local values = {FilterDescendantsInstances = {}, FilterType = Enum.RaycastFilterType.Exclude, RespectCanCollide = false}
+    local proxy = _woorf_new_proxy({
+        __type = "RaycastParams", __metatable = "The metatable is locked",
+        __index = function(_, key)
+            assert(values[key] ~= nil, "Unsupported RaycastParams member: " .. tostring(key))
+            return if key == "FilterDescendantsInstances" then table.clone(values[key]) else values[key]
+        end,
+        __newindex = function(_, key, value)
+            if key == "FilterDescendantsInstances" then
+                assert(type(value) == "table", "Expected Instance array")
+                local copy = {}
+                for index, instance in value do
+                    assert(type(index) == "number" and index >= 1 and index%1 == 0 and index <= #value
+                        and typeof(instance) == "Instance", "Expected Instance array")
+                    copy[index] = instance
+                end
+                values[key] = copy
+            elseif key == "FilterType" then
+                assert(value == Enum.RaycastFilterType.Exclude or value == Enum.RaycastFilterType.Include, "Expected RaycastFilterType")
+                values[key] = value
+            elseif key == "RespectCanCollide" then
+                assert(type(value) == "boolean", "Expected boolean")
+                values[key] = value
+            else error("Unsupported RaycastParams member: " .. tostring(key), 2) end
+        end,
+    })
+    queryParameters[proxy] = values
+    return proxy
+end})
+local function queryOptions(params)
+    if params == nil then return nil end
+    local values = queryParameters[params]
+    assert(values, "Expected RaycastParams")
+    return {Instances = values.FilterDescendantsInstances, Include = values.FilterType == Enum.RaycastFilterType.Include,
+        RespectCanCollide = values.RespectCanCollide}
+end
 function _woorf_raycast(self, origin, direction, params)
-    assert(params == nil, "RaycastParams are not supported by the headless box query yet")
-    local result = self:_Raycast(origin, direction)
+    local result = self:_Raycast(origin, direction, queryOptions(params))
+    if result == nil then return nil end
+    return makeReadOnly("RaycastResult", result)
+end
+function _woorf_spherecast(self, origin, radius, direction, params)
+    local result = self:_Spherecast(origin, radius, direction, queryOptions(params))
     if result == nil then return nil end
     return makeReadOnly("RaycastResult", result)
 end

@@ -21,6 +21,9 @@ if (args.Length == 2 && args[0] == "--persistence")
 if (args.Length == 1 && args[0] == "--physics-clock")
     return PhysicsClockTests.Run();
 
+if (args.Length == 1 && args[0] == "--physics-foundation")
+    return PhysicsFoundationTests.Run() == 0 ? 0 : 1;
+
 if (args.Length == 2 && args[0] == "--physics-network")
     return await PhysicsNetworkTests.RunAsync(args[1]);
 
@@ -39,7 +42,7 @@ var cases = new (string Name, string? Source, int Exit, string Output, string Er
     .Concat(HierarchyCases.GetCases()).Concat(SignalCases.GetCases())
     .Concat(PartPivotCases.GetCases()).Concat(ModelPivotCases.GetCases())
     .Concat(ModelBoundsCases.GetCases())
-    .Concat(InstanceEventCases.GetCases()).Concat(SchedulerCases.GetCases()).Concat(BackendApiCases.GetCases()).Concat(RuntimeSafetyCases.GetCases()).Concat(PhysicsCases.GetCases()).ToArray();
+    .Concat(InstanceEventCases.GetCases()).Concat(SchedulerCases.GetCases()).Concat(BackendApiCases.GetCases()).Concat(RuntimeSafetyCases.GetCases()).Concat(PhysicsCases.GetCases()).Concat(PhysicsShapeCases.GetCases()).ToArray();
 if (args.Length == 2 && args[0] == "--case")
     cases = cases.Where(test => test.Name.Contains(args[1], StringComparison.OrdinalIgnoreCase)).ToArray();
 var failedCount = 0;
@@ -84,6 +87,7 @@ failedCount += await ProjectTests.RunAsync(cliPath);
 failedCount += await ProjectValidationTests.RunAsync(cliPath);
 failedCount += RuntimeClockTests.Run();
 failedCount += PhysicsClockTests.Run();
+failedCount += PhysicsFoundationTests.Run();
 failedCount += NetworkLifecycleTests.Run();
 failedCount += await SocketTransportTests.RunAsync(cliPath);
 failedCount += await SocketBackpressureTests.RunAsync(cliPath);

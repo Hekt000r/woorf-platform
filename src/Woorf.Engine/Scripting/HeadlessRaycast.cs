@@ -1,11 +1,12 @@
 using Woorf.Engine.DataModel;
 using Woorf.Engine.Datatypes;
+using Woorf.Engine.Physics;
 
 namespace Woorf.Engine.Scripting;
 
 internal static class HeadlessRaycast
 {
-    internal static object? Cast(Instance workspace, object? originValue, object? directionValue)
+    internal static object? Cast(Instance workspace, object? originValue, object? directionValue, object? options = null)
     {
         if (originValue is not Vector3 origin || directionValue is not Vector3 direction)
             throw new InvalidOperationException("Raycast expects Vector3 origin and direction.");
@@ -15,10 +16,16 @@ internal static class HeadlessRaycast
         BasePart? closest = null;
         var fraction = float.PositiveInfinity;
         var normal = new Vector3();
+        var filter = new QueryFilter(options);
         foreach (var part in workspace.GetDescendants().OfType<BasePart>())
         {
+            if (!filter.Allows(part)) continue;
             var inverse = part.CFrame.Inverse();
-            if (!Intersect(inverse.TransformPoint(origin), inverse.TransformVector(direction), part.Size / 2, out var hit, out var localNormal) || hit >= fraction) continue;
+            var localOrigin = inverse.TransformPoint(origin); var localDirection = inverse.TransformVector(direction);
+            var isHit = part is Part { Shape: PartType.Ball }
+                ? ShapeQueries.RaySphere(localOrigin, localDirection, MathF.Min(part.Size.X, MathF.Min(part.Size.Y, part.Size.Z)) * 0.5f, out var hit, out var localNormal)
+                : Intersect(localOrigin, localDirection, part.Size / 2, out hit, out localNormal);
+            if (!isHit || hit >= fraction) continue;
             fraction = hit; closest = part; normal = part.CFrame.TransformVector(localNormal);
         }
         if (closest is null) return null;

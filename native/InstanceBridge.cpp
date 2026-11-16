@@ -10,10 +10,13 @@ static int dispatchHost(lua_State* state)
         && lua_type(state, 2) == LUA_TSTRING)
     {
         const std::string property = lua_tostring(state, 2);
-        if (property == "RunContext")
+        if (property == "RunContext" || property == "Shape")
         {
             const int count = lua_gettop(state);
-            lua_getglobal(state, std::string(operation) == "get" ? "_woorf_context_get" : "_woorf_context_set");
+            const bool isShape = property == "Shape";
+            lua_getglobal(state, std::string(operation) == "get"
+                ? (isShape ? "_woorf_shape_get" : "_woorf_context_get")
+                : (isShape ? "_woorf_shape_set" : "_woorf_context_set"));
             lua_pushvalue(state, 1);
             if (std::string(operation) == "set") lua_pushvalue(state, 3);
             lua_call(state, std::string(operation) == "get" ? 1 : 2, LUA_MULTRET);
@@ -48,6 +51,11 @@ static int dispatchHost(lua_State* state)
 
 WOORF_EXPORT void woorf_push_method(lua_State* state, const char* operation)
 {
+    if (std::string(operation) == "Spherecast")
+    {
+        lua_getglobal(state, "_woorf_spherecast");
+        return;
+    }
     if (std::string(operation) == "AddItem" || std::string(operation) == "Raycast")
     {
         lua_getglobal(state, std::string(operation) == "AddItem" ? "_woorf_add_item" : "_woorf_raycast");

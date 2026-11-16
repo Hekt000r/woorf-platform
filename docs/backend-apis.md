@@ -22,7 +22,7 @@ complete Roblox class coverage or a claim that arbitrary full games can run.
 | Shutdown | BindToClose callbacks run concurrently, may yield, and get up to 30 seconds; completion is based on registered callbacks rather than unrelated subscriptions |
 | Teams | Team creation, Teams:GetTeams, Team:GetPlayers, Player.Team assignment and derived read-only Neutral state |
 | Humanoid | Health/MaxHealth, TakeDamage, HealthChanged and Died; health-only headless state |
-| Raycast | Nearest ray intersection against oriented box Parts; immutable RaycastResult with Instance, Position, Normal and Distance |
+| Queries | Nearest ray and swept-sphere intersections against oriented boxes and spheres; immutable RaycastResult, descendant filters and RespectCanCollide |
 | Color3 | Immutable native single-precision values, new/fromRGB/fromHSV, R/G/B, Lerp and ToHSV; attributes, ValueObjects and remote payloads |
 | RemoteFunction fix | FireServer/FireClient/FireAllClients/OnServerEvent/OnClientEvent lookups are rejected; invoke methods and callbacks still work |
 
@@ -51,9 +51,10 @@ these are local identities rather than external account login.
 
 - Humanoid has health behavior, not a character rig, state machine, movement,
   animation or physics. TakeDamage does not implement ForceField behavior.
-- Raycasts cover current box Parts. RaycastParams, filtering, terrain, meshes,
-  collision groups and the Material result field are not implemented. Passing
-  RaycastParams is rejected rather than silently ignored.
+- Raycast and Spherecast cover boxes and spheres. RaycastParams supports
+  FilterDescendantsInstances, FilterType and RespectCanCollide. Terrain, meshes,
+  CanQuery, collision groups, water and the Material result field remain absent;
+  unsupported parameter fields are rejected. See [physics](physics.md).
 - Teams does not yet implement TeamColor/AutoAssignable or automatic balancing.
   Neutral is currently derived from whether Team is nil.
 - Random uses a deterministic local generator. Its seeded sequence does not claim
@@ -77,7 +78,7 @@ these are local identities rather than external account login.
 
 ## Verification
 
-The complete suite passes 186 checks. Tests include all requested entry paths,
+The complete suite passes 207 checks. Tests include all requested entry paths,
 invalid member access, unsupported values, attribute/tag change behavior, clone
 independence, local and TCP replication, Color3 single-precision roundtrips,
 store scope isolation, separate-process durability and concurrent increments,
@@ -88,7 +89,7 @@ dotnet run --project tests/Woorf.Cli.Tests --no-restore
 dotnet run --project src/Woorf.Cli --no-restore -- docs/api-audit/probes/backend-readiness.luau
 ```
 
-TCP protocol v5 carries the additional replicated backend state and Color3 values.
+TCP protocol v6 carries the additional replicated backend state and Color3 values.
 Older explicit protocol versions are rejected. Use matching server/client builds.
 
 The [round game](../examples/round-game/README.md) also combines these APIs in a

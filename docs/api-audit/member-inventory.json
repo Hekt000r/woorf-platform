@@ -8,9 +8,9 @@
     "Cross-platform or sustained production behavior"
   ],
   "summary": {
-    "implemented-subset": 190,
+    "implemented-subset": 195,
     "legacy-unimplemented": 170,
-    "missing": 511,
+    "missing": 506,
     "restricted-or-nonscriptable": 59
   },
   "members": [
@@ -3387,7 +3387,12 @@
         "properties"
       ],
       "upstreamEntries": 1,
-      "status": "missing"
+      "status": "implemented-subset",
+      "implementation": "src/Woorf.Engine/Scripting/PhysicsBindings.cs",
+      "testEvidence": [
+        "tests/Woorf.Cli.Tests/PhysicsShapeCases.cs"
+      ],
+      "qualification": "Block/Ball shapes and the documented box/sphere query/filter subset only; see docs/physics.md."
     },
     {
       "category": "classes",
@@ -10101,7 +10106,12 @@
         "properties"
       ],
       "upstreamEntries": 1,
-      "status": "missing"
+      "status": "implemented-subset",
+      "implementation": "src/Woorf.Engine/Scripting/BackendTypes.luau",
+      "testEvidence": [
+        "tests/Woorf.Cli.Tests/PhysicsShapeCases.cs"
+      ],
+      "qualification": "Block/Ball shapes and the documented box/sphere query/filter subset only; see docs/physics.md."
     },
     {
       "category": "datatypes",
@@ -10141,7 +10151,12 @@
         "properties"
       ],
       "upstreamEntries": 1,
-      "status": "missing"
+      "status": "implemented-subset",
+      "implementation": "src/Woorf.Engine/Scripting/BackendTypes.luau",
+      "testEvidence": [
+        "tests/Woorf.Cli.Tests/PhysicsShapeCases.cs"
+      ],
+      "qualification": "Block/Ball shapes and the documented box/sphere query/filter subset only; see docs/physics.md."
     },
     {
       "category": "datatypes",
@@ -10151,7 +10166,12 @@
         "properties"
       ],
       "upstreamEntries": 1,
-      "status": "missing"
+      "status": "implemented-subset",
+      "implementation": "src/Woorf.Engine/Scripting/BackendTypes.luau",
+      "testEvidence": [
+        "tests/Woorf.Cli.Tests/PhysicsShapeCases.cs"
+      ],
+      "qualification": "Block/Ball shapes and the documented box/sphere query/filter subset only; see docs/physics.md."
     },
     {
       "category": "datatypes",
@@ -10171,7 +10191,12 @@
         "constructors"
       ],
       "upstreamEntries": 1,
-      "status": "missing"
+      "status": "implemented-subset",
+      "implementation": "src/Woorf.Engine/Scripting/BackendTypes.luau",
+      "testEvidence": [
+        "tests/Woorf.Cli.Tests/PhysicsShapeCases.cs"
+      ],
+      "qualification": "Block/Ball shapes and the documented box/sphere query/filter subset only; see docs/physics.md."
     },
     {
       "category": "datatypes",

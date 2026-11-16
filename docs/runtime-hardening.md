@@ -86,7 +86,7 @@ concurrent progress; it does not add distributed game-session ownership.
 
 ## Reconnect credentials
 
-TCP protocol v5 issues a cryptographically random bearer credential to a new
+TCP protocol v6 issues a cryptographically random bearer credential to a new
 connection. The server stores its hash and stable UserId in project-root/.woorf/auth,
 using locked atomic writes. Existing valid credentials recover the same UserId
 across disconnects and server restarts. Unknown, malformed and duplicate active

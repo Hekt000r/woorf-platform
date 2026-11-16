@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="Woorf.Cli.Tests" />
     <EmbeddedResource Include="Scripting/ScriptLifecycle.luau" />
     <EmbeddedResource Include="Scripting/Scheduler.luau" />
     <EmbeddedResource Include="Scripting/RemoteFunctions.luau" />

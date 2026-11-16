@@ -22,13 +22,13 @@ provide a headless spatial subset.
 
 Server and clients have separate VMs and object graphs. Local hosting and separate
 TCP processes support RemoteEvents, yielding RemoteFunctions, player join/removal,
-Kick and authoritative incremental replication. TCP protocol v5 includes dirty
+Kick and authoritative incremental replication. TCP protocol v6 includes dirty
 capture, bounded nonblocking outgoing queues and transport metrics.
 
 Backend APIs include attributes, tags, ValueObjects, BindableEvent, Color3, Random,
 JSON, Debris, headless Heartbeat, BindToClose, local durable DataStores, basic teams,
 health-only Humanoid and oriented-box raycasts. These are documented subsets;
-characters, character movement and rendering remain incomplete or absent. Basic box physics is implemented in a custom dependency-free C# solver; see [physics](docs/physics.md). Dynamic
+characters, character movement and rendering remain incomplete or absent. Box and sphere physics with character-controller foundations is implemented in a custom dependency-free C# solver; see [physics](docs/physics.md). Dynamic
 script lifecycle, VM budgets, inbound limits and atomic UpdateAsync are implemented.
 DataStores use Woorf's local backend. Saved TCP credentials preserve server-issued identities across reconnects and restarts;
 in-process UserIds remain session identities. External account login is not implemented.
@@ -50,7 +50,7 @@ Maintain explicit implementation limits and extend local behavior tests with eac
 feature. Do not add a Studio behavior-comparison harness. Keep engine state and
 behavior in C# with native and Luau glue for VM integration and scheduling.
 
-The recorded complete-suite baseline is 186 passing checks, and the synthetic
+The recorded complete-suite baseline is 207 passing checks, and the synthetic
 readiness workload reports 19 available and 0 blocked checks. Neither establishes
 arbitrary full-game support. See [build and verification commands](README.md).
 

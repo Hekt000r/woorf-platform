@@ -13,7 +13,7 @@ The C# graph is authoritative. Native Luau userdata hold object identifiers and 
 | CFrame | Position/rotation constructors, composition, inversion, frame/point/direction transforms; see [CFrame](cframe.md) |
 | Model bounds | `GetBoundingBox`, `GetExtentsSize`; pivot-oriented bounds of descendant Parts; see [bounds](bounds.md) |
 | Pivots | Part `PivotOffset`, Part/Model `GetPivot` and `PivotTo`, Model `PrimaryPart`/`WorldPivot`, nested movement; see [pivots](pivots.md) |
-| Part properties | Synchronized `CFrame`/`Position`, `Size`, `Anchored`, size bounds, change signals, cloning; server-side box physics, velocities, collision/material properties |
+| Part properties | Synchronized `CFrame`/`Position`, `Size`, `Anchored`, size bounds, change signals, cloning; server-side box and sphere physics, velocities, collision/material properties |
 | Instance properties | `Name`, `Parent`, `Archivable`; read-only `ClassName`; Script/LocalScript Enabled, Disabled and RunContext subset |
 | Classification | `IsA` follows the supported class inheritance chain; `tostring` returns the name |
 | Enumeration | `GetChildren`, `GetDescendants` return independent arrays of Instance references |
@@ -78,7 +78,7 @@ These links are live references. The [backend audit](backend-api-readiness.md) p
 ## Networking and lifecycle
 
 RemoteEvents, RemoteFunctions, local player identities, join/removal, Kick, and
-isolated server/client VMs are implemented as a subset. TCP protocol v5 supports
+isolated server/client VMs are implemented as a subset. TCP protocol v6 supports
 separate processes, incremental replication, dirty capture, bounded outgoing
 queues, and transport measurements. Read [client/server semantics](client-server.md)
 and [TCP transport](socket-transport.md) for behavior and limits.

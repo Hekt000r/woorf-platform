@@ -3,11 +3,11 @@
   "files": [
     {
       "path": "examples/physics-boxes/src/ServerScriptService/Main.server.luau",
-      "sha256": "f1c43abbfcc60e4133c6475fdbd5968e6f02cd9ff8f0259942be2afda6477d05"
+      "sha256": "8dae1ab59a5631b9117014f3bf3eeeaf9ad4bf030203132fa33b92c45e19ad79"
     },
     {
       "path": "examples/physics-boxes/src/StarterPlayer/StarterPlayerScripts/Observe.client.luau",
-      "sha256": "0b0aea3af0acc2a52198f98921804b9e3efb1f691b2b9538c082eb7595a2f276"
+      "sha256": "2649b1b4a8dfbad808be2bf3492c69f53998b02d20ac8c5c63924077846f22c8"
     },
     {
       "path": "examples/physics-boxes/woorf.project.json",
@@ -55,7 +55,7 @@
     },
     {
       "path": "native/InstanceBridge.cpp",
-      "sha256": "e0806b8873a864899114641697fa72214433e5b762fb1ba0a7a7b905be179c95"
+      "sha256": "3d15b0d2cf49327ad9c81a4852836804049bfe8d25c9ec989ad052119157c828"
     },
     {
       "path": "native/LuauBridge.cpp",
@@ -143,7 +143,7 @@
     },
     {
       "path": "src/Woorf.Engine/DataModel/Part.cs",
-      "sha256": "39241b8e457d8ae424554ed843149c65a885ec9319167d6be9c8266f6587ea6a"
+      "sha256": "96e1d446283f13df0fe785f22fdfe0b7b551f36d835e20c0efba2905bcd328e7"
     },
     {
       "path": "src/Woorf.Engine/DataModel/PartBounds.cs",
@@ -259,7 +259,7 @@
     },
     {
       "path": "src/Woorf.Engine/Networking/ReplicatedPhysicsState.cs",
-      "sha256": "ee77e4a36bf7934b6f0a995b501375fbb4ee4a28a940e460a6ea5981492d8d36"
+      "sha256": "ce0f21d8d990c55264d04d6df79add8a16a02022df3417d9467500c068d89aed"
     },
     {
       "path": "src/Woorf.Engine/Networking/ReplicationUpdates.cs",
@@ -275,7 +275,7 @@
     },
     {
       "path": "src/Woorf.Engine/Networking/SocketPeer.cs",
-      "sha256": "5b827b08a58bfd74b5533cbec26fd8694a416e0eba5e978185a51903ff39a3f1"
+      "sha256": "1cb4ab48e39f4eb91997b7a4d0c8e32486920415aad141617125030e2cca7332"
     },
     {
       "path": "src/Woorf.Engine/Networking/SocketRuntime.Client.cs",
@@ -322,16 +322,28 @@
       "sha256": "44bf7e348a464285b0e0d98d1f65d6a488d6b7916568ccfeb3af589f8be3b7ea"
     },
     {
+      "path": "src/Woorf.Engine/Physics/PhysicsContact.cs",
+      "sha256": "17d1a5529445bddab646a0e28b92628e526ad9162dd0cbe9a2bc4e99e08290d4"
+    },
+    {
       "path": "src/Woorf.Engine/Physics/PhysicsSolver.cs",
-      "sha256": "3ed05d4d6e3a90f5fbbc0d429c5f919d66e99bf2adda4c284092be78e9745ac0"
+      "sha256": "2e48f8aa8345a58127b4b0d37fdc4e46daeecf3020b4a574267c226c2ce98d46"
     },
     {
       "path": "src/Woorf.Engine/Physics/PhysicsWorld.cs",
-      "sha256": "5fec58e2eafc2f7b6563cf0a7f9d98b903d87693cd1058472c8b494fae3947f4"
+      "sha256": "2576f6dfd1be8c5bafeca8409a2cd671cefe9e8e5c0da47f7dc89a067e0027a2"
     },
     {
       "path": "src/Woorf.Engine/Physics/RigidBody.cs",
-      "sha256": "8db6ab3dde4ae5b8ab45ba6f9749cd2228daa8bd6ef7a277bbd036e54197a02a"
+      "sha256": "d49d49644fb5e762946341628a834b17d69ce7f920a4ed65cf11ebc9ef6cacc7"
+    },
+    {
+      "path": "src/Woorf.Engine/Physics/ShapeCollision.cs",
+      "sha256": "20c2cb6d7c5d3a15d7b886a158334d479e76fbe3f832a0a82dc424f7c13d84b7"
+    },
+    {
+      "path": "src/Woorf.Engine/Physics/ShapeQueries.cs",
+      "sha256": "01eaf403d8c1cfccfe3c7d6969963d2e34644b94ed8466070077d9806a47228d"
     },
     {
       "path": "src/Woorf.Engine/Projects/LoadedProject.cs",
@@ -351,7 +363,7 @@
     },
     {
       "path": "src/Woorf.Engine/Scripting/BackendBindings.Methods.cs",
-      "sha256": "1bee5626fee00e0769fe81a482de73afad60f5d15785a8a4f51af9d8993ac3e6"
+      "sha256": "d45872319cc7c901a83ad18b94d46a50a1fa9361eaab1712c384b5afa9a63c17"
     },
     {
       "path": "src/Woorf.Engine/Scripting/BackendBindings.Persistence.cs",
@@ -359,7 +371,7 @@
     },
     {
       "path": "src/Woorf.Engine/Scripting/BackendBindings.cs",
-      "sha256": "53d9c897d36a835fd52c13229dd0e200b1e30eb595d8614ae800b2c722a37016"
+      "sha256": "e70efdb5b5e4322003e57c406c17878a88a345fb9e30042f415d00b262e751eb"
     },
     {
       "path": "src/Woorf.Engine/Scripting/BackendJson.cs",
@@ -367,7 +379,7 @@
     },
     {
       "path": "src/Woorf.Engine/Scripting/BackendTypes.luau",
-      "sha256": "faa809299c379f204f3682337b9a13a989403439e29cb81bd11ed123b1cf3ac2"
+      "sha256": "4ca21109610d6d6b3b2fc9dfa95e9ed1bc10f3d99ef898a571d286e069f636ae"
     },
     {
       "path": "src/Woorf.Engine/Scripting/CFrameBindings.cs",
@@ -383,7 +395,11 @@
     },
     {
       "path": "src/Woorf.Engine/Scripting/HeadlessRaycast.cs",
-      "sha256": "9b5fb2416ecc7627f67014c5a38e20193129f16e0cf126fdfec95e53cddb1794"
+      "sha256": "c7303574281f939fe505ed85f31ffc976769e689174b2aa07e3db433d8ef9e67"
+    },
+    {
+      "path": "src/Woorf.Engine/Scripting/HeadlessSpherecast.cs",
+      "sha256": "d49347fd74d603fe52aebf34cdff980ad2d522fc0b37512608cdafc2474d1b43"
     },
     {
       "path": "src/Woorf.Engine/Scripting/InstanceBindings.cs",
@@ -415,7 +431,11 @@
     },
     {
       "path": "src/Woorf.Engine/Scripting/PhysicsBindings.cs",
-      "sha256": "08d5360c9d0b225dfdade58193e5a3ecc95019bbcc52319f278d5b3d9e0cd741"
+      "sha256": "a40235084000765e29d24e574afaf67fbca8bf205cf5819778776adddebc40fd"
+    },
+    {
+      "path": "src/Woorf.Engine/Scripting/QueryFilter.cs",
+      "sha256": "22c0e2fb55957b9165b7312f354e618afef4e8981a2c888e825a900530723a01"
     },
     {
       "path": "src/Woorf.Engine/Scripting/RemoteFunctions.luau",
@@ -431,7 +451,7 @@
     },
     {
       "path": "src/Woorf.Engine/Scripting/ScriptLifecycle.luau",
-      "sha256": "842296db7fd0eba1dafe0887f1588f303c526bc3a6ff255e659e59701a1af7bf"
+      "sha256": "a48b9670ed7d23cc8c65383866bfdd353730d955e26c9f7e7abba1218f022291"
     },
     {
       "path": "src/Woorf.Engine/Scripting/SignalBindings.cs",
@@ -443,7 +463,7 @@
     },
     {
       "path": "src/Woorf.Engine/Woorf.Engine.csproj",
-      "sha256": "768799b7f404890964cda1e18832f86ff7379ec609565314180e5ab69606fb1b"
+      "sha256": "0756ce273c643a2545769d4249800d9322f12d3c2ec2e7268ad2e6397874f2f8"
     },
     {
       "path": "tests/Woorf.Cli.Tests/BackendApiCases.cs",
@@ -534,8 +554,16 @@
       "sha256": "e7800ea2effaa392ef932d74ace9086c17c92be6b6237019bf226a0a1b549640"
     },
     {
+      "path": "tests/Woorf.Cli.Tests/PhysicsFoundationTests.cs",
+      "sha256": "1342a0443d4b8d77f3decbb4eaee0903c652761ef2b5d055665b67822f6e6ed1"
+    },
+    {
       "path": "tests/Woorf.Cli.Tests/PhysicsNetworkTests.cs",
-      "sha256": "6770644b6efcd8170df85bfeb52c7a587e8040ef8e23f243e5cd64b5486d9105"
+      "sha256": "d6dadd2df48236452d901cecd66a8c2d766a56862061a002bee5093047c98d14"
+    },
+    {
+      "path": "tests/Woorf.Cli.Tests/PhysicsShapeCases.cs",
+      "sha256": "3be30398444a33734715220270461c66fe7cd8107e9dd553d2777ed38f2f66d9"
     },
     {
       "path": "tests/Woorf.Cli.Tests/PlayerLifecycleCases.cs",
@@ -543,7 +571,7 @@
     },
     {
       "path": "tests/Woorf.Cli.Tests/Program.cs",
-      "sha256": "e9be8f03ec91a69d523ff3393cf0d37015545c6ebdb1b9565f5b0ad855ba693c"
+      "sha256": "609ba936e7bee3ebca99f70b4c44228beab14ed415470d3b5e3efe4f9dce44f8"
     },
     {
       "path": "tests/Woorf.Cli.Tests/ProjectTests.cs",
@@ -595,7 +623,7 @@
     },
     {
       "path": "tests/Woorf.Cli.Tests/SocketProtocolTests.cs",
-      "sha256": "917e039de6e849c4547a61c393369513019a36356175a557b85fa86a420c78fc"
+      "sha256": "eecb944bf48d0ee32965f78ecadd49e4e1b0ac12d0539ce4fd3c6c81de0fdddb"
     },
     {
       "path": "tests/Woorf.Cli.Tests/SocketTestClient.cs",

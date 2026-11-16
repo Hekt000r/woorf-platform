@@ -27,7 +27,9 @@ internal sealed partial class BackendBindings
             case "GetTeams": result = List(state, instance.GetChildren().Where(child => child.ClassName == "Team")); break;
             case "GetPlayers": result = List(state, ((Players)game.GetService("Players")).GetPlayers().Where(player => player.Team == instance)); break;
             case "Raycast":
-            case "_Raycast": result = Push(state, HeadlessRaycast.Cast(game.Workspace, Read(state, 2), Read(state, 3))); break;
+            case "_Raycast": result = Push(state, HeadlessRaycast.Cast(game.Workspace, Read(state, 2), Read(state, 3), Read(state, 4))); break;
+            case "Spherecast":
+            case "_Spherecast": result = Push(state, HeadlessSpherecast.Cast(game.Workspace, Read(state, 2), Number(state, 3), Read(state, 4), Read(state, 5))); break;
             case "BindToClose":
                 var reference = woorf_ref_shutdown(state, 2);
                 if (reference <= 0) throw new InvalidOperationException("Expected shutdown function.");

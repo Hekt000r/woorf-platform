@@ -10,6 +10,7 @@ internal static class PhysicsBindings
     {
         if (instance is Workspace workspace && property == "Gravity") { codec.Push(state, workspace.Gravity); return true; }
         if (instance is not BasePart part) return false;
+        if (part is Part shaped && property == "_Shape") { codec.Push(state, (double)shaped.Shape); return true; }
         object? value = property switch
         {
             "AssemblyLinearVelocity" => part.AssemblyLinearVelocity,
@@ -29,6 +30,12 @@ internal static class PhysicsBindings
             return true;
         }
         if (instance is not BasePart part) return false;
+        if (part is Part shaped && property == "_Shape")
+        {
+            var value = codec.ReadValue(state, 3);
+            if (value is not double number || number is not (0 or 1)) throw new ArgumentException("Unsupported Part shape.");
+            shaped.Shape = (PartType)(int)number; return true;
+        }
         switch (property)
         {
             case "AssemblyLinearVelocity": part.AssemblyLinearVelocity = Vector3Bindings.Read(state, 3); break;

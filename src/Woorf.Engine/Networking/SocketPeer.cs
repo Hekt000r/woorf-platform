@@ -6,7 +6,7 @@ using Woorf.Engine.DataModel;
 
 namespace Woorf.Engine.Networking;
 
-internal sealed record WirePacket(string Kind, int Version = 5, int Player = 0, int Remote = 0,
+internal sealed record WirePacket(string Kind, int Version = 6, int Player = 0, int Remote = 0,
     WireValue[]? Arguments = null, WireNode[]? Nodes = null,
     WirePatch[]? Updates = null, int[]? Removed = null, string? Credential = null);
 
@@ -57,7 +57,7 @@ internal sealed class SocketPeer : IDisposable
                     inbound?.Dispatch();
                     var packet = JsonSerializer.Deserialize<WirePacket>(buffer.AsSpan(4, length), Options)
                         ?? throw new InvalidDataException("Empty socket packet.");
-                    if (packet.Version != 5) throw new InvalidDataException("Unsupported socket protocol version.");
+                    if (packet.Version != 6) throw new InvalidDataException("Unsupported socket protocol version.");
                     packets.Add(packet);
                     count -= length + 4;
                     Buffer.BlockCopy(buffer, length + 4, buffer, 0, count);

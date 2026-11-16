@@ -35,7 +35,7 @@ static class PhysicsNetworkTests
             if (await server.StandardOutput.ReadLineAsync(timeout.Token) != "physics-server") throw new Exception("Physics scene did not complete.");
             await server.StandardInput.WriteLineAsync("stop"); await server.WaitForExitAsync(timeout.Token);
             if (server.ExitCode != 0 || await serverError != "") throw new Exception("Physics server failed: " + await serverError);
-            Console.WriteLine("PASS physics replicates falling and settled boxes with velocities and materials to two TCP clients");
+            Console.WriteLine("PASS physics replicates boxes spheres and runtime shape changes to two TCP clients");
             return 0;
         }
         catch (Exception error) { Console.Error.WriteLine("FAIL physics TCP scene: " + error.Message); return 1; }
