@@ -10,7 +10,7 @@ The initial surface includes `Vector3.new(x?, y?, z?)`, `zero`, `one`, `xAxis`, 
 
 Explicit property assignments publish `Changed` and the corresponding `GetPropertyChangedSignal` after an effective value change. Equal assignments, including assignments that clamp to the existing Size, publish no notification. Clones preserve spatial state and have independent signals and property values.
 
-This is a headless property subset. Anchored is stored state; there is no gravity, collision response, rendering or assembly simulation. Supported Part state replicates through the [client/server runtime](client-server.md); Workspace also supports [oriented-box raycasts](backend-apis.md). Position and CFrame are synchronized; see [CFrame and Part transforms](cframe.md). Joint movement and overlap resolution remain unimplemented. Shape and other Part-specific APIs remain unsupported. Filesystem metadata still supports only Folder, Model, and Configuration; create Parts from scripts.
+This is a headless spatial subset. Anchored now controls participation in the [custom box-physics solver](physics.md), which adds gravity and collision response. Rendering and joined assemblies remain unsupported. Supported Part state replicates through the [client/server runtime](client-server.md); Workspace also supports [oriented-box raycasts](backend-apis.md). Position and CFrame are synchronized; see [CFrame and Part transforms](cframe.md). Joint movement remains unsupported; box contact response is covered in the physics subset. Shape and other Part-specific APIs remain unsupported. Filesystem metadata still supports only Folder, Model, and Configuration; create Parts from scripts.
 
 Run `examples/parts.luau` for a script that creates, moves, observes, and clones a Part.
 

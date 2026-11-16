@@ -18,6 +18,12 @@ if (args.Length == 2 && args[0] == "--identities")
 if (args.Length == 2 && args[0] == "--persistence")
     return await BackendPersistenceTests.RunAsync(args[1]);
 
+if (args.Length == 1 && args[0] == "--physics-clock")
+    return PhysicsClockTests.Run();
+
+if (args.Length == 2 && args[0] == "--physics-network")
+    return await PhysicsNetworkTests.RunAsync(args[1]);
+
 // These cases catch skipped execution, lost output, Lua substitution, and swallowed errors.
 var cliPath = Path.Combine(AppContext.BaseDirectory, "Woorf.Cli.dll");
 var cases = new (string Name, string? Source, int Exit, string Output, string Error)[]
@@ -33,7 +39,7 @@ var cases = new (string Name, string? Source, int Exit, string Output, string Er
     .Concat(HierarchyCases.GetCases()).Concat(SignalCases.GetCases())
     .Concat(PartPivotCases.GetCases()).Concat(ModelPivotCases.GetCases())
     .Concat(ModelBoundsCases.GetCases())
-    .Concat(InstanceEventCases.GetCases()).Concat(SchedulerCases.GetCases()).Concat(BackendApiCases.GetCases()).Concat(RuntimeSafetyCases.GetCases()).ToArray();
+    .Concat(InstanceEventCases.GetCases()).Concat(SchedulerCases.GetCases()).Concat(BackendApiCases.GetCases()).Concat(RuntimeSafetyCases.GetCases()).Concat(PhysicsCases.GetCases()).ToArray();
 if (args.Length == 2 && args[0] == "--case")
     cases = cases.Where(test => test.Name.Contains(args[1], StringComparison.OrdinalIgnoreCase)).ToArray();
 var failedCount = 0;
@@ -77,6 +83,7 @@ failedCount += await NetworkProjectTests.RunAsync(cliPath);
 failedCount += await ProjectTests.RunAsync(cliPath);
 failedCount += await ProjectValidationTests.RunAsync(cliPath);
 failedCount += RuntimeClockTests.Run();
+failedCount += PhysicsClockTests.Run();
 failedCount += NetworkLifecycleTests.Run();
 failedCount += await SocketTransportTests.RunAsync(cliPath);
 failedCount += await SocketBackpressureTests.RunAsync(cliPath);
@@ -87,4 +94,5 @@ failedCount += await ReferenceGameTests.RunAsync(cliPath);
 failedCount += await ScriptLifecycleTests.RunAsync(cliPath);
 failedCount += await InboundLimitTests.RunAsync(cliPath);
 failedCount += await StableIdentityTests.RunAsync(cliPath);
+failedCount += await PhysicsNetworkTests.RunAsync(cliPath);
 return failedCount == 0 ? 0 : 1;

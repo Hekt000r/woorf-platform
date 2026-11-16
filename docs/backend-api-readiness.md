@@ -25,8 +25,8 @@ denominator. Selection favors existing runtime types and common backend gaps.
 
 | Classification | Selected unique symbols | Meaning |
 | --- | ---: | --- |
-| Implemented subset | 179 | A corresponding binding exists; full behavioral/overload compatibility is not established |
-| Missing | 522 | No reviewed implementation in this runtime |
+| Implemented subset | 190 | A corresponding binding exists; full behavioral/overload compatibility is not established |
+| Missing | 511 | No reviewed implementation in this runtime |
 | Legacy unimplemented | 170 | Deprecated reference members without reviewed implementation |
 | Restricted or nonscriptable | 59 | Reference security/tags place the member outside ordinary script access |
 
@@ -60,7 +60,7 @@ No Studio comparison harness was used.
 | Luau execution | Official embedded Luau; isolated scripts and ModuleScript caches | Numeric/path requires and broader Roblox environment globals remain incomplete; supported dynamic lifecycle now works |
 | Instance graph | Identity, names, parenting, traversal, lookup, clone/destroy, signals | Attributes, tags and typed ValueObjects now work; most subclasses remain absent |
 | Scheduler | task spawn/defer/delay/wait/cancel, yielding listeners, signal waits, WaitForChild | Heartbeat works; simulation phases and parallel APIs remain absent; VM execution budgets now apply |
-| Spatial math | Vector3 core, CFrame core, Part transforms, model pivots/bounds | Color3 and box raycasts work; Enum, physics, collision and broad Part properties remain incomplete |
+| Spatial math | Vector3 core, CFrame core, Part transforms, model pivots/bounds | Color3, raycasts and custom box physics work; broader Enum, shapes, joints and Part properties remain incomplete |
 | Player lifecycle | LocalPlayer, UserId, GetPlayers, join/removal notifications, Kick | TCP credentials preserve local identities across restart; in-process identities remain session-based; external accounts, characters and full profile APIs remain absent |
 | Remotes | RemoteEvents and yielding RemoteFunctions, tuple/table/value/reference copying | Documented value restrictions and headless shutdown conventions remain; see networking docs |
 | Replication | Initial snapshots, property deltas, dirty capture, visibility transitions | Implemented properties only; no streaming, ownership, asset pipeline, or general-purpose place import |
@@ -81,7 +81,7 @@ identities and one round per server session; it is not a port of an existing gam
 
 ## Executable readiness results
 
-The complete integration command now passes with **171 PASS checks**:
+The complete integration command now passes with **186 PASS checks**:
 
 ```powershell
 dotnet run --project tests/Woorf.Cli.Tests --no-restore

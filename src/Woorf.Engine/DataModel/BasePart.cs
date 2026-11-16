@@ -2,7 +2,7 @@ using Woorf.Engine.Datatypes;
 
 namespace Woorf.Engine.DataModel;
 
-public abstract class BasePart : Instance
+public abstract partial class BasePart : Instance
 {
     private readonly PivotMovement movement = new();
     private CFrame cframe = CFrame.Identity;
@@ -78,7 +78,7 @@ public abstract class BasePart : Instance
     }
 
     protected override bool HasProperty(string property) =>
-        property is "Position" or "CFrame" or "PivotOffset" or "Size" or "Anchored" || base.HasProperty(property);
+        property is "Position" or "CFrame" or "PivotOffset" or "Size" or "Anchored" || HasPhysicsProperty(property) || base.HasProperty(property);
 
     protected override void CopyPropertiesTo(Instance clone)
     {
@@ -87,5 +87,6 @@ public abstract class BasePart : Instance
         part.pivotOffset = pivotOffset;
         part.size = size;
         part.isAnchored = isAnchored;
+        CopyPhysicsTo(part);
     }
 }

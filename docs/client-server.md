@@ -16,7 +16,7 @@ Players exposes LocalPlayer on clients, GetPlayers, PlayerAdded and PlayerRemovi
 
 Server-visible shared state replicates to client copies; client mutations do not write into the server graph. Shared Instance references in remote messages resolve to the receiving endpoint's corresponding object. References unavailable to the receiver become nil. Argument tables are copied, rather than sharing memory across endpoints. Supported payloads include nil-preserving tuples, tables, booleans, numbers, strings, Vector3, CFrame, Color3 and mapped Instance references. Supported shared properties, attributes, tags, typed values, health and team state replicate; see [backend APIs](backend-apis.md) and [incremental TCP replication](socket-transport.md#runtime-behavior).
 
-UnreliableRemoteEvent, external account authentication, characters, physics ownership, streaming, and Roblox scheduling/network-rate fidelity remain future work. Indefinite waits alone do not keep finite local CLI runs alive; queued work and timers drain before exit. Active Heartbeat subscriptions keep the scheduler alive. TCP listeners and connected clients remain alive for network input.
+UnreliableRemoteEvent, external account authentication, characters, client physics ownership, streaming, and Roblox scheduling/network-rate fidelity remain future work. Indefinite waits alone do not keep finite local CLI runs alive; queued work and timers drain before exit. Active Heartbeat subscriptions keep the scheduler alive. TCP listeners and connected clients remain alive for network input.
 
 ## RemoteFunctions
 

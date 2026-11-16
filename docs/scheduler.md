@@ -33,3 +33,7 @@ dotnet run --project src/Woorf.Cli -- examples/scheduler.luau
 ```
 
 References: Roblox's [task library](https://create.roblox.com/docs/reference/engine/libraries/task), [RBXScriptSignal](https://create.roblox.com/docs/reference/engine/datatypes/RBXScriptSignal), and [Instance](https://create.roblox.com/docs/reference/engine/classes/Instance). Exact Roblox scheduling phases and timing are not reproduced by this headless implementation.
+
+Server-side [physics](physics.md) advances in fixed steps before Heartbeat and
+scheduled continuations. Dynamic bodies request fixed-step wakeups while timers
+are pending; physics alone does not keep a finite CLI run alive.

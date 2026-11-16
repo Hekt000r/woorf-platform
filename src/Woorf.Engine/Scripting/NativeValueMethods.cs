@@ -5,6 +5,11 @@ namespace Woorf.Engine.Scripting;
 internal static partial class NativeMethods
 {
     [DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern void woorf_push_physical_properties(nint state, [In, MarshalAs(UnmanagedType.LPArray, SizeConst = 5)] float[] values);
+    [DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int woorf_get_physical_properties(nint state, int index, [Out, MarshalAs(UnmanagedType.LPArray, SizeConst = 5)] float[] values);
+
+    [DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
     internal static extern int woorf_transform(nint state, int callbackIndex);
 
     [DllImport(Library, CallingConvention = CallingConvention.Cdecl)]

@@ -8,9 +8,9 @@
     "Cross-platform or sustained production behavior"
   ],
   "summary": {
-    "implemented-subset": 179,
+    "implemented-subset": 190,
     "legacy-unimplemented": 170,
-    "missing": 522,
+    "missing": 511,
     "restricted-or-nonscriptable": 59
   },
   "members": [
@@ -1446,7 +1446,12 @@
         "properties"
       ],
       "upstreamEntries": 1,
-      "status": "missing"
+      "status": "implemented-subset",
+      "implementation": "src/Woorf.Engine/Scripting/PhysicsBindings.cs",
+      "testEvidence": [
+        "tests/Woorf.Cli.Tests/PhysicsCases.cs",
+        "tests/Woorf.Cli.Tests/PhysicsNetworkTests.cs"
+      ]
     },
     {
       "category": "classes",
@@ -2288,7 +2293,12 @@
         "properties"
       ],
       "upstreamEntries": 1,
-      "status": "missing"
+      "status": "implemented-subset",
+      "implementation": "src/Woorf.Engine/Scripting/PhysicsBindings.cs",
+      "testEvidence": [
+        "tests/Woorf.Cli.Tests/PhysicsCases.cs",
+        "tests/Woorf.Cli.Tests/PhysicsNetworkTests.cs"
+      ]
     },
     {
       "category": "classes",
@@ -2308,7 +2318,12 @@
         "properties"
       ],
       "upstreamEntries": 1,
-      "status": "missing"
+      "status": "implemented-subset",
+      "implementation": "src/Woorf.Engine/Scripting/PhysicsBindings.cs",
+      "testEvidence": [
+        "tests/Woorf.Cli.Tests/PhysicsCases.cs",
+        "tests/Woorf.Cli.Tests/PhysicsNetworkTests.cs"
+      ]
     },
     {
       "category": "classes",
@@ -2448,7 +2463,12 @@
         "properties"
       ],
       "upstreamEntries": 1,
-      "status": "missing"
+      "status": "implemented-subset",
+      "implementation": "src/Woorf.Engine/Scripting/PhysicsBindings.cs",
+      "testEvidence": [
+        "tests/Woorf.Cli.Tests/PhysicsCases.cs",
+        "tests/Woorf.Cli.Tests/PhysicsNetworkTests.cs"
+      ]
     },
     {
       "category": "classes",
@@ -2554,7 +2574,12 @@
         "properties"
       ],
       "upstreamEntries": 1,
-      "status": "missing"
+      "status": "implemented-subset",
+      "implementation": "src/Woorf.Engine/Scripting/PhysicsBindings.cs",
+      "testEvidence": [
+        "tests/Woorf.Cli.Tests/PhysicsCases.cs",
+        "tests/Woorf.Cli.Tests/PhysicsNetworkTests.cs"
+      ]
     },
     {
       "category": "classes",
@@ -9577,7 +9602,11 @@
         "properties"
       ],
       "upstreamEntries": 1,
-      "status": "missing"
+      "status": "implemented-subset",
+      "implementation": "native/PhysicalPropertiesBridge.cpp",
+      "testEvidence": [
+        "tests/Woorf.Cli.Tests/PhysicsCases.cs"
+      ]
     },
     {
       "category": "datatypes",
@@ -9587,7 +9616,11 @@
         "properties"
       ],
       "upstreamEntries": 1,
-      "status": "missing"
+      "status": "implemented-subset",
+      "implementation": "native/PhysicalPropertiesBridge.cpp",
+      "testEvidence": [
+        "tests/Woorf.Cli.Tests/PhysicsCases.cs"
+      ]
     },
     {
       "category": "datatypes",
@@ -9597,7 +9630,11 @@
         "properties"
       ],
       "upstreamEntries": 1,
-      "status": "missing"
+      "status": "implemented-subset",
+      "implementation": "native/PhysicalPropertiesBridge.cpp",
+      "testEvidence": [
+        "tests/Woorf.Cli.Tests/PhysicsCases.cs"
+      ]
     },
     {
       "category": "datatypes",
@@ -9607,7 +9644,11 @@
         "properties"
       ],
       "upstreamEntries": 1,
-      "status": "missing"
+      "status": "implemented-subset",
+      "implementation": "native/PhysicalPropertiesBridge.cpp",
+      "testEvidence": [
+        "tests/Woorf.Cli.Tests/PhysicsCases.cs"
+      ]
     },
     {
       "category": "datatypes",
@@ -9617,7 +9658,11 @@
         "properties"
       ],
       "upstreamEntries": 1,
-      "status": "missing"
+      "status": "implemented-subset",
+      "implementation": "native/PhysicalPropertiesBridge.cpp",
+      "testEvidence": [
+        "tests/Woorf.Cli.Tests/PhysicsCases.cs"
+      ]
     },
     {
       "category": "datatypes",
@@ -9630,7 +9675,12 @@
         "constructors"
       ],
       "upstreamEntries": 4,
-      "status": "missing"
+      "status": "implemented-subset",
+      "implementation": "native/PhysicalPropertiesBridge.cpp",
+      "testEvidence": [
+        "tests/Woorf.Cli.Tests/PhysicsCases.cs"
+      ],
+      "notes": "Numeric 3/5-argument constructors only; Material and acoustic-absorption overloads remain unsupported."
     },
     {
       "category": "datatypes",

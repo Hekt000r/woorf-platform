@@ -16,7 +16,7 @@ static class NetworkIsolationCases
         Write(root, "src/ServerScriptService/Main.server.luau", """
             local storage = game:GetService("ReplicatedStorage")
             local remote = Instance.new("RemoteEvent", storage); remote.Name = "Message"
-            local part = Instance.new("Part", workspace); part.Name = "SharedPart"
+            local part = Instance.new("Part", workspace); part.Name = "SharedPart"; part.Anchored = true
             part.Position = Vector3.new(1,2,3)
             local shared = require(storage.Shared); shared.Count = 100
             local ready, done = 0, 0

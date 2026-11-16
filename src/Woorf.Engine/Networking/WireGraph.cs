@@ -5,7 +5,7 @@ namespace Woorf.Engine.Networking;
 
 internal sealed record WireNode(int Id, string ClassName, string Name, int Parent, bool Archivable,
     int UserId, string Source, float[] Frame, float[] Pivot, float[] Size, bool Anchored,
-    float[] WorldPivot, int PrimaryPart, WireBackendState? Backend = null, bool Enabled = true, int RunContext = 0);
+    float[] WorldPivot, int PrimaryPart, WireBackendState? Backend = null, bool Enabled = true, int RunContext = 0, WirePhysicsState? Physics = null);
 
 internal sealed partial class WireGraph
 {
@@ -46,7 +46,7 @@ internal sealed partial class WireGraph
             state.UserId, state.Source,
             state.Frame.GetComponents(), state.PivotOffset.GetComponents(),
             [state.Size.X, state.Size.Y, state.Size.Z], state.Anchored,
-            state.WorldPivot.GetComponents(), state.PrimaryPart is null ? 0 : Identify(state.PrimaryPart), state.Backend?.Encode(Identify), state.Enabled, state.RunContext);
+            state.WorldPivot.GetComponents(), state.PrimaryPart is null ? 0 : Identify(state.PrimaryPart), state.Backend?.Encode(Identify), state.Enabled, state.RunContext, state.Physics?.Encode());
     }
 
     internal void Apply(WireNode[] nodes)
@@ -86,7 +86,7 @@ internal sealed partial class WireGraph
             CFrame.FromComponents(node.Frame), CFrame.FromComponents(node.Pivot),
             new(node.Size[0], node.Size[1], node.Size[2]), node.Anchored,
             CFrame.FromComponents(node.WorldPivot), instances.GetValueOrDefault(node.PrimaryPart) as BasePart,
-            node.UserId, node.Source, node.Backend?.Decode(id => instances.GetValueOrDefault(id)), node.Enabled, node.RunContext);
+            node.UserId, node.Source, node.Backend?.Decode(id => instances.GetValueOrDefault(id)), node.Enabled, node.RunContext, node.Physics?.Decode());
         var previous = snapshots.GetValueOrDefault(node.Id);
         if (previous is null || previous.Name != next.Name) instance.Name = next.Name;
         if (previous is null || previous.Archivable != next.Archivable) instance.Archivable = next.Archivable;

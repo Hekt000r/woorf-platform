@@ -11,6 +11,7 @@ static class SocketProtocolTests
         await RejectAsync(address, "{\"Kind\":\"hello\",\"Version\":1}", false, cancellation);
         await RejectAsync(address, "{\"Kind\":\"hello\",\"Version\":2}", false, cancellation);
         await RejectAsync(address, "{\"Kind\":\"hello\",\"Version\":3}", false, cancellation);
+        await RejectAsync(address, "{\"Kind\":\"hello\",\"Version\":4}", false, cancellation);
         await RejectAsync(address, "{\"Kind\":\"hello\",\"Version\":999}", false, cancellation);
         await RejectAsync(address, "", true, cancellation);
         await RejectRemoteAsync(address, false, cancellation);
@@ -92,7 +93,7 @@ static class SocketProtocolTests
         var endpoint = IPEndPoint.Parse(address);
         using var client = new TcpClient();
         await client.ConnectAsync(endpoint.Address, endpoint.Port, cancellation);
-        await WriteAsync(client, "{\"Kind\":\"hello\",\"Version\":4}", cancellation);
+        await WriteAsync(client, "{\"Kind\":\"hello\",\"Version\":5}", cancellation);
         using var welcome = await ReadFrameAsync(client, cancellation) ?? throw new Exception("Missing welcome.");
         var remote = nullArgument
             ? welcome.RootElement.GetProperty("Nodes").EnumerateArray().Single(node => node.GetProperty("Name").GetString() == "Message").GetProperty("Id").GetInt32()

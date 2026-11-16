@@ -54,6 +54,7 @@ internal sealed class LuaValueCodec(Func<Instance?, int> getInstanceId, Func<int
             10 => Vector3Bindings.Read(state, index),
             11 => CFrameBindings.Read(state, index),
             12 => ReadColor(state, index),
+            13 => PhysicsBindings.ReadMaterial(state, index),
             _ => throw new InvalidOperationException("Unsupported remote argument type."),
         };
     }
@@ -114,6 +115,7 @@ internal sealed class LuaValueCodec(Func<Instance?, int> getInstanceId, Func<int
             case Instance instance: woorf_push_instance(state, getInstanceId(instance)); break;
             case Vector3 vector: Vector3Bindings.Push(state, vector); break;
             case CFrame frame: CFrameBindings.Push(state, frame); break;
+            case PhysicalProperties material: woorf_push_physical_properties(state, material.GetComponents()); break;
             case Color3 color: woorf_push_color3(state, color.R, color.G, color.B); break;
             case LuaTableValue table: PushTable(state, table, depth); break;
             default: throw new InvalidOperationException("Unsupported callback argument type.");

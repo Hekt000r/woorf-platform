@@ -20,6 +20,7 @@ internal sealed record WireValue(string Kind, double Number = 0, string? Text = 
             long number => new("number", number),
             Instance instance => new("instance", identify(instance)),
             Vector3 vector => new("vector", Components: [vector.X, vector.Y, vector.Z]),
+            PhysicalProperties material => new("physical", Components: material.GetComponents()),
             Color3 color => new("color", Components: [color.R, color.G, color.B]),
             CFrame frame => new("frame", Components: frame.GetComponents()),
             LuaTableValue table => new("table", Items: table.Entries.SelectMany(entry => new[]
@@ -42,6 +43,7 @@ internal sealed record WireValue(string Kind, double Number = 0, string? Text = 
             "instance" when Number >= 0 && Number <= int.MaxValue && Number == Math.Truncate(Number) => find((int)Number),
             "vector" when Components?.Length == 3 => new Vector3(Components[0], Components[1], Components[2]),
             "color" when Components?.Length == 3 => new Color3(Components[0], Components[1], Components[2]),
+            "physical" when Components?.Length == 5 => PhysicalProperties.FromComponents(Components),
             "frame" when Components?.Length == 12 => CFrame.FromComponents(Components),
             "table" => DecodeTable(find, depth),
             _ => throw new InvalidDataException("Invalid wire value."),

@@ -13,7 +13,7 @@ The C# graph is authoritative. Native Luau userdata hold object identifiers and 
 | CFrame | Position/rotation constructors, composition, inversion, frame/point/direction transforms; see [CFrame](cframe.md) |
 | Model bounds | `GetBoundingBox`, `GetExtentsSize`; pivot-oriented bounds of descendant Parts; see [bounds](bounds.md) |
 | Pivots | Part `PivotOffset`, Part/Model `GetPivot` and `PivotTo`, Model `PrimaryPart`/`WorldPivot`, nested movement; see [pivots](pivots.md) |
-| Part properties | Synchronized `CFrame`/`Position`, `Size`, `Anchored`, size bounds, change signals, cloning; no physics |
+| Part properties | Synchronized `CFrame`/`Position`, `Size`, `Anchored`, size bounds, change signals, cloning; server-side box physics, velocities, collision/material properties |
 | Instance properties | `Name`, `Parent`, `Archivable`; read-only `ClassName`; Script/LocalScript Enabled, Disabled and RunContext subset |
 | Classification | `IsA` follows the supported class inheritance chain; `tostring` returns the name |
 | Enumeration | `GetChildren`, `GetDescendants` return independent arrays of Instance references |
@@ -60,7 +60,7 @@ Try `dotnet run --project src/Woorf.Cli -- examples/signals.luau` for a complete
 - Project scripts begin in deterministic source-path order and may yield while later scripts start. Headless Heartbeat and dynamic Enabled/Disabled/RunContext lifecycle are supported as documented subsets; Roblox simulation phases remain incomplete.
 - LocalScripts execute in isolated client runtimes from supported StarterPlayerScripts/StarterGui templates. Source editing remains unsupported. Clones with loaded source start when enabled in a supported execution location; see [dynamic script lifecycle](runtime-hardening.md#script-lifecycle).
 - The filesystem loader rejects duplicate sibling names to keep file mapping unambiguous; runtime-created instances may share names.
-- Hierarchy changes stay in memory. There is no place-file import, hierarchy saving, rendering, physics, or Roblox-hosted service access. Server-only local DataStores persist JSON-compatible data independently of the hierarchy; see [persistence contract](backend-apis.md#local-persistence-contract). Shared state replicates over the local host and TCP transport.
+- Hierarchy changes stay in memory. There is no place-file import, hierarchy saving, rendering, or Roblox-hosted service access. Physics supports documented oriented-box rigid bodies; see [physics](physics.md). Server-only local DataStores persist JSON-compatible data independently of the hierarchy; see [persistence contract](backend-apis.md#local-persistence-contract). Shared state replicates over the local host and TCP transport.
 - Errors describe woorf validation failures; exact Roblox error wording and coercion rules are not promised.
 
 ## References
@@ -78,7 +78,7 @@ These links are live references. The [backend audit](backend-api-readiness.md) p
 ## Networking and lifecycle
 
 RemoteEvents, RemoteFunctions, local player identities, join/removal, Kick, and
-isolated server/client VMs are implemented as a subset. TCP protocol v4 supports
+isolated server/client VMs are implemented as a subset. TCP protocol v5 supports
 separate processes, incremental replication, dirty capture, bounded outgoing
 queues, and transport measurements. Read [client/server semantics](client-server.md)
 and [TCP transport](socket-transport.md) for behavior and limits.

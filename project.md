@@ -22,13 +22,13 @@ provide a headless spatial subset.
 
 Server and clients have separate VMs and object graphs. Local hosting and separate
 TCP processes support RemoteEvents, yielding RemoteFunctions, player join/removal,
-Kick and authoritative incremental replication. TCP protocol v4 includes dirty
+Kick and authoritative incremental replication. TCP protocol v5 includes dirty
 capture, bounded nonblocking outgoing queues and transport metrics.
 
 Backend APIs include attributes, tags, ValueObjects, BindableEvent, Color3, Random,
 JSON, Debris, headless Heartbeat, BindToClose, local durable DataStores, basic teams,
 health-only Humanoid and oriented-box raycasts. These are documented subsets;
-characters, movement, physics and rendering remain incomplete or absent. Dynamic
+characters, character movement and rendering remain incomplete or absent. Basic box physics is implemented in a custom dependency-free C# solver; see [physics](docs/physics.md). Dynamic
 script lifecycle, VM budgets, inbound limits and atomic UpdateAsync are implemented.
 DataStores use Woorf's local backend. Saved TCP credentials preserve server-issued identities across reconnects and restarts;
 in-process UserIds remain session identities. External account login is not implemented.
@@ -50,7 +50,7 @@ Maintain explicit implementation limits and extend local behavior tests with eac
 feature. Do not add a Studio behavior-comparison harness. Keep engine state and
 behavior in C# with native and Luau glue for VM integration and scheduling.
 
-The recorded complete-suite baseline is 171 passing checks, and the synthetic
+The recorded complete-suite baseline is 186 passing checks, and the synthetic
 readiness workload reports 19 available and 0 blocked checks. Neither establishes
 arbitrary full-game support. See [build and verification commands](README.md).
 
@@ -77,7 +77,7 @@ accounts, memory quotas and sustained-load qualification remain production gates
 - Select standalone targets and packaging strategy, plus the browser/WASM build path.
 - Define production hosting, stable authenticated identity and service adapters for
   assets, persistence, purchases, moderation and matchmaking.
-- Select rendering, physics and editor technologies when those milestones begin.
+- Select rendering and editor technologies when those milestones begin. Physics is custom managed C# by explicit user preference; broader simulation features remain future work.
 - Decide licensing and dependency constraints.
 
 See [context-2.md](context-2.md) for continuation guidance and working-tree precautions.

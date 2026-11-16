@@ -6,7 +6,7 @@ Updated: 2026-11-16. This file summarizes the completed conversation and superse
 
 Woorf is a platform-agnostic Roblox runtime/Studio alternative written in C#, embedding the official Luau compiler and VM through a native C++ bridge. Development is currently headless, with a CLI and filesystem-based projects. Windows x64 is verified; other platforms, WASM, standalone packaging and an editor remain future work.
 
-The user explicitly wants backend/runtime APIs established before concentrating on rendering or other frontend work. Characters and physics are runtime requirements too, but they are not the immediate priority. The long-term 99% compatibility ambition is not a measured achievement and still needs a defined denominator.
+The user explicitly wants backend/runtime APIs established before concentrating on rendering or other frontend work. The user has now authorized basic physics, explicitly preferring a custom solver over a third-party dependency. Keep it platform-neutral C# and target Roblox behavior closely; do not perform per-platform restore/build checks. The long-term 99% compatibility ambition is not a measured achievement and still needs a defined denominator.
 
 Always use the general-coding-rules and test-driven-development skills for code changes. Check for existing tests, observe relevant failing tests before implementation, then run the complete suite. Follow the writing-good-tests guidance when changing tests. Keep functions at most 70 lines and code files at most 350 lines, follow existing naming and separation of concerns, and avoid speculative abstractions. Do not add a Studio behavior-comparison harness; the user previously rejected that approach.
 
@@ -30,7 +30,7 @@ Server and clients have separate Luau VMs and C# object graphs. Server state is 
 - RemoteFunction public event-only member lookups are now rejected. Internal underscore-prefixed transport hooks are implementation details; C# transport machinery is still shared.
 - Players.LocalPlayer, UserId, GetPlayers, PlayerAdded, PlayerRemoving and Kick.
 - LocalNetworkHost exposes Start, ConnectClient, DisconnectClient and RunUntilIdle for synchronous embedding. Late joins receive current snapshots; disconnects clean up VMs, replicas, callbacks and pending RPC work.
-- TCP server/client processes use protocol v4. Explicit older versions are rejected; use matching builds. Clients receive shared state and client script templates without requiring a local project copy.
+- TCP server/client processes use protocol v5. Explicit older versions are rejected; use matching builds. Clients receive shared state and client script templates without requiring a local project copy.
 - Initial snapshots are followed by additions, property updates and removals, with per-peer baselines and replication ordered before related remote messages.
 - Dirty tracking captures initial shared state once, then recaptures affected instances and dependencies. Repeated mutations coalesce; idle ticks avoid full graph scans and captures. Clients apply incremental changes. Automatic pivots and external reference visibility are handled, including ObjectValue/team mappings.
 - Nonblocking writes have an 8 MiB outgoing limit per peer and a 256 KiB send budget per peer per tick. Overflow or five seconds without queued-write progress disconnects the affected peer. Partial writes preserve frame offsets; graceful client leave drains outgoing messages.
@@ -48,7 +48,7 @@ dotnet run --project src/Woorf.Cli --no-restore -- --connect 127.0.0.1:7777
 
 The user requested an API readiness audit, then explicitly authorized implementing its 15 missing paths and the RemoteFunction mismatch. That implementation is complete for the documented subsets.
 
-The official creator-docs reference is pinned at commit 5a56d0d361d709aa785585b738354134ae47b4ae. The snapshot selects 55 classes and 20 datatypes: 952 entries deduplicated into 930 symbols. The updated inventory classifies 179 implemented subsets, 522 missing, 170 legacy unimplemented and 59 restricted/nonscriptable symbols. These are selected documentation symbols, not a complete Engine API dump, engine-build pin, behavioral conformance measurement or global compatibility percentage.
+The official creator-docs reference is pinned at commit 5a56d0d361d709aa785585b738354134ae47b4ae. The snapshot selects 55 classes and 20 datatypes: 952 entries deduplicated into 930 symbols. The updated inventory classifies 190 implemented subsets, 511 missing, 170 legacy unimplemented and 59 restricted/nonscriptable symbols. These are selected documentation symbols, not a complete Engine API dump, engine-build pin, behavioral conformance measurement or global compatibility percentage.
 
 Added and tested:
 
@@ -78,7 +78,7 @@ This is a synchronous local backend, not Roblox cloud access. UpdateAsync holds 
 
 Other material limits:
 
-- No rendering, physics, character rigs, Humanoid movement/state machine, terrain or asset/place import.
+- No rendering, character rigs, Humanoid movement/state machine, terrain or asset/place import. Physics currently covers independent oriented-box rigid bodies; joints/assemblies and broader shapes remain absent.
 - Raycasts cover box Parts, without RaycastParams/filtering, meshes, collision groups or Material results. Unsupported params are rejected.
 - Teams lacks automatic balancing, AutoAssignable and TeamColor; Neutral is derived read-only state.
 - Random does not promise Roblox-identical seeded sequences.
@@ -86,12 +86,12 @@ Other material limits:
 - BindableEvent is limited by the supported value codec, rather than arbitrary Lua function/coroutine/custom-userdata transfer.
 - Heartbeat is a headless clock, not Roblox simulation-phase fidelity. Active subscriptions keep finite local scheduler runs alive until disconnected.
 - Source editing, broader Enum coverage beyond RunContext and many datatype/class members remain incomplete. Dynamic script lifecycle works in documented execution locations.
-- No TLS/external account authentication, automatic network state resume, memory quotas or prolonged load qualification. Protocol v4 supports credential reconnect, inbound frame/byte limits and VM execution budgets.
+- No TLS/external account authentication, automatic network state resume, memory quotas or prolonged load qualification. Protocol v5 supports credential reconnect, inbound frame/byte limits and VM execution budgets.
 - Passing the probes does not establish arbitrary full-game compatibility.
 
 ## Verification and repository state
 
-Latest complete suite: 171 PASS checks, with no reported failures or compiler warnings. The readiness workload reports SUMMARY 19 0. git diff --check passes; Git may print a pre-existing LF-to-CRLF normalization notice for native/ValueBridge.cpp.
+Latest complete suite: 186 PASS checks, with no reported failures or compiler warnings. The readiness workload reports SUMMARY 19 0. git diff --check passes; Git may print a pre-existing LF-to-CRLF normalization notice for native/ValueBridge.cpp.
 
 ```powershell
 dotnet run --project tests/Woorf.Cli.Tests --no-restore
@@ -141,7 +141,34 @@ A budget breach terminates the VM; it is not per-script isolation. Host I/O rema
 synchronous. Credentials are bearer secrets without TLS or external account login.
 No next engine portion has been selected yet. Existing user work remains uncommitted.
 
+## Basic physics milestone
+
+The user requested a basic physics engine, rejected an insufficiently vetted
+third-party library choice, and explicitly prefers writing this solver ourselves.
+BEPU references and NuGet configuration changes were removed. The implementation
+uses scalar managed C# with no external physics packages, unsafe code or platform
+intrinsics. The user explicitly asked not to spend effort on per-platform restore
+or build checks. A temporary portability project was removed accordingly.
+
+Implemented fixed 120 Hz independent box bodies, SAT/manifold contacts, sequential
+normal/friction impulses, density/inertia, weighted elasticity/friction, gravity,
+anchoring and collision filtering. Workspace.Gravity, assembly velocities,
+CanCollide, CustomPhysicalProperties and numeric PhysicalProperties constructors
+are bound and replicated via protocol v5. No general assemblies/joints, sleeping,
+CCD or exact Roblox solver parity is claimed. Read docs/physics.md for boundaries.
+
+The examples/physics-boxes workload waits for two clients, drops a box onto a floor,
+replicates its motion/velocity/material, checks settling and acknowledges completion
+before clients leave. Tests run this actual project across separate TCP processes.
+The complete suite passes 186 checks without warnings; readiness remains 19/0.
+Older networking fixtures were anchored so their replication assertions stay
+independent of gravity. A controlled clock checks timer-partition independence;
+sub-tick sleep rounding and callback teleport preservation were fixed test-first.
+No rendering or character work has been started.
+
 ## Key references
+
+- docs/physics.md: custom solver, supported APIs, example and boundaries.
 
 - docs/runtime-hardening.md: lifecycle, VM budgets, inbound limits, atomic updates and credential identity.
 - docs/backend-apis.md: current added APIs and precise boundaries.

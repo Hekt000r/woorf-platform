@@ -1,6 +1,18 @@
 {
-  "scope": "Audited working-tree source/test/build files and the round-game workload; excludes build outputs and does not identify an engine release.",
+  "scope": "Audited working-tree source/test/build files and the round-game and physics-boxes workloads; excludes build outputs and does not identify an engine release.",
   "files": [
+    {
+      "path": "examples/physics-boxes/src/ServerScriptService/Main.server.luau",
+      "sha256": "f1c43abbfcc60e4133c6475fdbd5968e6f02cd9ff8f0259942be2afda6477d05"
+    },
+    {
+      "path": "examples/physics-boxes/src/StarterPlayer/StarterPlayerScripts/Observe.client.luau",
+      "sha256": "0b0aea3af0acc2a52198f98921804b9e3efb1f691b2b9538c082eb7595a2f276"
+    },
+    {
+      "path": "examples/physics-boxes/woorf.project.json",
+      "sha256": "86cb2251b76bc107b43d27f54a10deb5c213cb551de4d123b6e808a57f4ddeaf"
+    },
     {
       "path": "examples/round-game/src/ServerScriptService/Main.server.luau",
       "sha256": "321e45b49a6d70e0aca70bd4dea647f1acc3f07247c865dedd00636e09735047"
@@ -27,7 +39,7 @@
     },
     {
       "path": "native/CMakeLists.txt",
-      "sha256": "c5cfa9d9492df2117eb6d92a4ab4b9ae4856d08ac87ebcb394b1d9d79d9ed133"
+      "sha256": "e271bedea82e67ea9f0f7261cebed549e2626a5c6f8fe1990ed52b9d8032db42"
     },
     {
       "path": "native/ColorBridge.cpp",
@@ -47,15 +59,19 @@
     },
     {
       "path": "native/LuauBridge.cpp",
-      "sha256": "4f2e80123b4b6407cc13823b7c1c30d0e1fef710cd621cadc513c3a82e0fd3c1"
+      "sha256": "6fa9136c72313747d060f8a91a9454b062c44f05be9f8f090f8d7330014f76f2"
     },
     {
       "path": "native/LuauBridge.h",
-      "sha256": "668f243b25cd4da7d9fdcce9fc7a9f1d4c068c1cbc45cfd63096b1509836b805"
+      "sha256": "a6f519c1901e15c82d1b911d05274d1ed85bc4dad406e4d54d0fd8c8d5a5c893"
     },
     {
       "path": "native/ModuleBridge.cpp",
       "sha256": "d6fbda5fae883f6f28eadbbfced3a690160a8ccfcbc8ef2ee6683146c84ea494"
+    },
+    {
+      "path": "native/PhysicalPropertiesBridge.cpp",
+      "sha256": "fad25c05a4ccc7554826d4e3b98aad457b38f5c56cac7643e8e671f3823cbd26"
     },
     {
       "path": "native/SchedulerBridge.cpp",
@@ -71,7 +87,7 @@
     },
     {
       "path": "native/ValueBridge.cpp",
-      "sha256": "f2becbcccb4b5d3c4df0a69f2d62f8f443371545b53e6ba049adaa84e3428387"
+      "sha256": "e12661f847450ab66de6c338965e6116adbc1ba4a46ac38f3535163ea7f3681b"
     },
     {
       "path": "native/Vector3Bridge.cpp",
@@ -90,8 +106,12 @@
       "sha256": "758bdc31211d474aeb5bf9b63d78d082c6127d4bbf2bfecb5730cec67cf823a3"
     },
     {
+      "path": "src/Woorf.Engine/DataModel/BasePart.Physics.cs",
+      "sha256": "99d2ddd94d209ccfc303944e95ece4945ffdf641f84b76d6129f3a93d937dbdf"
+    },
+    {
       "path": "src/Woorf.Engine/DataModel/BasePart.cs",
-      "sha256": "47ea2d7bb2a0939b1e9912a5c6a34f145ad9ccafb9f1b5228c8d46695b4fa885"
+      "sha256": "8c06794f2d3a747a91f949432cd08055c88d82463979c677b4e59b2ce75ad0e1"
     },
     {
       "path": "src/Woorf.Engine/DataModel/BindableEvent.cs",
@@ -103,7 +123,7 @@
     },
     {
       "path": "src/Woorf.Engine/DataModel/DataModel.cs",
-      "sha256": "5712d7f41bfbaf710b97ecb47f7fe9946c960a84ae164a419813fc10cdd5ef89"
+      "sha256": "637d3c662834a3f60ec7272915b0be351d942a8e560b3e27d63a39f591a9ae86"
     },
     {
       "path": "src/Woorf.Engine/DataModel/Humanoid.cs",
@@ -162,12 +182,20 @@
       "sha256": "4db7c900ed41deaa015c4ad33620a53c6d44bddf7cb45f40a91ad52d6e7adb1e"
     },
     {
+      "path": "src/Woorf.Engine/DataModel/Workspace.cs",
+      "sha256": "88bb2cfbebd6fee4ab51204a35c688d3a2cc368801190a7c50d1a32d1dae4e72"
+    },
+    {
       "path": "src/Woorf.Engine/Datatypes/CFrame.cs",
       "sha256": "42d8e3b521a3b19964be3a05525a85f010de83c0b367e1b56126ff3971c12d41"
     },
     {
       "path": "src/Woorf.Engine/Datatypes/Color3.cs",
       "sha256": "d3d6c895ef1f8eaacdcd6829d83de1949752be8e7d4ef5dd3159de5fbb41b4e1"
+    },
+    {
+      "path": "src/Woorf.Engine/Datatypes/PhysicalProperties.cs",
+      "sha256": "402e5888246f375b62e939e47f6254de9c9cd69c9f2d2f7fe067b1b1150739ca"
     },
     {
       "path": "src/Woorf.Engine/Datatypes/Vector3.cs",
@@ -207,7 +235,7 @@
     },
     {
       "path": "src/Woorf.Engine/Networking/LocalNetworkHost.cs",
-      "sha256": "801bbc84d3d44bdc4b6057e6f555b481ea764a0baa83c8a19b85a446fc4f778d"
+      "sha256": "90f887b40e7e5dbc925f96951853406cf219ff58c52af9b5752a441f484b0df1"
     },
     {
       "path": "src/Woorf.Engine/Networking/RemoteMessage.cs",
@@ -223,11 +251,15 @@
     },
     {
       "path": "src/Woorf.Engine/Networking/ReplicaState.cs",
-      "sha256": "c0ad7559ebb45e02d2f8a4342a15c6d9ac4c557892cfbb63318b5a5d54846e8e"
+      "sha256": "5a7d7a2c63cb2a46fd5a52766a8a214b40e7225d65122f35a8161b067c48ad43"
     },
     {
       "path": "src/Woorf.Engine/Networking/ReplicatedBackendState.cs",
       "sha256": "3882378b04f64c4a7746533f0b9a54f1e3207735f86a18b48b460e8d3a058b86"
+    },
+    {
+      "path": "src/Woorf.Engine/Networking/ReplicatedPhysicsState.cs",
+      "sha256": "ee77e4a36bf7934b6f0a995b501375fbb4ee4a28a940e460a6ea5981492d8d36"
     },
     {
       "path": "src/Woorf.Engine/Networking/ReplicationUpdates.cs",
@@ -243,7 +275,7 @@
     },
     {
       "path": "src/Woorf.Engine/Networking/SocketPeer.cs",
-      "sha256": "89d93c985fdf911f43620212e4da63a30af4c3205c19a14275e025b18bef928c"
+      "sha256": "5b827b08a58bfd74b5533cbec26fd8694a416e0eba5e978185a51903ff39a3f1"
     },
     {
       "path": "src/Woorf.Engine/Networking/SocketRuntime.Client.cs",
@@ -271,15 +303,35 @@
     },
     {
       "path": "src/Woorf.Engine/Networking/WireGraph.cs",
-      "sha256": "7bca254a1f81e2a4b50e3964238bfda138b42cdde035a17abcf12a4b4dcb96f7"
+      "sha256": "6df435618e44431e49dc3cc9c76f3686305d0354d50b81367c9321fb7d93d5d6"
     },
     {
       "path": "src/Woorf.Engine/Networking/WireValue.cs",
-      "sha256": "499348a072beb543c2872b696efaf732fed2e5a025270c07ad037a04f9aeef00"
+      "sha256": "ba1909c09e28111fdbc9dc69257073e870a3a55096e278d936aeb2df2f616aa6"
     },
     {
       "path": "src/Woorf.Engine/Persistence/LocalDataStore.cs",
       "sha256": "2a204cd1419de466191af73b6f8bd974899d949fd7b1683586eba58fa61b0ffa"
+    },
+    {
+      "path": "src/Woorf.Engine/Physics/BoxCollision.cs",
+      "sha256": "fe65bef3d0ce386dc36ace2105aa87a7d4045ddfc794cea3f4d8c8a136902743"
+    },
+    {
+      "path": "src/Woorf.Engine/Physics/ContactConstraint.cs",
+      "sha256": "44bf7e348a464285b0e0d98d1f65d6a488d6b7916568ccfeb3af589f8be3b7ea"
+    },
+    {
+      "path": "src/Woorf.Engine/Physics/PhysicsSolver.cs",
+      "sha256": "3ed05d4d6e3a90f5fbbc0d429c5f919d66e99bf2adda4c284092be78e9745ac0"
+    },
+    {
+      "path": "src/Woorf.Engine/Physics/PhysicsWorld.cs",
+      "sha256": "5fec58e2eafc2f7b6563cf0a7f9d98b903d87693cd1058472c8b494fae3947f4"
+    },
+    {
+      "path": "src/Woorf.Engine/Physics/RigidBody.cs",
+      "sha256": "8db6ab3dde4ae5b8ab45ba6f9749cd2228daa8bd6ef7a277bbd036e54197a02a"
     },
     {
       "path": "src/Woorf.Engine/Projects/LoadedProject.cs",
@@ -307,7 +359,7 @@
     },
     {
       "path": "src/Woorf.Engine/Scripting/BackendBindings.cs",
-      "sha256": "706e70ca76a775780d51a8e771e4294f8c67334e33b76593ad62b0d6bc5d0421"
+      "sha256": "53d9c897d36a835fd52c13229dd0e200b1e30eb595d8614ae800b2c722a37016"
     },
     {
       "path": "src/Woorf.Engine/Scripting/BackendJson.cs",
@@ -343,11 +395,11 @@
     },
     {
       "path": "src/Woorf.Engine/Scripting/LuaValueCodec.cs",
-      "sha256": "26ccaf484f881dd0601fc1450378e7fb47db548bac480effe2051da3234e4733"
+      "sha256": "ee9c0728aada206190c0256527a37fda02a5d8948542376ba3dc7987318f0309"
     },
     {
       "path": "src/Woorf.Engine/Scripting/LuauSession.cs",
-      "sha256": "bc5d5eae01fa5d235227ac6ab40da2d0ac8d889969c22a6b75b2de5694b3742b"
+      "sha256": "e697b31962554978ba07a9ca86b849d5403d7e4905fa6633dde8211376dc2acf"
     },
     {
       "path": "src/Woorf.Engine/Scripting/NativeMethods.cs",
@@ -355,11 +407,15 @@
     },
     {
       "path": "src/Woorf.Engine/Scripting/NativeValueMethods.cs",
-      "sha256": "66826455b638a4be5b033fd05817ce43909c0888cd6bbbddf3be9b0c68bb46ed"
+      "sha256": "d7a50cee2fcdeb5c9bbf318a95c2e049cde8d0e9af481ac55ce5e02765ff9f59"
     },
     {
       "path": "src/Woorf.Engine/Scripting/NetworkBindings.cs",
       "sha256": "87c8d89d3f4be80c1c06ad00092a2113d00b1c64845d7b05c07919bf2fd3e8a8"
+    },
+    {
+      "path": "src/Woorf.Engine/Scripting/PhysicsBindings.cs",
+      "sha256": "08d5360c9d0b225dfdade58193e5a3ecc95019bbcc52319f278d5b3d9e0cd741"
     },
     {
       "path": "src/Woorf.Engine/Scripting/RemoteFunctions.luau",
@@ -443,7 +499,7 @@
     },
     {
       "path": "tests/Woorf.Cli.Tests/NetworkIsolationCases.cs",
-      "sha256": "72381f625d6aba5add3a0a5ff26c2bbbcfa55115ff0eb19294b9776aa83cc70d"
+      "sha256": "80323568bfcb17e222b18ca1dc5d3449d99c580659fa97feffa366c65a32d8f0"
     },
     {
       "path": "tests/Woorf.Cli.Tests/NetworkLifecycleTests.cs",
@@ -470,12 +526,24 @@
       "sha256": "c6883e57276dc8b55194a88e74a314235c004429fef885d3a9e692d755b0f7d8"
     },
     {
+      "path": "tests/Woorf.Cli.Tests/PhysicsCases.cs",
+      "sha256": "3b7f03d726ab023c66c273472de75f2991231663a65530dfd73face6f5cbb6c2"
+    },
+    {
+      "path": "tests/Woorf.Cli.Tests/PhysicsClockTests.cs",
+      "sha256": "e7800ea2effaa392ef932d74ace9086c17c92be6b6237019bf226a0a1b549640"
+    },
+    {
+      "path": "tests/Woorf.Cli.Tests/PhysicsNetworkTests.cs",
+      "sha256": "6770644b6efcd8170df85bfeb52c7a587e8040ef8e23f243e5cd64b5486d9105"
+    },
+    {
       "path": "tests/Woorf.Cli.Tests/PlayerLifecycleCases.cs",
       "sha256": "e4d9f0f5c5db19c22a061f4cdaeec1e3b6f9010e7279c6f84e220573abbd1020"
     },
     {
       "path": "tests/Woorf.Cli.Tests/Program.cs",
-      "sha256": "c14cc906d7cdfaa8b4cf650cf7b0fb463399a02502cd461890ca8f81559a48bf"
+      "sha256": "e9be8f03ec91a69d523ff3393cf0d37015545c6ebdb1b9565f5b0ad855ba693c"
     },
     {
       "path": "tests/Woorf.Cli.Tests/ProjectTests.cs",
@@ -527,7 +595,7 @@
     },
     {
       "path": "tests/Woorf.Cli.Tests/SocketProtocolTests.cs",
-      "sha256": "59e81b54939481a2fa689d5ca29c7b782aa8acd81271743672de4d544c43207f"
+      "sha256": "917e039de6e849c4547a61c393369513019a36356175a557b85fa86a420c78fc"
     },
     {
       "path": "tests/Woorf.Cli.Tests/SocketTestClient.cs",
@@ -535,7 +603,7 @@
     },
     {
       "path": "tests/Woorf.Cli.Tests/SocketTransportTests.cs",
-      "sha256": "3b49a5cb18cb8472b2a76c407cadc42f988b963c33df3b272426dce982efe56f"
+      "sha256": "1c1d4ca0264a60ce0374fa296e00bf4ec45f00ce40de082a93340f55518032c2"
     },
     {
       "path": "tests/Woorf.Cli.Tests/StableIdentityTests.cs",

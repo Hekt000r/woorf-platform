@@ -42,6 +42,7 @@ WOORF_EXPORT void* woorf_create(WriteOutput write, HostCall host, int gameId, in
         initializeModules(runtime->state);
         initializeSchedulerHelpers(runtime->state);
         initializeColor(runtime->state);
+        initializePhysicalProperties(runtime->state);
         initializeExecutionBudget(runtime->state);
         return runtime.release();
     }

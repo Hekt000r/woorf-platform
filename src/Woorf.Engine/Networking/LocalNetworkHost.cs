@@ -98,7 +98,7 @@ public sealed partial class LocalNetworkHost : IDisposable, IRuntimeHost
             if (messages.Count > 0) continue;
             if (double.IsPositiveInfinity(deadline)) return 0;
             var delay = deadline - clock.ElapsedSeconds;
-            if (delay > 0) clock.Sleep(TimeSpan.FromSeconds(delay));
+            if (delay > 0) clock.Sleep(TimeSpan.FromSeconds(Math.Max(delay, 0.0000001)));
         }
     }
 

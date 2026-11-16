@@ -3,6 +3,7 @@ using System.Text;
 using Woorf.Engine.DataModel;
 using Woorf.Engine.Scheduling;
 using Woorf.Engine.Networking;
+using Woorf.Engine.Physics;
 using static Woorf.Engine.Scripting.NativeMethods;
 
 namespace Woorf.Engine.Scripting;
@@ -21,6 +22,7 @@ internal sealed class LuauSession : IDisposable
     private readonly ScriptLifecycle lifecycle;
     private bool hasLifecycleFailure;
     private bool hasFinishedFailure;
+    private readonly PhysicsWorld? physics;
 
     internal LuauSession(DataModel.DataModel game, IRuntimeClock clock, RuntimeEndpoint? endpoint = null)
     {
@@ -36,6 +38,7 @@ internal sealed class LuauSession : IDisposable
         try { InitializeScheduler(); }
         catch { bindings.Dispose(); woorf_close(handle); throw; }
         lifecycle = new ScriptLifecycle(game, this, endpoint?.IsClient == true);
+        if (endpoint?.IsClient != true) physics = new PhysicsWorld((Workspace)game.Workspace, clock.ElapsedSeconds);
     }
 
     private void InitializeScheduler()
@@ -66,7 +69,7 @@ internal sealed class LuauSession : IDisposable
             if (HasFailed) return 1;
             if (deadline < 0) return 0;
             var delay = deadline - clock.ElapsedSeconds;
-            if (delay > 0) clock.Sleep(TimeSpan.FromSeconds(delay));
+            if (delay > 0) clock.Sleep(TimeSpan.FromSeconds(Math.Max(delay, 0.0000001)));
         }
     }
 
@@ -79,6 +82,7 @@ internal sealed class LuauSession : IDisposable
     internal double Step(double now)
     {
         if (lifecycle.Synchronize() != 0) { hasLifecycleFailure = true; return -1; }
+        physics?.Advance(now);
         var run = (RunService)game.GetService("RunService");
         if (now - lastHeartbeat >= 1d / 60)
         {
@@ -88,6 +92,7 @@ internal sealed class LuauSession : IDisposable
         }
         var next = woorf_step(handle, now);
         if (lifecycle.HasPending) return now;
+        if (next >= 0 && physics?.HasDynamicBodies == true) next = Math.Min(next, now + PhysicsWorld.FixedStep);
         return next < 0 && run.Heartbeat.HasConnections ? now + 1d / 60 : next;
     }
     internal bool HasFailed => isDisposed ? hasFinishedFailure : hasLifecycleFailure || woorf_scheduler_failed(handle) != 0;
@@ -119,10 +124,11 @@ internal sealed class LuauSession : IDisposable
                 var next = Step(clock.ElapsedSeconds);
                 if (next < 0) break;
                 var delay = Math.Min(next, deadline) - clock.ElapsedSeconds;
-                if (delay > 0) clock.Sleep(TimeSpan.FromSeconds(delay));
+                if (delay > 0) clock.Sleep(TimeSpan.FromSeconds(Math.Max(delay, 0.0000001)));
             }
         }
         hasFinishedFailure = HasFailed;
+        physics?.Dispose();
         lifecycle.Dispose();
         bindings.Dispose();
         woorf_close(handle);

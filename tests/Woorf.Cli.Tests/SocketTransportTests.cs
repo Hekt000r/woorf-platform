@@ -76,14 +76,14 @@ static class SocketTransportTests
             local storage = game:GetService("ReplicatedStorage")
             local event = Instance.new("RemoteEvent", storage); event.Name = "Message"
             local query = Instance.new("RemoteFunction", storage); query.Name = "Query"
-            local marker = Instance.new("Part", workspace); marker.Name = "Marker"
+            local marker = Instance.new("Part", workspace); marker.Name = "Marker"; marker.Anchored = true
             marker:SetAttribute("Label", "start"); marker:AddTag("Active")
             local coins = Instance.new("IntValue", marker); coins.Name = "Coins"; coins.Value = 10
             local target = Instance.new("Folder", game:GetService("ServerStorage")); target.Name = "BackendTarget"
             local pointer = Instance.new("ObjectValue", marker); pointer.Name = "Pointer"; pointer.Value = target
-            local nonFinite = Instance.new("Part", workspace); nonFinite.Name = "NonFinite"
+            local nonFinite = Instance.new("Part", workspace); nonFinite.Name = "NonFinite"; nonFinite.Anchored = true
             nonFinite.Position = Vector3.new(math.huge, 0, 0)
-            local deltaPart = Instance.new("Part", workspace); deltaPart.Name = "DeltaPart"
+            local deltaPart = Instance.new("Part", workspace); deltaPart.Name = "DeltaPart"; deltaPart.Anchored = true
             local removed = Instance.new("Folder", workspace); removed.Name = "DeltaRemoved"
             local ready, done = 0, 0
             query.OnServerInvoke = function(player, data)

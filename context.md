@@ -22,3 +22,6 @@ readiness remains the priority.
 
 The finishing milestone adds dynamic script lifecycle, VM budgets, inbound limits,
 atomic UpdateAsync and saved TCP credentials. See [runtime hardening](docs/runtime-hardening.md).
+
+Basic custom managed box physics is now implemented; see [physics](docs/physics.md).
+The user prefers a custom solver and explicitly rejects per-platform build/restore checks.
