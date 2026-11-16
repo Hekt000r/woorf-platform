@@ -25,8 +25,8 @@ denominator. Selection favors existing runtime types and common backend gaps.
 
 | Classification | Selected unique symbols | Meaning |
 | --- | ---: | --- |
-| Implemented subset | 175 | A corresponding binding exists; full behavioral/overload compatibility is not established |
-| Missing | 526 | No reviewed implementation in this runtime |
+| Implemented subset | 179 | A corresponding binding exists; full behavioral/overload compatibility is not established |
+| Missing | 522 | No reviewed implementation in this runtime |
 | Legacy unimplemented | 170 | Deprecated reference members without reviewed implementation |
 | Restricted or nonscriptable | 59 | Reference security/tags place the member outside ordinary script access |
 
@@ -57,14 +57,14 @@ No Studio comparison harness was used.
 
 | Area | Available subset | Important limit |
 | --- | --- | --- |
-| Luau execution | Official embedded Luau; isolated scripts and ModuleScript caches | Numeric/path requires, arbitrary dynamic script startup, Roblox environment globals are incomplete |
+| Luau execution | Official embedded Luau; isolated scripts and ModuleScript caches | Numeric/path requires and broader Roblox environment globals remain incomplete; supported dynamic lifecycle now works |
 | Instance graph | Identity, names, parenting, traversal, lookup, clone/destroy, signals | Attributes, tags and typed ValueObjects now work; most subclasses remain absent |
-| Scheduler | task spawn/defer/delay/wait/cancel, yielding listeners, signal waits, WaitForChild | Heartbeat works; simulation phases, parallel APIs, and execution budgets remain absent |
+| Scheduler | task spawn/defer/delay/wait/cancel, yielding listeners, signal waits, WaitForChild | Heartbeat works; simulation phases and parallel APIs remain absent; VM execution budgets now apply |
 | Spatial math | Vector3 core, CFrame core, Part transforms, model pivots/bounds | Color3 and box raycasts work; Enum, physics, collision and broad Part properties remain incomplete |
-| Player lifecycle | LocalPlayer, UserId, GetPlayers, join/removal notifications, Kick | Connection identities are local session identities; basic teams work; authenticated accounts, characters and full profile APIs remain absent |
+| Player lifecycle | LocalPlayer, UserId, GetPlayers, join/removal notifications, Kick | TCP credentials preserve local identities across restart; in-process identities remain session-based; external accounts, characters and full profile APIs remain absent |
 | Remotes | RemoteEvents and yielding RemoteFunctions, tuple/table/value/reference copying | Documented value restrictions and headless shutdown conventions remain; see networking docs |
 | Replication | Initial snapshots, property deltas, dirty capture, visibility transitions | Implemented properties only; no streaming, ownership, asset pipeline, or general-purpose place import |
-| Transport | Separate processes over TCP, bounded nonblocking outgoing queues, metrics | No TLS/account authentication, inbound rate limits, execution quotas, reconnect, or prolonged load qualification |
+| Transport | Separate processes over TCP, bounded nonblocking outgoing queues, metrics | VM budgets, inbound limits and credential reconnect work; no TLS/external accounts, automatic state resume, memory quotas or prolonged load qualification |
 | Service containers | Workspace and nine other supported service roots | Container availability does not implement the service's full API |
 
 At the original audit baseline, ten creatable classes were admitted by ClassCatalog: Folder, Model,
@@ -75,13 +75,13 @@ StarterPlayer, Players, and RunService.
 
 The [headless round game](../examples/round-game/README.md) exercises persistent
 test profiles, currency, inventory, teams, a Heartbeat round and validated remotes
-together. Its acceptance test runs separate TCP server/client processes, saves on
-leave and shutdown, then restarts and verifies saved totals. It uses fixed test
+together. Its acceptance test runs separate TCP server/client processes, records
+leave/shutdown saves, then restarts with reversed connection order and verifies saved totals. It uses fixed test
 identities and one round per server session; it is not a port of an existing game.
 
 ## Executable readiness results
 
-The complete integration command now passes with **161 PASS checks**:
+The complete integration command now passes with **171 PASS checks**:
 
 ```powershell
 dotnet run --project tests/Woorf.Cli.Tests --no-restore
@@ -113,10 +113,11 @@ not a port of an actual game or a coverage denominator.
    declares InvokeServer/InvokeClient and invoke callbacks on RemoteFunction.
    The executable probe and dedicated tests verify rejection of event-only public
    members; internal transport hooks are reserved implementation details.
-2. **Client script startup is narrow.** ClientStartup copies StarterPlayerScripts
-   and StarterGui templates and starts LocalScripts under the local Player.
-   It does not provide general execution of newly cloned/reparented scripts,
-   Enabled/Disabled/RunContext semantics, or full ReplicatedFirst startup behavior.
+2. **Dynamic script lifecycle is a defined subset.** ClientStartup copies
+   StarterPlayerScripts and StarterGui templates. Loaded scripts and clones now
+   start/stop/restart at host boundaries with Enabled/Disabled and Legacy/Server/Client
+   RunContext behavior. Character/Backpack, plugin execution and full Roblox startup
+   fidelity remain unsupported; see [lifecycle contract](runtime-hardening.md#script-lifecycle).
 3. **Names are not behavioral compatibility.** RunService context methods
    and Heartbeat work; full simulation phases remain absent. StarterPack is a container, not an
    inventory implementation. PlayerScripts/PlayerGui roots do not imply GUI,
@@ -124,9 +125,11 @@ not a port of an actual game or a coverage denominator.
 4. **Deliberate scheduling differences remain.** Module cycles fail fast, ordering
    follows the documented local scheduler, and idle waits alone do not keep the
    in-process CLI alive. Socket clients/listeners have different lifetime rules.
-5. **Production limits remain.** A non-yielding script can monopolize the runtime.
-   Outgoing backpressure does not rate-limit incoming work. Session UserIds do not
-   establish durable account identity, which matters before storing player data.
+5. **Production limits remain explicit.** VM interrupts stop runaway Luau code;
+   inbound frame/byte limits isolate flooding peers. UpdateAsync provides atomic
+   local profile transactions, and saved TCP credentials preserve identity across
+   reconnects. Synchronous host I/O, memory quotas, distributed session ownership,
+   external accounts and TLS remain limits; see [runtime hardening](runtime-hardening.md).
 6. **Delivery is not yet qualified.** Windows x64 is the verified path; WASM,
    Linux/macOS/mobile, packaging, assets, and .rbxl/.rbxm ingestion are not proven
    full-game delivery paths.
@@ -149,12 +152,13 @@ and services. See [current backend APIs](backend-apis.md).
 | 1 | Completed subset: attributes and replication | Set/Get/GetAttributes, removal, type validation, change events, clone, late joins, and incremental replication |
 | 2 | Values, tags and BindableEvent added; BindableFunction remains | Correct Value/Changed payloads, reference cloning, yielding calls, tag membership and lifecycle events |
 | 3 | Remaining utilities, Enum and datatype coverage | warn, Color3, Random, missing Vector3/CFrame helpers, prioritized Enum values, JSON utilities, Debris; representative server modules execute without placeholder services |
-| 4 | Heartbeat/shutdown added; script and simulation lifecycle remain | Defined Heartbeat timing, supported script activation rules, BindToClose with bounded orderly shutdown |
-| 5 | Local durable stores added; production identity/persistence remain | Explicit local-hosted adapter policy; authenticated/stable identity for production; durable atomic updates, restart and concurrency tests |
+| 4 | Heartbeat/shutdown and dynamic lifecycle subsets complete | Enabled/Disabled/context startup, cancellation and restart pass; simulation fidelity remains separate |
+| 5 | Atomic local stores and credential identity complete as local subsets | Composite UpdateAsync concurrency and rollback, saved credentials, reordered restart, forged and duplicate rejection pass; external accounts/distributed storage remain separate |
 | 6 | Completed bounded workload: headless round game | Separate-process round, request validation, leave/shutdown saves and restart persistence pass with explicit test identities; in-session reconnect remains outside the demo |
 
-Execution budgets, inbound traffic limits, and authentication/TLS are parallel
-production-readiness gates, not deferred merely because APIs have familiar names.
+Execution budgets and inbound traffic limits are implemented and tested as bounded
+contracts. External account authentication/TLS, memory quotas and sustained load
+qualification remain production-readiness gates.
 Implement persistence against a deliberate woorf backend; do not imply direct
 access to Roblox-hosted account, economy, moderation, or data services.
 

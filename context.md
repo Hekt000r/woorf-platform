@@ -19,3 +19,6 @@ Current technical references:
 The representative headless round game is implemented with a separate-process
 restart acceptance test. See examples/round-game/README.md. Backend/runtime
 readiness remains the priority.
+
+The finishing milestone adds dynamic script lifecycle, VM budgets, inbound limits,
+atomic UpdateAsync and saved TCP credentials. See [runtime hardening](docs/runtime-hardening.md).

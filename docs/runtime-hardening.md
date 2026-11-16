@@ -34,7 +34,7 @@ sources replicate over local hosting and TCP. Private server source is excluded.
 
 ## Execution budgets
 
-Luau VM interrupts limit each native VM entry to 250 ms of script execution time.
+Luau VM interrupts limit each native VM entry to 250 ms of elapsed native execution time.
 Managed host operations are excluded from that slice; nested callbacks receive
 their own slice. An outer entry also has a five-second wall-clock deadline checked
 at VM safepoints. Host calls are synchronous: disk I/O, lock waits and native library

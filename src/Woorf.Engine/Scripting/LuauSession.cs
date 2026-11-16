@@ -87,6 +87,7 @@ internal sealed class LuauSession : IDisposable
             run.Heartbeat.Fire(elapsed);
         }
         var next = woorf_step(handle, now);
+        if (lifecycle.HasPending) return now;
         return next < 0 && run.Heartbeat.HasConnections ? now + 1d / 60 : next;
     }
     internal bool HasFailed => isDisposed ? hasFinishedFailure : hasLifecycleFailure || woorf_scheduler_failed(handle) != 0;
@@ -113,7 +114,7 @@ internal sealed class LuauSession : IDisposable
         {
             bindings.BeginShutdown();
             var deadline = clock.ElapsedSeconds + 30;
-            while (!HasFailed && woorf_shutdown_pending(handle) > 0 && clock.ElapsedSeconds < deadline)
+            while (woorf_execution_failed(handle) == 0 && woorf_shutdown_pending(handle) > 0 && clock.ElapsedSeconds < deadline)
             {
                 var next = Step(clock.ElapsedSeconds);
                 if (next < 0) break;

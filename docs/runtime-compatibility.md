@@ -14,7 +14,7 @@ The C# graph is authoritative. Native Luau userdata hold object identifiers and 
 | Model bounds | `GetBoundingBox`, `GetExtentsSize`; pivot-oriented bounds of descendant Parts; see [bounds](bounds.md) |
 | Pivots | Part `PivotOffset`, Part/Model `GetPivot` and `PivotTo`, Model `PrimaryPart`/`WorldPivot`, nested movement; see [pivots](pivots.md) |
 | Part properties | Synchronized `CFrame`/`Position`, `Size`, `Anchored`, size bounds, change signals, cloning; no physics |
-| Instance properties | `Name`, `Parent`, `Archivable`; read-only `ClassName` |
+| Instance properties | `Name`, `Parent`, `Archivable`; read-only `ClassName`; Script/LocalScript Enabled, Disabled and RunContext subset |
 | Classification | `IsA` follows the supported class inheritance chain; `tostring` returns the name |
 | Enumeration | `GetChildren`, `GetDescendants` return independent arrays of Instance references |
 | Search | `FindFirstChild` with optional recursive search, `FindFirstChildOfClass`, `FindFirstChildWhichIsA`; `FindFirstAncestor`, `FindFirstAncestorOfClass`, `FindFirstAncestorWhichIsA` |
@@ -90,3 +90,6 @@ No complete-engine or full-game compatibility percentage is currently establishe
 The [backend API milestone](backend-apis.md) adds attributes, tags, ValueObjects,
 BindableEvent, Color3/Random, JSON, Debris, Heartbeat, local stores, shutdown hooks,
 Teams, health-only Humanoid and box raycasts. These are scoped subsets.
+
+See [runtime hardening](runtime-hardening.md) for dynamic activation, execution budgets,
+inbound limits, atomic updates and server-issued reconnect credentials.

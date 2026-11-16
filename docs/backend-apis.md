@@ -77,7 +77,7 @@ these are local identities rather than external account login.
 
 ## Verification
 
-The complete suite passes 161 checks. Tests include all requested entry paths,
+The complete suite passes 171 checks. Tests include all requested entry paths,
 invalid member access, unsupported values, attribute/tag change behavior, clone
 independence, local and TCP replication, Color3 single-precision roundtrips,
 store scope isolation, separate-process durability and concurrent increments,

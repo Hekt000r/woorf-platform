@@ -19,7 +19,7 @@ For implementation tasks, continue until the authorized feature is complete. The
 - Isolated script environments and ModuleScript caches, yielding require, failure caching and cycle diagnostics.
 - Cooperative task scheduling, waits, delays, cancellation, yielding callbacks, signal waits and WaitForChild. Script destruction cancels owned work.
 - Immutable Vector3, core CFrame, Part transforms/size/anchoring, Part/Model pivots and model bounds.
-- Filesystem project loading. General dynamic script activation and Roblox RunContext/Enabled behavior remain incomplete.
+- Filesystem projects and dynamic loaded-script/clone activation, Enabled/Disabled and Legacy/Server/Client RunContext subsets. See docs/runtime-hardening.md for locations, cancellation and restart behavior.
 
 ## Client/server architecture and transport
 
@@ -30,7 +30,7 @@ Server and clients have separate Luau VMs and C# object graphs. Server state is 
 - RemoteFunction public event-only member lookups are now rejected. Internal underscore-prefixed transport hooks are implementation details; C# transport machinery is still shared.
 - Players.LocalPlayer, UserId, GetPlayers, PlayerAdded, PlayerRemoving and Kick.
 - LocalNetworkHost exposes Start, ConnectClient, DisconnectClient and RunUntilIdle for synchronous embedding. Late joins receive current snapshots; disconnects clean up VMs, replicas, callbacks and pending RPC work.
-- TCP server/client processes use protocol v3. Explicit older versions are rejected; use matching builds. Clients receive shared state and client script templates without requiring a local project copy.
+- TCP server/client processes use protocol v4. Explicit older versions are rejected; use matching builds. Clients receive shared state and client script templates without requiring a local project copy.
 - Initial snapshots are followed by additions, property updates and removals, with per-peer baselines and replication ordered before related remote messages.
 - Dirty tracking captures initial shared state once, then recaptures affected instances and dependencies. Repeated mutations coalesce; idle ticks avoid full graph scans and captures. Clients apply incremental changes. Automatic pivots and external reference visibility are handled, including ObjectValue/team mappings.
 - Nonblocking writes have an 8 MiB outgoing limit per peer and a 256 KiB send budget per peer per tick. Overflow or five seconds without queued-write progress disconnects the affected peer. Partial writes preserve frame offsets; graceful client leave drains outgoing messages.
@@ -48,7 +48,7 @@ dotnet run --project src/Woorf.Cli --no-restore -- --connect 127.0.0.1:7777
 
 The user requested an API readiness audit, then explicitly authorized implementing its 15 missing paths and the RemoteFunction mismatch. That implementation is complete for the documented subsets.
 
-The official creator-docs reference is pinned at commit 5a56d0d361d709aa785585b738354134ae47b4ae. The snapshot selects 55 classes and 20 datatypes: 952 entries deduplicated into 930 symbols. The updated inventory classifies 175 implemented subsets, 526 missing, 170 legacy unimplemented and 59 restricted/nonscriptable symbols. These are selected documentation symbols, not a complete Engine API dump, engine-build pin, behavioral conformance measurement or global compatibility percentage.
+The official creator-docs reference is pinned at commit 5a56d0d361d709aa785585b738354134ae47b4ae. The snapshot selects 55 classes and 20 datatypes: 952 entries deduplicated into 930 symbols. The updated inventory classifies 179 implemented subsets, 522 missing, 170 legacy unimplemented and 59 restricted/nonscriptable symbols. These are selected documentation symbols, not a complete Engine API dump, engine-build pin, behavioral conformance measurement or global compatibility percentage.
 
 Added and tested:
 
@@ -74,7 +74,7 @@ Attributes, tags, typed values, health/team state, reference visibility and Colo
 
 Projects store data in project-root/.woorf/data; standalone scripts use .woorf/data under the working directory. This directory is ignored by Git. Store name/scope pairs are encoded unambiguously and hashed into filenames. Operations use an exclusive file lock, durable flush and atomic replacement. Tests verify process restart persistence, scope isolation and concurrent increments from separate processes.
 
-This is a synchronous local backend, not Roblox cloud access. UpdateAsync, key/version metadata, quotas, distributed storage and authenticated stable account identity are not implemented. Connection-assigned UserIds are local session identities and cannot be treated as production account identity.
+This is a synchronous local backend, not Roblox cloud access. UpdateAsync holds the file lock across a non-yielding transform and durable commit; nil cancels and failures roll back. Key/version metadata, cloud quotas and distributed storage remain absent. Saved server-issued TCP credentials recover stable UserIds; external account login and TLS are not implemented. In-process identities remain session-based.
 
 Other material limits:
 
@@ -85,13 +85,13 @@ Other material limits:
 - JSON accepts supported JSON-compatible values, not arbitrary engine objects or sparse/mixed tables.
 - BindableEvent is limited by the supported value codec, rather than arbitrary Lua function/coroutine/custom-userdata transfer.
 - Heartbeat is a headless clock, not Roblox simulation-phase fidelity. Active subscriptions keep finite local scheduler runs alive until disconnected.
-- Source editing, general dynamic script startup, Enum coverage and many datatype/class members remain incomplete.
-- No TLS/account authentication, reconnect protocol, inbound rate limiting, script execution budgets or prolonged load qualification.
+- Source editing, broader Enum coverage beyond RunContext and many datatype/class members remain incomplete. Dynamic script lifecycle works in documented execution locations.
+- No TLS/external account authentication, automatic network state resume, memory quotas or prolonged load qualification. Protocol v4 supports credential reconnect, inbound frame/byte limits and VM execution budgets.
 - Passing the probes does not establish arbitrary full-game compatibility.
 
 ## Verification and repository state
 
-Latest complete suite: 161 PASS checks, with no reported failures or compiler warnings. The readiness workload reports SUMMARY 19 0. git diff --check passes; Git may print a pre-existing LF-to-CRLF normalization notice for native/ValueBridge.cpp.
+Latest complete suite: 171 PASS checks, with no reported failures or compiler warnings. The readiness workload reports SUMMARY 19 0. git diff --check passes; Git may print a pre-existing LF-to-CRLF normalization notice for native/ValueBridge.cpp.
 
 ```powershell
 dotnet run --project tests/Woorf.Cli.Tests --no-restore
@@ -111,25 +111,39 @@ There is substantial uncommitted work across these conversation milestones. Insp
 The user authorized implementation after the documentation refresh. The workload
 is now implemented in examples/round-game; read its README for manual commands
 and boundaries. Profiles, currency, tagged inventory/ValueObjects, teams, a
-Heartbeat round, validated requests, player leave and yielding shutdown saves run
-together without new engine APIs.
+Heartbeat round, validated requests, player leave and yielding shutdown hooks run
+together. The finishing milestone then added dynamic lifecycle, VM budgets, inbound
+limits, atomic UpdateAsync and persistent credential identity.
 
 ReferenceGameTests copies the real project into a temporary directory and runs a
 separate server process through SocketTransport.Listen plus two CLI clients. It
 checks invalid/duplicate requests, replicated state, a leave save, a shutdown save
 while another client remains connected, and totals after server restart: 7 coins,
-1 round, 1 potion, then 14 coins, 2 rounds, 2 potions. Test-only host cancellation
-uses redirected stdin; production CLI behavior is unchanged.
+1 round, 1 potion, then 14 coins, 2 rounds, 2 potions after reversed reconnect order. Test-only host cancellation
+uses redirected stdin; production CLI cancellation behavior is unchanged; --identity-file is now available for saved credentials.
 
-The server maps its first two connection slots to explicit test-alpha/test-beta
-profiles. Additional slots are kicked. There is one round per server session;
-in-session reconnect, authenticated identity, profile conflict handling, crash
-recovery and production hardening are not implemented. Run one server per data
-folder. The next development milestone has not been selected. Atomic UpdateAsync,
-stable identity, script lifecycle and inbound limits remain possible priorities.
+The game now keys profiles by stable server-issued UserId, uses atomic reward and
+purchase transactions, and records leave/shutdown metadata without stale balance
+writes. Its test reuses separate credential files and reverses client connection
+order after restart. There is one round per server session; the demo does not
+implement automatic reconnect/state resume. Reward/purchase writes are durable
+immediately, rather than depending on a final whole-profile snapshot.
+
+## Runtime finishing milestone
+
+All five identified gaps are addressed as documented local subsets. Read
+docs/runtime-hardening.md before changing these contracts. Tests include infinite
+startup/task/signal/protected/shutdown loops; dynamic clone activation and cleanup,
+RunContext and fatal dynamic errors; request/byte floods and healthy peers;
+UpdateAsync rollback, no-yield cleanup and separate-process composite updates;
+credential restart/reconnect, reversed join order and forged/duplicate rejection.
+A budget breach terminates the VM; it is not per-script isolation. Host I/O remains
+synchronous. Credentials are bearer secrets without TLS or external account login.
+No next engine portion has been selected yet. Existing user work remains uncommitted.
 
 ## Key references
 
+- docs/runtime-hardening.md: lifecycle, VM budgets, inbound limits, atomic updates and credential identity.
 - docs/backend-apis.md: current added APIs and precise boundaries.
 - docs/backend-api-readiness.md: audit, current inventory counts, remaining readiness gates and roadmap.
 - docs/api-audit/roblox-api-snapshot.json: pinned official reference metadata.

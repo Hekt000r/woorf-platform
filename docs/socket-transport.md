@@ -14,7 +14,7 @@ dotnet run --project src/Woorf.Cli --no-restore -- --connect 127.0.0.1:7777
 
 Clients receive shared state and client script templates from the server; they do
 not need a local project directory. The server prints its listening address.
-Port 0 requests an available port. Stop the server or a client with Ctrl+C.
+Port 0 requests an available server port. Pass --identity-file <path> when connecting to retain a local player identity; concurrent players need separate files. Stop the server or a client with Ctrl+C.
 The server stays alive while waiting for connections; clients stay connected
 after runnable script work drains. Player:Kick disconnects a socket client.
 
@@ -24,10 +24,11 @@ or SocketTransport.Connect(address, cancellationToken).
 
 ## Runtime behavior
 
-Each process owns its own Luau VM and DataModel. Connections receive monotonically
+Each process owns its own Luau VM and DataModel. New guests receive monotonically
 allocated local Player identities assigned by the server. A saved server-issued credential restores the same identity on reconnect; see [credentials](runtime-hardening.md#reconnect-credentials). A versioned handshake
 precedes the initial shared-state snapshot. The snapshot includes client script
-templates; server script sources and private storage are excluded. Client scripts
+templates; private server-executed source and private storage are excluded. Script
+source is sent when its RunContext explicitly makes it client-executable. Client scripts
 start after their LocalPlayer and the initial snapshot are available.
 
 The server sends incremental replication updates before related remote messages.

@@ -22,15 +22,16 @@ provide a headless spatial subset.
 
 Server and clients have separate VMs and object graphs. Local hosting and separate
 TCP processes support RemoteEvents, yielding RemoteFunctions, player join/removal,
-Kick and authoritative incremental replication. TCP protocol v3 includes dirty
+Kick and authoritative incremental replication. TCP protocol v4 includes dirty
 capture, bounded nonblocking outgoing queues and transport metrics.
 
 Backend APIs include attributes, tags, ValueObjects, BindableEvent, Color3, Random,
 JSON, Debris, headless Heartbeat, BindToClose, local durable DataStores, basic teams,
 health-only Humanoid and oriented-box raycasts. These are documented subsets;
-characters, movement, physics, rendering and general dynamic script startup remain
-incomplete or absent. DataStores use Woorf's local backend; connection-assigned
-UserIds are session identities, not authenticated accounts.
+characters, movement, physics and rendering remain incomplete or absent. Dynamic
+script lifecycle, VM budgets, inbound limits and atomic UpdateAsync are implemented.
+DataStores use Woorf's local backend. Saved TCP credentials preserve server-issued identities across reconnects and restarts;
+in-process UserIds remain session identities. External account login is not implemented.
 
 Windows x64 is verified. Linux, macOS, mobile, WASM, standalone packaging and an
 editor remain future work. See [runtime compatibility](docs/runtime-compatibility.md),
@@ -49,7 +50,7 @@ Maintain explicit implementation limits and extend local behavior tests with eac
 feature. Do not add a Studio behavior-comparison harness. Keep engine state and
 behavior in C# with native and Luau glue for VM integration and scheduling.
 
-The recorded complete-suite baseline is 161 passing checks, and the synthetic
+The recorded complete-suite baseline is 171 passing checks, and the synthetic
 readiness workload reports 19 available and 0 blocked checks. Neither establishes
 arbitrary full-game support. See [build and verification commands](README.md).
 
@@ -59,14 +60,14 @@ The [headless round game](examples/round-game/README.md) combines persistent tes
 profiles and currency, tagged inventory, teams, a Heartbeat-driven round, validated
 remote requests, joins/leaves and shutdown saves. Its acceptance test runs separate
 server/client processes, completes a round, restarts the server and verifies saved
-currency, completed rounds and inventory. It uses two fixed test identities and
-one round per server session; in-session reconnect remains outside this demo.
-No engine API changes were required for this bounded workload. Broader game
-support and production identity, concurrency and failure handling still need work.
+currency, completed rounds and inventory. It uses two saved local credentials and
+reverses connection order after restart to prove profile ownership. There is one round per server session. Broader game
+support, external account identity and distributed session ownership still need work.
 
 Characters and physics are runtime requirements for games that use them, even
-while backend APIs remain the immediate priority. Execution budgets, inbound rate
-limits, authentication/TLS and sustained-load qualification remain production gates.
+while backend APIs remain the immediate priority. VM budgets, inbound limits, atomic
+local updates and credential reconnect are now implemented; see [runtime hardening](docs/runtime-hardening.md). TLS, external
+accounts, memory quotas and sustained-load qualification remain production gates.
 
 ## Open decisions
 

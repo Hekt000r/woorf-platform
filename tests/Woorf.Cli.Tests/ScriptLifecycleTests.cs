@@ -63,6 +63,7 @@ static class ScriptLifecycleTests
             await RunProcess(cliPath, root, "client-lifecycle\n", ["--clients", "1"]);
             await CheckChain(cliPath, root);
             await CheckContexts(cliPath, root);
+            await CheckTcpContexts(cliPath, root);
             Console.WriteLine("PASS starts stops and restarts dynamic server and client scripts without stale work");
             return 0;
         }
@@ -107,6 +108,52 @@ static class ScriptLifecycleTests
             print("context-client")
             """);
         await RunProcess(cliPath, root, "context-server\ncontext-client\n", ["--clients", "1"]);
+    }
+
+    private static async Task CheckTcpContexts(string cliPath, string root)
+    {
+        NetworkProjectTests.Write(root, "src/ServerStorage/Tcp.server.luau", """
+            assert(game:GetService("RunService"):IsClient())
+            assert(script:GetAttribute("Ready") == true, "disabled replica started prematurely")
+            print("tcp-dynamic")
+            game:GetService("Players").LocalPlayer:Kick()
+            """);
+        NetworkProjectTests.Write(root, "src/ServerScriptService/Main.server.luau", """
+            local event = Instance.new("RemoteEvent", game:GetService("ReplicatedStorage")); event.Name = "Activate"
+            event.OnServerEvent:Connect(function()
+                local worker = game:GetService("ServerStorage").Tcp:Clone()
+                worker.Enabled = false; worker.RunContext = Enum.RunContext.Client
+                worker.Parent = game:GetService("ReplicatedStorage")
+                task.delay(0.05, function() worker:SetAttribute("Ready", true); worker.Enabled = true end)
+            end)
+            """);
+        NetworkProjectTests.WriteClient(root, "game:GetService('ReplicatedStorage').Activate:FireServer()");
+        using var server = Process.Start(new ProcessStartInfo("dotnet")
+        {
+            RedirectStandardOutput = true, RedirectStandardError = true,
+            ArgumentList = { cliPath, root, "--listen", "127.0.0.1:0" },
+        })!;
+        var serverError = server.StandardError.ReadToEndAsync();
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(8));
+        try
+        {
+            var listening = await server.StandardOutput.ReadLineAsync(timeout.Token);
+            using var client = Process.Start(new ProcessStartInfo("dotnet")
+            {
+                RedirectStandardOutput = true, RedirectStandardError = true,
+                ArgumentList = { cliPath, "--connect", listening![10..] },
+            })!;
+            var output = client.StandardOutput.ReadToEndAsync(); var error = client.StandardError.ReadToEndAsync();
+            try
+            {
+                await client.WaitForExitAsync(timeout.Token);
+                if (client.ExitCode != 0 || (await output).Trim() != "tcp-dynamic" || await error != "")
+                    throw new Exception("TCP script activation failed: " + await output + await error);
+            }
+            finally { if (!client.HasExited) { client.Kill(true); await client.WaitForExitAsync(); } }
+        }
+        finally { if (!server.HasExited) { server.Kill(true); await server.WaitForExitAsync(); } }
+        if (await serverError != "") throw new Exception("TCP script server failed: " + await serverError);
     }
 
     private static async Task RunProcess(string cliPath, string root, string expected, string[]? arguments = null, int expectedExit = 0, string expectedError = "")

@@ -8,9 +8,9 @@
     "Cross-platform or sustained production behavior"
   ],
   "summary": {
-    "implemented-subset": 175,
+    "implemented-subset": 179,
     "legacy-unimplemented": 170,
-    "missing": 526,
+    "missing": 522,
     "restricted-or-nonscriptable": 59
   },
   "members": [
@@ -5991,7 +5991,12 @@
         "methods"
       ],
       "upstreamEntries": 1,
-      "status": "missing"
+      "status": "implemented-subset",
+      "implementation": "src/Woorf.Engine/Scripting/BackendBindings.Persistence.cs",
+      "testEvidence": [
+        "tests/Woorf.Cli.Tests/RuntimeSafetyCases.cs",
+        "tests/Woorf.Cli.Tests/BackendPersistenceTests.cs"
+      ]
     },
     {
       "category": "classes",
@@ -7741,7 +7746,11 @@
         "properties"
       ],
       "upstreamEntries": 1,
-      "status": "missing"
+      "status": "implemented-subset",
+      "implementation": "src/Woorf.Engine/DataModel/ScriptInstance.cs",
+      "testEvidence": [
+        "tests/Woorf.Cli.Tests/ScriptLifecycleTests.cs"
+      ]
     },
     {
       "category": "classes",
@@ -7751,7 +7760,11 @@
         "properties"
       ],
       "upstreamEntries": 1,
-      "status": "missing"
+      "status": "implemented-subset",
+      "implementation": "src/Woorf.Engine/DataModel/ScriptInstance.cs",
+      "testEvidence": [
+        "tests/Woorf.Cli.Tests/ScriptLifecycleTests.cs"
+      ]
     },
     {
       "category": "classes",
@@ -7771,7 +7784,11 @@
         "properties"
       ],
       "upstreamEntries": 1,
-      "status": "missing"
+      "status": "implemented-subset",
+      "implementation": "src/Woorf.Engine/DataModel/ScriptInstance.cs",
+      "testEvidence": [
+        "tests/Woorf.Cli.Tests/ScriptLifecycleTests.cs"
+      ]
     },
     {
       "category": "classes",

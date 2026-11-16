@@ -12,6 +12,7 @@ internal sealed class ScriptLifecycle : IDisposable
     private readonly HashSet<ScriptInstance> stopping = [];
     private readonly Dictionary<Instance, string> paths = [];
     private bool isDirty = true;
+    internal bool HasPending => isDirty;
 
     internal ScriptLifecycle(DataModel.DataModel game, LuauSession session, bool isClient)
     {
