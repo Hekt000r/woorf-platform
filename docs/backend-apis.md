@@ -18,7 +18,7 @@ complete Roblox class coverage or a claim that arbitrary full games can run.
 | HttpService JSON | JSONEncode/JSONDecode for finite numbers, booleans, strings, contiguous arrays and string-keyed objects; cycle/type validation |
 | Debris | AddItem schedules destruction independently of the scheduling Script's lifetime |
 | Heartbeat | Positive elapsed-time ticks, signal waits, yielding listeners, connection-driven headless liveness |
-| Persistence | Server-only GetDataStore plus GetAsync/SetAsync/RemoveAsync/IncrementAsync against a durable local file backend |
+| Persistence | Server-only GetDataStore plus GetAsync/SetAsync/RemoveAsync/IncrementAsync/UpdateAsync against a durable local file backend |
 | Shutdown | BindToClose callbacks run concurrently, may yield, and get up to 30 seconds; completion is based on registered callbacks rather than unrelated subscriptions |
 | Teams | Team creation, Teams:GetTeams, Team:GetPlayers, Player.Team assignment and derived read-only Neutral state |
 | Humanoid | Health/MaxHealth, TakeDamage, HealthChanged and Died; health-only headless state |
@@ -41,9 +41,11 @@ operations from separate processes are serialized by the lock. Keys, names and
 scopes have validated nonempty length limits. Client runtimes cannot obtain stores.
 
 This is a synchronous local backend under Roblox-shaped method names. It is not
-Roblox cloud access. UpdateAsync, version history/key metadata, quotas/budgets,
-distributed storage, authenticated account identity and cloud failure semantics
-remain unsupported. Local session UserIds are not durable authenticated accounts.
+Roblox cloud access. UpdateAsync provides locked atomic transforms with cancellation and rollback; see
+[atomic stores](runtime-hardening.md#atomic-local-stores). Version history/key metadata,
+cloud quotas, distributed storage and cloud failure semantics remain unsupported.
+TCP clients can retain server-issued [reconnect credentials](runtime-hardening.md#reconnect-credentials);
+these are local identities rather than external account login.
 
 ## Deliberate boundaries
 
@@ -67,13 +69,15 @@ remain unsupported. Local session UserIds are not durable authenticated accounts
   when a finite CLI program should finish.
 - Shutdown callbacks should finish their own awaited work. Detached tasks are not
   a guarantee of completion after the callback returns. Unresolvable waits can
-  drain early under headless lifetime rules; non-yielding code is not preempted.
-- Script activation rules, Enum coverage, additional datatype helpers, characters,
-  physics, import, authentication and execution quotas remain separate milestones.
+  drain early under headless lifetime rules; runaway Luau code is interrupted by the VM budget.
+- Dynamic script activation, a RunContext Enum subset, execution budgets, inbound
+  limits and local reconnect credentials are covered in [runtime hardening](runtime-hardening.md).
+  Broader Enum/datatype coverage, characters, physics, import, memory quotas,
+  external account authentication and TLS remain separate milestones.
 
 ## Verification
 
-The complete suite passes 160 checks. Tests include all requested entry paths,
+The complete suite passes 161 checks. Tests include all requested entry paths,
 invalid member access, unsupported values, attribute/tag change behavior, clone
 independence, local and TCP replication, Color3 single-precision roundtrips,
 store scope isolation, separate-process durability and concurrent increments,
@@ -84,5 +88,8 @@ dotnet run --project tests/Woorf.Cli.Tests --no-restore
 dotnet run --project src/Woorf.Cli --no-restore -- docs/api-audit/probes/backend-readiness.luau
 ```
 
-TCP protocol v3 carries the additional replicated backend state and Color3 values.
+TCP protocol v4 carries the additional replicated backend state and Color3 values.
 Older explicit protocol versions are rejected. Use matching server/client builds.
+
+The [round game](../examples/round-game/README.md) also combines these APIs in a
+separate-process acceptance test with leave/shutdown saves and a server restart.

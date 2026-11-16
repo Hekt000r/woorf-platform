@@ -1,4 +1,4 @@
-# Initial client/server runtime
+# Client/server runtime
 
 Run a project with an authoritative server and two local headless clients:
 
@@ -6,17 +6,17 @@ Run a project with an authoritative server and two local headless clients:
 dotnet run --project src/Woorf.Cli --no-restore -- examples/client-server --clients 2
 ```
 
-The original one-argument invocation still runs only server scripts. Each endpoint has a separate C# DataModel and Luau VM, including independent globals, module caches, and script environments. This milestone uses queued in-process transport; it does not yet connect separate machines or processes.
+The original one-argument invocation still runs only server scripts. Each endpoint has a separate C# DataModel and Luau VM, including independent globals, module caches, and script environments. The --clients mode uses queued in-process transport. [TCP transport](socket-transport.md) supports separate server/client processes.
 
 The design follows Roblox's [client/server runtime](https://create.roblox.com/docs/projects/client-server), [RemoteEvent API](https://create.roblox.com/docs/reference/engine/classes/RemoteEvent), [remote arguments](https://create.roblox.com/docs/scripting/events/remote), [Players](https://create.roblox.com/docs/reference/engine/classes/Players), and [RunService](https://create.roblox.com/docs/reference/engine/classes/RunService) documentation. Compatibility is checked with local integration tests, without a Studio comparison harness.
 
 RemoteEvents support FireServer, FireClient, FireAllClients, OnServerEvent, and OnClientEvent. Sending queues a one-way message without waiting for listeners. OnServerEvent receives the host-associated sending Player before payload arguments; payloads cannot choose that identity. FireClient targets a connected Player. Calls from the wrong execution side raise errors.
 
-Players exposes LocalPlayer on clients, GetPlayers, and PlayerAdded. Local test players have deterministic names and UserIds; these are local identities, not Roblox accounts. RunService exposes IsServer and IsClient. StarterPlayer/StarterPlayerScripts scripts are copied into each local player's PlayerScripts; applicable client scripts execute in that client's VM.
+Players exposes LocalPlayer on clients, GetPlayers, PlayerAdded and PlayerRemoving; Player supports Kick, Team and derived Neutral state. In-process players have session identities. TCP players receive stable server-issued identities when retaining reconnect credentials; neither is a Roblox account. See [identity contract](runtime-hardening.md#reconnect-credentials). RunService exposes IsServer, IsClient and headless Heartbeat. StarterPlayer/StarterPlayerScripts and StarterGui templates are copied into each local player's PlayerScripts and PlayerGui; applicable LocalScripts execute in that client's VM.
 
-Server-visible shared state replicates to client copies; client mutations do not write into the server graph. Shared Instance references in remote messages resolve to the receiving endpoint's corresponding object. References unavailable to the receiver become nil. Argument tables are copied, rather than sharing memory across endpoints. Supported values and replication limits are described below as the implemented subset is verified.
+Server-visible shared state replicates to client copies; client mutations do not write into the server graph. Shared Instance references in remote messages resolve to the receiving endpoint's corresponding object. References unavailable to the receiver become nil. Argument tables are copied, rather than sharing memory across endpoints. Supported payloads include nil-preserving tuples, tables, booleans, numbers, strings, Vector3, CFrame, Color3 and mapped Instance references. Supported shared properties, attributes, tags, typed values, health and team state replicate; see [backend APIs](backend-apis.md) and [incremental TCP replication](socket-transport.md#runtime-behavior).
 
-UnreliableRemoteEvent, real authentication, characters, physics ownership, streaming, and Roblox scheduling/network-rate fidelity remain future work. Indefinite waits alone do not keep the headless CLI alive; the host exits after queued work and timers drain.
+UnreliableRemoteEvent, real authentication, characters, physics ownership, streaming, and Roblox scheduling/network-rate fidelity remain future work. Indefinite waits alone do not keep finite local CLI runs alive; queued work and timers drain before exit. Active Heartbeat subscriptions keep the scheduler alive. TCP listeners and connected clients remain alive for network input.
 
 ## RemoteFunctions
 
@@ -34,8 +34,8 @@ Destroying the remote fails pending local invocations. Destroying the callback's
 Script cancels its suspended work and replies with an error.
 
 There is no automatic invocation timeout. As with other unsignalled waits, pending
-calls alone do not keep the headless host alive after all runnable work and timers
-drain. Disconnecting the target fails pending InvokeClient calls. In-flight server callbacks from a disconnected client are cancelled.
+calls alone do not keep finite local runs alive after runnable work and timers
+drain. Active Heartbeat subscriptions and TCP hosting have the lifetime rules above. Disconnecting the target fails pending InvokeClient calls. In-flight server callbacks from a disconnected client are cancelled.
 
 The API follows the [Roblox RemoteFunction reference](https://create.roblox.com/docs/reference/engine/classes/RemoteFunction).
 
@@ -62,7 +62,7 @@ host.RunUntilIdle();
 
 Each new client receives the current server snapshot before its LocalScripts run.
 Existing clients observe PlayerAdded with the joining player's identity initialized.
-Local player identities increase monotonically and are not reused after disconnect.
+In-process player identities increase monotonically and are not reused after disconnect. TCP credentials can recover a prior identity after disconnect or server restart.
 
 PlayerRemoving fires before the Player leaves Players, on the server and remaining
 clients. The departing client's VM is disposed, cancelling its timers and callbacks.

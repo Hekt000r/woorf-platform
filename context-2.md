@@ -91,7 +91,7 @@ Other material limits:
 
 ## Verification and repository state
 
-Latest complete suite: 160 PASS checks, with no reported failures or compiler warnings. The readiness workload reports SUMMARY 19 0. git diff --check passes; Git may print a pre-existing LF-to-CRLF normalization notice for native/ValueBridge.cpp.
+Latest complete suite: 161 PASS checks, with no reported failures or compiler warnings. The readiness workload reports SUMMARY 19 0. git diff --check passes; Git may print a pre-existing LF-to-CRLF normalization notice for native/ValueBridge.cpp.
 
 ```powershell
 dotnet run --project tests/Woorf.Cli.Tests --no-restore
@@ -106,21 +106,27 @@ cmake --build build/native --target woorf_luau
 
 There is substantial uncommitted work across these conversation milestones. Inspect git status before editing. Preserve the existing changes; no commit, reset or cleanup of user work was requested. The source manifest records the audited working-tree files, not an engine release. Refresh it and the inventory when their recorded state changes.
 
-## Planned next milestone
+## Representative headless game milestone
 
-The latest recommendation, not yet implemented, is a representative headless game backend. The user has asked for this context summary; they have not yet explicitly instructed implementation of the reference game.
+The user authorized implementation after the documentation refresh. The workload
+is now implemented in examples/round-game; read its README for manual commands
+and boundaries. Profiles, currency, tagged inventory/ValueObjects, teams, a
+Heartbeat round, validated requests, player leave and yielding shutdown saves run
+together without new engine APIs.
 
-Instead of adding more isolated API names, build a small reference workload exercising:
+ReferenceGameTests copies the real project into a temporary directory and runs a
+separate server process through SocketTransport.Listen plus two CLI clients. It
+checks invalid/duplicate requests, replicated state, a leave save, a shutdown save
+while another client remains connected, and totals after server restart: 7 coins,
+1 round, 1 potion, then 14 coins, 2 rounds, 2 potions. Test-only host cancellation
+uses redirected stdin; production CLI behavior is unchanged.
 
-- Player profiles and persistent currency.
-- Inventory backed by attributes, tags and ValueObjects.
-- Teams and a Heartbeat-driven round/session loop.
-- Client requests through remotes with server-side validation.
-- Joining, leaving, restarting and saving during shutdown.
-
-The proposed acceptance test runs separate server/client processes, completes a round, restarts the server and verifies saved progress. Use test identities explicitly; do not imply authenticated accounts exist. Existing examples are feature demos, not a complete representative game.
-
-Let failures in that workload determine the next API priorities. Likely candidates are atomic UpdateAsync, stable player identity, script lifecycle and inbound rate limits. Those are expectations, not an already-authorized commitment or implemented feature list. Avoid silently expanding into rendering or characters while the user is prioritizing backend readiness.
+The server maps its first two connection slots to explicit test-alpha/test-beta
+profiles. Additional slots are kicked. There is one round per server session;
+in-session reconnect, authenticated identity, profile conflict handling, crash
+recovery and production hardening are not implemented. Run one server per data
+folder. The next development milestone has not been selected. Atomic UpdateAsync,
+stable identity, script lifecycle and inbound limits remain possible priorities.
 
 ## Key references
 

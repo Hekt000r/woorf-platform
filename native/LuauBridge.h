@@ -3,6 +3,7 @@
 #include "lua.h"
 #include "lualib.h"
 #include <cstddef>
+#include <chrono>
 #include <string>
 #include <unordered_map>
 
@@ -25,6 +26,10 @@ struct ModuleResult
 
 struct Runtime
 {
+    std::chrono::steady_clock::time_point executionDeadline;
+    std::chrono::steady_clock::time_point hardExecutionDeadline;
+    int executionDepth = 0;
+    bool executionFailed = false;
     lua_State* state = nullptr;
     WriteOutput write = nullptr;
     HostCall host = nullptr;
@@ -53,3 +58,40 @@ void initializeSchedulerHelpers(lua_State* state);
 WOORF_EXPORT int woorf_get_id(lua_State* state, int index);
 WOORF_EXPORT void woorf_push_instance(lua_State* state, int id);
 WOORF_EXPORT void woorf_push_method(lua_State* state, const char* operation);
+
+class ExecutionScope
+{
+    Runtime* runtime;
+    std::chrono::steady_clock::time_point started, previousDeadline;
+public:
+    explicit ExecutionScope(Runtime* value) : runtime(value), started(std::chrono::steady_clock::now()), previousDeadline(value->executionDeadline)
+    {
+        runtime->executionDeadline = started + std::chrono::milliseconds(250);
+        if (runtime->executionDepth++ == 0)
+        {
+            runtime->hardExecutionDeadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+        }
+    }
+    ~ExecutionScope()
+    {
+        if (--runtime->executionDepth > 0)
+            runtime->executionDeadline = previousDeadline + (std::chrono::steady_clock::now() - started);
+    }
+};
+void initializeExecutionBudget(lua_State* state);
+bool reportExecutionFailure(Runtime* runtime);
+
+class HostExecutionScope
+{
+    Runtime* runtime;
+    std::chrono::steady_clock::time_point started, previousDeadline;
+public:
+    explicit HostExecutionScope(Runtime* value) : runtime(value), started(std::chrono::steady_clock::now()), previousDeadline(value->executionDeadline)
+    {
+        runtime->executionDeadline = started + std::chrono::milliseconds(250);
+    }
+    ~HostExecutionScope()
+    {
+        runtime->executionDeadline = previousDeadline + (std::chrono::steady_clock::now() - started);
+    }
+};

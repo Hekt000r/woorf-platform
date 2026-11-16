@@ -11,13 +11,7 @@ public sealed partial class LocalNetworkHost
         isStarted = true;
         server = new RuntimeEndpoint(project.Game, this, clock);
         endpoints.Add(server);
-        foreach (var script in project.Scripts.Where(script => script.Instance.ClassName == "Script"))
-        {
-            if (script.Instance.IsDestroyed || !script.Instance.GetAncestors()
-                .Any(ancestor => ancestor.ClassName is "Workspace" or "ServerScriptService")) continue;
-            if (server.Session.Execute(script.Source, script.FilePath, script.Instance) != 0) return 1;
-        }
-        return 0;
+        return server.Session.StartScripts(project.Scripts);
     }
 
     public Player ConnectClient()

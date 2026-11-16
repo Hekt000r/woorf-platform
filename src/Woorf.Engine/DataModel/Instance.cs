@@ -59,6 +59,7 @@ public partial class Instance
     {
         return className switch
         {
+            "Script" or "LocalScript" => new ScriptInstance(className),
             "Part" => new Part(),
             "Model" => new Model(),
             "Player" => new Player(),

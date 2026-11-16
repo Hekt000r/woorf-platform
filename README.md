@@ -45,7 +45,7 @@ CLI exit codes: `0` success, `1` file/compilation/execution/native-loading failu
 
 ## Scope
 
-The native bridge uses portable CMake and the managed engine uses C#/.NET. Windows x64 is currently verified; Linux, macOS, mobile, and WASM have not been verified. Browser support will require a separate .NET/WASM and native interoperability build path. The current runtime includes a structural subset of Roblox APIs with signals, property-change events, yielding ModuleScript `require`, and cooperative task scheduling. Local headless client/server execution and RemoteEvents are supported through --clients N; see [client/server runtime](docs/client-server.md). TCP transport supports separate server/client processes; editor, rendering, and physics remain future work. There are no execution time or memory quotas yet.
+The native bridge uses portable CMake and the managed engine uses C#/.NET. Windows x64 is currently verified; Linux, macOS, mobile, and WASM have not been verified. Browser support will require a separate .NET/WASM and native interoperability build path. The current runtime includes a structural subset of Roblox APIs with signals, property-change events, yielding ModuleScript `require`, and cooperative task scheduling. Local headless client/server execution, RemoteEvents and yielding RemoteFunctions are supported through --clients N; see [client/server runtime](docs/client-server.md). TCP transport supports separate server/client processes; editor, rendering, and physics remain future work. VM execution budgets and inbound limits are implemented; memory quotas remain absent. See [runtime hardening](docs/runtime-hardening.md).
 
 See [project.md](project.md) for the broader goals and [vendor/LUAU.md](vendor/LUAU.md) for upstream provenance and licenses.
 
@@ -65,3 +65,7 @@ reference snapshot, measured subset, confirmed gaps, and prioritized API roadmap
 
 The [backend API milestone](docs/backend-apis.md) documents the implemented audit
 paths, local persistence contract, and remaining compatibility limits.
+
+The [headless round game](examples/round-game/README.md) combines persistent test
+profiles, inventory, teams, rounds and validated client requests. Its acceptance
+test runs separate TCP processes and verifies progress after a server restart.

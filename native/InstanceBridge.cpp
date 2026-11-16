@@ -10,6 +10,15 @@ static int dispatchHost(lua_State* state)
         && lua_type(state, 2) == LUA_TSTRING)
     {
         const std::string property = lua_tostring(state, 2);
+        if (property == "RunContext")
+        {
+            const int count = lua_gettop(state);
+            lua_getglobal(state, std::string(operation) == "get" ? "_woorf_context_get" : "_woorf_context_set");
+            lua_pushvalue(state, 1);
+            if (std::string(operation) == "set") lua_pushvalue(state, 3);
+            lua_call(state, std::string(operation) == "get" ? 1 : 2, LUA_MULTRET);
+            return lua_gettop(state) - count;
+        }
         if (property == "OnServerInvoke" || property == "OnClientInvoke")
         {
             const int count = lua_gettop(state);
@@ -19,7 +28,18 @@ static int dispatchHost(lua_State* state)
             return lua_gettop(state);
         }
     }
-    const int result = getRuntime(state)->host(state, operation);
+    int result;
+    {
+        HostExecutionScope hostExecution(getRuntime(state));
+        result = getRuntime(state)->host(state, operation);
+    }
+    if (result == 1 && (std::string(operation) == "Connect" || std::string(operation) == "Once"))
+    {
+        lua_getglobal(state, "_woorf_track_connection");
+        lua_pushvalue(state, -2);
+        lua_pushvalue(state, 2);
+        lua_call(state, 2, 0);
+    }
     // Managed exceptions are converted to stack strings before returning here.
     if (result < 0)
         lua_error(state);

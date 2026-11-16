@@ -19,6 +19,14 @@ internal sealed class LocalDataStore(string directory, string name, string scope
         return next;
     }, true);
 
+    internal JsonElement? Update(string key, Func<JsonElement?, JsonElement?> transform) => Execute(values =>
+    {
+        var previous = values.TryGetValue(key, out var stored) ? stored.Clone() : (JsonElement?)null;
+        var next = transform(previous);
+        if (next is JsonElement value) values[key] = value.Clone();
+        return next;
+    }, true);
+
     private T Execute<T>(Func<Dictionary<string, JsonElement>, T> action, bool shouldWrite)
     {
         Directory.CreateDirectory(directory);

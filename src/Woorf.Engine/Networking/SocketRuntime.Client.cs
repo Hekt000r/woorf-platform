@@ -12,7 +12,7 @@ internal sealed partial class SocketRuntime
         client.ConnectAsync(host, port, cancellation).AsTask().GetAwaiter().GetResult();
         var peer = new SocketPeer(client);
         peers.Add(peer);
-        peer.Send(new("hello"));
+        peer.Send(new("hello", Credential: ClientCredential.Load(identityFile)));
         var started = clock.ElapsedSeconds;
         while (!cancellation.IsCancellationRequested && (!shouldLeave || peer.Writes.QueuedBytes > 0))
         {
@@ -34,6 +34,7 @@ internal sealed partial class SocketRuntime
         if (endpoint is null)
         {
             if (packet.Kind != "welcome" || packet.Nodes is null) throw new InvalidDataException("Expected server welcome.");
+            ClientCredential.Save(identityFile, packet.Credential);
             replicaUpdates.Initialize(packet.Nodes);
             var player = graph.Find(packet.Player) as Player ?? throw new InvalidDataException("Invalid local player.");
             ((Players)game.GetService("Players")).LocalPlayer = player;

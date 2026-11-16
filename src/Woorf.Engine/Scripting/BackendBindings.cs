@@ -27,6 +27,11 @@ internal sealed partial class BackendBindings : IDisposable
     internal bool TryRead(nint state, Instance instance, string property, out int result)
     {
         result = 1;
+        if (instance is ScriptInstance script && property is "Enabled" or "Disabled" or "_RunContext")
+        {
+            Push(state, property == "_RunContext" ? (object)script.RunContext : property == "Enabled" ? script.Enabled : !script.Enabled);
+            return true;
+        }
         if (property == "AttributeChanged") { signals.PushSignal(state, instance.AttributeChanged); return true; }
         if (instance is ValueObject value && property == "Value") { Push(state, value.Value); return true; }
         if (instance is BindableEvent bindable && property == "Event") { signals.PushSignal(state, bindable.Event); return true; }
@@ -52,10 +57,20 @@ internal sealed partial class BackendBindings : IDisposable
         || instance.ClassName == "Team" && name == "GetPlayers"
         || instance == game.Workspace && name is "Raycast" or "_Raycast"
         || instance.ClassName == "DataStoreService" && name == "GetDataStore"
-        || instance.ClassName == "GlobalDataStore" && name is "GetAsync" or "SetAsync" or "RemoveAsync" or "IncrementAsync";
+        || instance.ClassName == "GlobalDataStore" && name is "GetAsync" or "SetAsync" or "RemoveAsync" or "IncrementAsync" or "UpdateAsync";
 
     internal bool TryWrite(nint state, Instance instance, string property)
     {
+        if (instance is ScriptInstance script && property is "Enabled" or "Disabled" or "_RunContext")
+        {
+            if (property == "_RunContext") script.RunContext = checked((int)Number(state, 3));
+            else
+            {
+                if (Read(state, 3) is not bool enabled) throw new InvalidOperationException("Expected boolean.");
+                script.Enabled = property == "Enabled" ? enabled : !enabled;
+            }
+            return true;
+        }
         if (instance is ValueObject value && property == "Value") { value.Value = Read(state, 3); return true; }
         if (instance is Humanoid humanoid && property is "Health" or "MaxHealth")
         {

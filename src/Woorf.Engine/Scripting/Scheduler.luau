@@ -8,6 +8,7 @@ local owners = setmetatable({}, {__mode = "k"})
 local ownerStates = setmetatable({}, {__mode = "k"})
 local cleanups = setmetatable({}, {__mode = "k"})
 local cancellations = setmetatable({}, {__mode = "k"})
+local isInternalConnection = false
 local currentOwner
 local resumeDepth = 0
 local maxResumeDepth = 100
@@ -74,7 +75,8 @@ local function trackThread(thread, owner)
     if not ownerState then
         ownerState = {threads = {}, cancelled = false}
         ownerStates[owner] = ownerState
-        owner.Destroying:Connect(function()
+        isInternalConnection = true
+        ownerState.destroyConnection = owner.Destroying:Connect(function()
             ownerState.cancelled = true
             local ownedThreads = {}
             for ownedThread in ownerState.threads do table.insert(ownedThreads, ownedThread) end
@@ -84,6 +86,7 @@ local function trackThread(thread, owner)
                 end
             end
         end)
+        isInternalConnection = false
     end
     if ownerState.cancelled then
         coroutine.close(thread)
@@ -176,6 +179,7 @@ end
 
 function tasks.wait(duration)
     duration = getDuration(duration)
+    assert(_woorf_can_yield(), "Cannot yield in this callback")
     local thread, started = coroutine.running(), clock()
     assert(thread, "task.wait requires a coroutine")
     local timer = queueTimer(math.max(duration, 1 / 60), function()
@@ -217,6 +221,7 @@ function _woorf_step(time)
 end
 
 function _woorf_start(callback, owner)
+    if owner then ownerStates[owner] = nil end
     local thread = coroutine.create(callback)
     contexts[thread] = "Script failed: "
     if not trackThread(thread, owner) then return end
@@ -237,6 +242,7 @@ end
 
 function _woorf_signal_wait(signal)
     assert(typeof(signal) == "RBXScriptSignal", "Expected RBXScriptSignal self")
+    assert(_woorf_can_yield(), "Cannot yield in this callback")
     local thread = coroutine.running()
     local connection = signal:Once(function(...) resumeThread(thread, table.pack(...)) end)
     addThreadCleanup(thread, function() connection:Disconnect() end)
@@ -250,6 +256,7 @@ function _woorf_wait_for_child(instance, name, timeout)
     local child = instance:FindFirstChild(name)
     if child then return child end
     if timeout == 0 then return nil end
+    assert(_woorf_can_yield(), "Cannot yield in this callback")
     local thread, completed, timer, connection = coroutine.running(), false, nil, nil
     local function finish(value)
         if completed then return end

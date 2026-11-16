@@ -42,6 +42,7 @@ WOORF_EXPORT void* woorf_create(WriteOutput write, HostCall host, int gameId, in
         initializeModules(runtime->state);
         initializeSchedulerHelpers(runtime->state);
         initializeColor(runtime->state);
+        initializeExecutionBudget(runtime->state);
         return runtime.release();
     }
     catch (const std::exception& error)
@@ -68,6 +69,8 @@ WOORF_EXPORT int woorf_run(void* handle, const char* source, size_t length,
     const char* chunkName, int scriptId)
 {
     auto* runtime = static_cast<Runtime*>(handle);
+    ExecutionScope execution(runtime);
+    if (runtime->executionFailed) return 1;
     try
     {
         lua_State* thread = lua_newthread(runtime->state);
@@ -84,9 +87,9 @@ WOORF_EXPORT int woorf_run(void* handle, const char* source, size_t length,
             lua_getglobal(thread, "_woorf_start");
             lua_insert(thread, -2);
             lua_getglobal(thread, "script");
-            status = lua_pcall(thread, 2, 0, 0);
+            status = lua_resume(thread, nullptr, 2);
         }
-        const int result = status == 0 ? 0 : reportFailure(runtime, thread);
+        const int result = reportExecutionFailure(runtime) ? 1 : status == 0 ? 0 : reportFailure(runtime, thread);
         lua_pop(runtime->state, 1);
         return result;
     }

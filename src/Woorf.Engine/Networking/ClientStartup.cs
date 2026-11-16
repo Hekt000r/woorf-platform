@@ -13,12 +13,7 @@ internal static class ClientStartup
         gui.Parent = player;
         CopyTemplates(server.FindService("StarterPlayer")?.FindFirstChild("StarterPlayerScripts"), scripts);
         CopyTemplates(server.FindService("StarterGui"), gui);
-        foreach (var script in player.GetDescendants().Where(instance => instance.ClassName == "LocalScript").ToArray())
-        {
-            if (script.IsDestroyed) continue;
-            if (endpoint.Session.Execute(script.ScriptSource, script.GetFullName(), script) != 0) return 1;
-        }
-        return 0;
+        return endpoint.Session.StartClientScripts();
     }
 
     private static void CopyTemplates(Instance? source, Instance target)

@@ -33,8 +33,16 @@ static int newTypedProxy(lua_State* state)
     return 1;
 }
 
+static int canYield(lua_State* state)
+{
+    lua_pushboolean(state, lua_isyieldable(state));
+    return 1;
+}
+
 void initializeSchedulerHelpers(lua_State* state)
 {
+    lua_pushcfunction(state, canYield, "can yield");
+    lua_setglobal(state, "_woorf_can_yield");
     lua_pushcfunction(state, newTypedProxy, "typed proxy");
     lua_setglobal(state, "_woorf_new_proxy");
     lua_pushcfunction(state, reportMessage, "report");
@@ -63,16 +71,20 @@ WOORF_EXPORT int woorf_initialize_scheduler(void* handle, const char* source, si
 WOORF_EXPORT double woorf_step(void* handle, double now)
 {
     auto* runtime = static_cast<Runtime*>(handle);
+    if (runtime->executionFailed) return -1;
+    ExecutionScope execution(runtime);
     const int savedTop = lua_gettop(runtime->state);
-    lua_getglobal(runtime->state, "_woorf_step");
-    lua_pushnumber(runtime->state, now);
-    const int status = lua_pcall(runtime->state, 1, 1, 0);
+    auto* thread = lua_newthread(runtime->state);
+    lua_getglobal(thread, "_woorf_step");
+    lua_pushnumber(thread, now);
+    const int status = lua_resume(thread, nullptr, 1);
     double deadline = -1;
-    if (status == 0) deadline = lua_tonumber(runtime->state, -1);
+    if (reportExecutionFailure(runtime)) { }
+    else if (status == 0) deadline = lua_tonumber(thread, -1);
     else
     {
-        const char* error = lua_tostring(runtime->state, -1);
-        runtime->write(error, std::char_traits<char>::length(error), 1);
+        const char* error = lua_tostring(thread, -1);
+        if (error) runtime->write(error, std::char_traits<char>::length(error), 1);
         runtime->write("\n", 1, 1);
     }
     lua_settop(runtime->state, savedTop);
@@ -82,9 +94,24 @@ WOORF_EXPORT double woorf_step(void* handle, double now)
 WOORF_EXPORT int woorf_scheduler_failed(void* handle)
 {
     auto* runtime = static_cast<Runtime*>(handle);
+    if (runtime->executionFailed) return 1;
     lua_getglobal(runtime->state, "_woorf_scheduler_failed");
     const int status = lua_pcall(runtime->state, 0, 1, 0);
     const int failed = status != 0 || lua_toboolean(runtime->state, -1);
     lua_pop(runtime->state, 1);
     return failed;
+}
+
+WOORF_EXPORT int woorf_stop_script(void* handle, int id)
+{
+    auto* runtime = static_cast<Runtime*>(handle);
+    if (runtime->executionFailed) return 1;
+    ExecutionScope execution(runtime);
+    const int top = lua_gettop(runtime->state);
+    auto* thread = lua_newthread(runtime->state);
+    lua_getglobal(thread, "_woorf_stop_script");
+    woorf_push_instance(thread, id);
+    const int status = lua_resume(thread, nullptr, 1);
+    lua_settop(runtime->state, top);
+    return status;
 }

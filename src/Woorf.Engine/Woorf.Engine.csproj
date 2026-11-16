@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Scripting/ScriptLifecycle.luau" />
     <EmbeddedResource Include="Scripting/Scheduler.luau" />
     <EmbeddedResource Include="Scripting/RemoteFunctions.luau" />
     <EmbeddedResource Include="Scripting/BackendTypes.luau" />

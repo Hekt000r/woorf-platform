@@ -11,12 +11,7 @@ internal sealed partial class SocketRuntime
     {
         using var listener = new TcpListener(address);
         endpoint = new RuntimeEndpoint(game, this, clock);
-        foreach (var script in project!.Scripts)
-        {
-            if (script.Instance.ClassName != "Script" || script.Instance.IsDestroyed ||
-                !script.Instance.GetAncestors().Any(item => item.ClassName is "Workspace" or "ServerScriptService")) continue;
-            if (endpoint.Session.Execute(script.Source, script.FilePath, script.Instance) != 0) return 1;
-        }
+        if (endpoint.Session.StartScripts(project!.Scripts) != 0) return 1;
         listener.Start(32);
         Console.WriteLine("Listening " + listener.LocalEndpoint);
         while (!cancellation.IsCancellationRequested)
@@ -27,7 +22,7 @@ internal sealed partial class SocketRuntime
                 var client = listener.AcceptTcpClient();
                 client.NoDelay = true;
                 if (peers.Count >= 32) client.Dispose();
-                else peers.Add(new SocketPeer(client));
+                else peers.Add(new SocketPeer(client, shouldLimitInput: true));
             }
             foreach (var peer in peers.ToArray()) ReadPeer(peer);
             ProcessLeaves();
@@ -49,11 +44,14 @@ internal sealed partial class SocketRuntime
                 if (peer.Player is null)
                 {
                     if (packet.Kind != "hello" || packet.Player != 0) throw new InvalidDataException("Expected protocol handshake.");
-                    var player = new Player(++nextPlayerId, $"Player{nextPlayerId}");
+                    var identity = identities.Resolve(packet.Credential);
+                    if (peers.Any(other => other.Player?.UserId == identity.UserId))
+                        throw new InvalidDataException("Identity already connected.");
+                    var player = new Player(identity.UserId, $"Player{identity.UserId}");
                     peer.Player = player;
                     player.Parent = game.GetService("Players");
                     var nodes = graph.Capture();
-                    peer.Send(new("welcome", Player: graph.Identify(player), Nodes: nodes));
+                    peer.Send(new("welcome", Player: graph.Identify(player), Nodes: nodes, Credential: identity.Token));
                     peer.Baseline.Initialize(nodes);
                     peer.ReplicationRevision = graph.Revision;
                 }

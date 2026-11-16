@@ -11,6 +11,7 @@ public sealed partial class LocalNetworkHost : IDisposable, IRuntimeHost
     private readonly IRuntimeClock clock;
     private bool isStarted;
     private bool isDisposed;
+    internal bool HasFailed { get; private set; }
     private int nextPlayerId;
     private readonly Queue<Player> disconnects = [];
 
@@ -46,6 +47,12 @@ public sealed partial class LocalNetworkHost : IDisposable, IRuntimeHost
         if (source.IsClient)
         {
             if (method != "FireServer") throw new InvalidOperationException($"{method} can only be called from the server.");
+            try { source.Inbound.Dispatch(); }
+            catch (InvalidDataException error)
+            {
+                disconnects.Enqueue(source.ServerPlayer!);
+                throw new InvalidOperationException(error.Message);
+            }
             var original = source.Replicas!.ToServer(remote) as RemoteEvent
                 ?? throw new InvalidOperationException("RemoteEvent is not replicated from the server.");
             messages.Enqueue(new(original, server, source.ServerPlayer,
@@ -118,7 +125,11 @@ public sealed partial class LocalNetworkHost : IDisposable, IRuntimeHost
     {
         if (isDisposed) return;
         isDisposed = true;
-        foreach (var endpoint in endpoints.AsEnumerable().Reverse()) endpoint.Dispose();
+        foreach (var endpoint in endpoints.AsEnumerable().Reverse())
+        {
+            endpoint.Dispose();
+            HasFailed |= endpoint.Session.HasFailed;
+        }
         endpoints.Clear();
         messages.Clear();
         disconnects.Clear();

@@ -9,7 +9,7 @@ try
     if (socketStatus is int result) return result;
 }
 catch (Exception error) when (error is IOException or InvalidDataException or System.Net.Sockets.SocketException or ArgumentException
-    or FormatException or InvalidOperationException or OperationCanceledException)
+    or System.Text.Json.JsonException or FormatException or InvalidOperationException or OperationCanceledException)
 {
     Console.Error.WriteLine(error.Message);
     return 1;

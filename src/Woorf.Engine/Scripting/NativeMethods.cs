@@ -4,6 +4,10 @@ namespace Woorf.Engine.Scripting;
 
 internal static partial class NativeMethods
 {
+    [DllImport("woorf_luau", CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int woorf_stop_script(nint handle, int id);
+    [DllImport("woorf_luau", CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int woorf_execution_failed(nint handle);
     private const string Library = "woorf_luau";
     [DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
     internal static extern void woorf_push_cframe(nint state, [In, MarshalAs(UnmanagedType.LPArray, SizeConst = 12)] float[] components);

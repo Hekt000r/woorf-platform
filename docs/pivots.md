@@ -12,7 +12,7 @@ Clones preserve pivot state. Reference properties pointing at copied instances a
 
 An external PrimaryPart reference is accepted for compatibility with Roblox legacy assignments. Roblox clears such references at a simulation step; woorf has no physics simulation step, so it retains them until destruction. A previously-descendant primary reference is cleared when removed from its Model. Use descendant Parts for reliable Model movement.
 
-The runtime remains headless: no collision checks, joints, physics simulation, or replication are added. Scaling, legacy MoveTo/SetPrimaryPartCFrame aliases, and editor pivot properties remain unsupported. Source-directory metadata continues to support only the previously documented classes.
+The runtime remains headless: pivot movement performs no collision checks, joint solving or physics simulation. Supported transforms, pivots and PrimaryPart references replicate through the [client/server runtime](client-server.md). Scaling, legacy MoveTo/SetPrimaryPartCFrame aliases, and editor pivot properties remain unsupported. Source-directory metadata continues to support only the previously documented classes.
 
 Model bounds are described in [Model bounds](bounds.md).
 

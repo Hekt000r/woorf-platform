@@ -13,9 +13,9 @@ internal static class SocketCli
         {
             if (arguments.Length == 3 && arguments[1] == "--listen" && Directory.Exists(arguments[0]))
                 return SocketTransport.Listen(ProjectLoader.Load(arguments[0]), arguments[2], cancellation.Token);
-            if (arguments.Length == 2 && arguments[0] == "--connect")
-                return SocketTransport.Connect(arguments[1], cancellation.Token);
-            Console.Error.WriteLine("Usage: woorf <project-directory> --listen <ip:port> | woorf --connect <host:port>");
+            if (arguments[0] == "--connect" && (arguments.Length == 2 || arguments.Length == 4 && arguments[2] == "--identity-file"))
+                return SocketTransport.Connect(arguments[1], cancellation.Token, identityFile: arguments.Length == 4 ? arguments[3] : null);
+            Console.Error.WriteLine("Usage: woorf <project-directory> --listen <ip:port> | woorf --connect <host:port> [--identity-file <path>]");
             return 2;
         }
         finally { Console.CancelKeyPress -= handler; }

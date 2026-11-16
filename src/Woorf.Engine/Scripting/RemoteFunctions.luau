@@ -99,6 +99,7 @@ function _woorf_remote_set(remote, property, callback)
 end
 
 local function invokeRemote(remote, player, ...)
+    assert(_woorf_can_yield(), "Cannot yield in this callback")
     local state = getRemoteState(remote)
     assert(not state.destroyed, "RemoteFunction was destroyed")
     state.sequence += 1

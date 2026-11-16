@@ -6,6 +6,7 @@ namespace Woorf.Engine.Networking;
 
 internal sealed class RuntimeEndpoint : IDisposable
 {
+    internal InboundBudget Inbound { get; } = new();
     internal RuntimeEndpoint(DataModel.DataModel game, IRuntimeHost host, IRuntimeClock clock, Player? player = null)
     {
         Game = game;

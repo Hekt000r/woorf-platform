@@ -40,7 +40,7 @@ Run `dotnet run --project src/Woorf.Cli -- examples/modules` to try [the module 
 
 ## Signal behavior
 
-Signals begin delivery immediately and callbacks can yield through the cooperative scheduler. `Changed` receives the property name; `GetPropertyChangedSignal` callbacks receive no arguments. Actual changes to `Name`, `Archivable`, and `Parent` publish notifications; assignments of the same value and rejected assignments publish none. Property signals are cached, and valid read-only properties can be observed even though they do not change in this runtime.
+Signals begin delivery immediately and callbacks can yield through the cooperative scheduler. `Changed` receives the property name, except ValueObjects whose Changed signal receives the new Value; `GetPropertyChangedSignal` callbacks receive no arguments. Actual changes to `Name`, `Archivable`, and `Parent` publish notifications; assignments of the same value and rejected assignments publish none. Property signals are cached, and valid read-only properties can be observed even though they do not change in this runtime.
 
 `ChildAdded` and `ChildRemoved` observe the updated parent hierarchy. `DescendantRemoving` runs before detachment; its subtree cannot be reparented or destroyed while removal callbacks run. Descendant events cover each member of a moved subtree and only ancestors whose membership changed. Descendant `AncestryChanged` listeners receive the originally moved instance and its new parent, including `nil` when unparented.
 
@@ -57,10 +57,10 @@ Try `dotnet run --project src/Woorf.Cli -- examples/signals.luau` for a complete
 - This is a structural foundation, not a complete Roblox compatibility layer or measured 99% coverage.
 - `task.spawn`, `task.defer`, `task.wait`, `task.delay`, `task.cancel`, signal `Wait`, yielding callbacks, and `WaitForChild` are supported; see [scheduler semantics](scheduler.md). Destroying a Script cancels its suspended work. `ConnectParallel`, deferred Instance event delivery, deprecated aliases remain unsupported. Attributes and tags are implemented; see [backend APIs](backend-apis.md).
 - Supported service roots are locked to their DataModel after creation and cannot be destroyed or reparented. This preserves singleton identity; exact class-specific Roblox lifecycle rules remain to be expanded. Workspace starts without Terrain or Camera. Other containers are lazy-created rather than matching Studio's complete default tree.
-- Project scripts begin in deterministic source-path order and may yield while later scripts start. Roblox scheduling phases, Heartbeat, and RunContext semantics are not implemented.
-- LocalScripts execute in isolated client runtimes from supported StarterPlayerScripts/StarterGui templates. Source editing and general dynamic script startup remain unsupported. Cloning copies source but does not automatically start a new script.
+- Project scripts begin in deterministic source-path order and may yield while later scripts start. Headless Heartbeat and dynamic Enabled/Disabled/RunContext lifecycle are supported as documented subsets; Roblox simulation phases remain incomplete.
+- LocalScripts execute in isolated client runtimes from supported StarterPlayerScripts/StarterGui templates. Source editing remains unsupported. Clones with loaded source start when enabled in a supported execution location; see [dynamic script lifecycle](runtime-hardening.md#script-lifecycle).
 - The filesystem loader rejects duplicate sibling names to keep file mapping unambiguous; runtime-created instances may share names.
-- Hierarchy changes stay in memory. There is no place-file import, saving, rendering, physics, persistence, or Roblox-hosted service access. Shared state replicates over the local host and TCP transport.
+- Hierarchy changes stay in memory. There is no place-file import, hierarchy saving, rendering, physics, or Roblox-hosted service access. Server-only local DataStores persist JSON-compatible data independently of the hierarchy; see [persistence contract](backend-apis.md#local-persistence-contract). Shared state replicates over the local host and TCP transport.
 - Errors describe woorf validation failures; exact Roblox error wording and coercion rules are not promised.
 
 ## References
@@ -73,12 +73,12 @@ Implementation consulted Roblox's official documentation on 2026-11-15:
 - [Data model organization](https://create.roblox.com/docs/projects/data-model)
 - [RBXScriptSignal](https://create.roblox.com/docs/reference/engine/datatypes/RBXScriptSignal) and [RBXScriptConnection](https://create.roblox.com/docs/reference/engine/datatypes/RBXScriptConnection)
 
-These are live references, not a pinned API snapshot. Future compatibility work should pin an API dump and extend behavior tests alongside each feature.
+These links are live references. The [backend audit](backend-api-readiness.md) pins a selected creator-docs snapshot and records per-symbol implementation evidence. It is not a complete Engine API dump or a behavioral conformance measurement; extend behavior tests alongside each feature.
 
 ## Networking and lifecycle
 
 RemoteEvents, RemoteFunctions, local player identities, join/removal, Kick, and
-isolated server/client VMs are implemented as a subset. TCP protocol v3 supports
+isolated server/client VMs are implemented as a subset. TCP protocol v4 supports
 separate processes, incremental replication, dirty capture, bounded outgoing
 queues, and transport measurements. Read [client/server semantics](client-server.md)
 and [TCP transport](socket-transport.md) for behavior and limits.

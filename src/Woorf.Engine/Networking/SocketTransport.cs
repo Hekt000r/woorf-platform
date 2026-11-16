@@ -14,17 +14,17 @@ public static class SocketTransport
     {
         var endpoint = IPEndPoint.Parse(address);
         using var runtime = new SocketRuntime(project, observe);
-        return runtime.Listen(endpoint, cancellation);
+        return runtime.Finish(runtime.Listen(endpoint, cancellation));
     }
 
     public static int Connect(string address, CancellationToken cancellation = default,
-        Action<SocketTransportMetrics>? observe = null)
+        Action<SocketTransportMetrics>? observe = null, string? identityFile = null)
     {
         var separator = address.LastIndexOf(':');
         if (separator < 1 || !int.TryParse(address[(separator + 1)..], out var port) || port is < 1 or > 65535)
             throw new InvalidDataException("Expected host:port.");
-        using var runtime = new SocketRuntime(observe: observe);
-        return runtime.Connect(address[..separator].Trim('[', ']'), port, cancellation);
+        using var runtime = new SocketRuntime(observe: observe, identityFile: identityFile);
+        return runtime.Finish(runtime.Connect(address[..separator].Trim('[', ']'), port, cancellation));
     }
 }
 
@@ -38,14 +38,17 @@ internal sealed partial class SocketRuntime : IRuntimeHost, IDisposable
     private readonly Queue<Player> disconnects = [];
     private RuntimeEndpoint? endpoint;
     private bool shouldLeave;
-    private int nextPlayerId;
+    private readonly ServerIdentities identities;
+    private readonly string? identityFile;
     private readonly ReplicaUpdates replicaUpdates;
 
-    internal SocketRuntime(LoadedProject? project = null, Action<SocketTransportMetrics>? observe = null)
+    internal SocketRuntime(LoadedProject? project = null, Action<SocketTransportMetrics>? observe = null, string? identityFile = null)
     {
+        this.identityFile = identityFile;
         this.project = project;
         this.observe = observe;
         game = project?.Game ?? new();
+        identities = new ServerIdentities(Path.GetFullPath(Path.Combine(game.DataDirectory, "..", "auth")));
         graph = new WireGraph(game, project is not null);
         replicaUpdates = new ReplicaUpdates(graph);
     }
@@ -110,8 +113,13 @@ internal sealed partial class SocketRuntime : IRuntimeHost, IDisposable
     private static bool IsPeerFailure(Exception error) => error is IOException or InvalidDataException or SocketException
         or JsonException or InvalidOperationException or ArgumentException or KeyNotFoundException;
 
+    private bool isDisposed;
+    internal int Finish(int status) { Dispose(); return status != 0 || endpoint?.Session.HasFailed == true ? 1 : 0; }
+
     public void Dispose()
     {
+        if (isDisposed) return;
+        isDisposed = true;
         foreach (var peer in peers) peer.Dispose();
         peers.Clear();
         endpoint?.Dispose();

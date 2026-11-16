@@ -51,6 +51,7 @@ static class BackendPersistenceTests
                 print("cleaned")
                 """);
             await RunProcess(cliPath, root, "cleaned\n");
+            await CheckAtomicUpdates(cliPath, root);
             Console.WriteLine("PASS persists backend data through process shutdown and preserves Debris cleanup after script destruction");
             return 0;
         }
@@ -60,6 +61,28 @@ static class BackendPersistenceTests
             return 1;
         }
         finally { if (Directory.Exists(root)) Directory.Delete(root, true); }
+    }
+
+    private static async Task CheckAtomicUpdates(string cliPath, string root)
+    {
+        NetworkProjectTests.Write(root, "src/ServerScriptService/A.server.luau", "");
+        NetworkProjectTests.Write(root, "src/ServerScriptService/Main.server.luau", """
+            local store = game:GetService("DataStoreService"):GetDataStore("AtomicProfiles")
+            for index = 1, 25 do
+                store:UpdateAsync("profile", function(old)
+                    old = old or {Coins = 0, Items = 0}
+                    return {Coins = old.Coins + 7, Items = old.Items + 1}
+                end)
+            end
+            print("updated")
+            """);
+        await Task.WhenAll(RunProcess(cliPath, root, "updated\n"), RunProcess(cliPath, root, "updated\n"));
+        NetworkProjectTests.Write(root, "src/ServerScriptService/Main.server.luau", """
+            local value = game:GetService("DataStoreService"):GetDataStore("AtomicProfiles"):GetAsync("profile")
+            assert(value.Coins == 350 and value.Items == 50)
+            print("atomic")
+            """);
+        await RunProcess(cliPath, root, "atomic\n");
     }
 
     private static async Task RunProcess(string cliPath, string root, string expected)
@@ -72,6 +95,6 @@ static class BackendPersistenceTests
         try { await process.WaitForExitAsync(timeout.Token); }
         catch (OperationCanceledException) { process.Kill(true); throw; }
         if (process.ExitCode != 0 || (await output).Replace("\r\n", "\n") != expected || await error != "")
-            throw new Exception("Backend process failed: " + await output + await error);
+            throw new Exception($"Backend process expected {expected.Trim()}: " + await output + await error);
     }
 }

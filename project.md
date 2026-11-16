@@ -1,83 +1,82 @@
-# woorf
+# Woorf
 
-## Vision
+## Vision and requirements
 
-woorf is a Roblox Studio, Roblox game runtime, and engine alternative. Creating a game should feel familiar to Roblox developers while giving creators control over where and how their games run.
+Woorf is a Roblox Studio and game runtime alternative. Creating a game should feel
+familiar to Roblox developers while giving creators control over where games run.
 
-## Confirmed requirements
+- Implement the engine in C# and embed the official Luau compiler and VM.
+- Preserve familiar Roblox scripting and observable API behavior.
+- Design for multiple platforms, with browser/WASM and standalone delivery as goals.
+- Eventually provide a familiar Studio-style editor.
+- Establish backend/runtime APIs before concentrating on rendering or editor work.
+- Aim for 99% compatibility, with the scope and denominator still to be defined.
 
-- Write the engine in C#.
-- Embed the actual official Luau runtime as the scripting language and runtime. Integration between Luau and C# is allowed. Preserve the familiar Roblox scripting experience.
-- Design the engine to be platform-agnostic and capable of running everywhere, rather than targeting a single operating system.
-- Aim for 99% compatibility with existing Roblox Studio APIs.
-- Support compiling the engine to WebAssembly (WASM) so games can run online in a browser.
-- Support standalone game compilation so creators can distribute games independently.
-- Eventually provide an editor with a familiar Roblox Studio interface.
-- Begin headless with API implementation and embedded Luau, before adding graphics or building the full editor.
+## Current implementation
 
-## Initial implementation scope
+The headless CLI and engine embed vendored Luau 0.745 through a native C++ bridge.
+The initial execution, hierarchy, signals, modules and cooperative scheduler
+milestones are implemented. Filesystem projects load a C# DataModel and isolated
+script environments. Vector3, core CFrame, Part transforms, model pivots and bounds
+provide a headless spatial subset.
 
-Build a headless C# runtime that embeds Luau and exposes an initial set of Roblox-compatible APIs. Use executable Luau examples to verify that scripts behave as expected.
+Server and clients have separate VMs and object graphs. Local hosting and separate
+TCP processes support RemoteEvents, yielding RemoteFunctions, player join/removal,
+Kick and authoritative incremental replication. TCP protocol v3 includes dirty
+capture, bounded nonblocking outgoing queues and transport metrics.
 
-Proposed first milestone, pending answers below:
+Backend APIs include attributes, tags, ValueObjects, BindableEvent, Color3, Random,
+JSON, Debris, headless Heartbeat, BindToClose, local durable DataStores, basic teams,
+health-only Humanoid and oriented-box raycasts. These are documented subsets;
+characters, movement, physics, rendering and general dynamic script startup remain
+incomplete or absent. DataStores use Woorf's local backend; connection-assigned
+UserIds are session identities, not authenticated accounts.
 
-1. Establish the C# solution and an embedded Luau runtime that can execute a script and report errors.
-2. Implement the object model: `Instance`, class identity, names, parenting, hierarchy traversal, creation, and destruction.
-3. Expose initial globals and services such as `game`, `workspace`, and `game:GetService(...)`.
-4. Add the first required value types, property access, methods, and events.
-5. Add scheduling and script execution semantics as required by the first compatibility examples.
-6. Run a small suite of representative Luau scripts against the implemented surface.
-
-This milestone order is a proposal, not a finalized architecture or API list. Rendering, physics, multiplayer, the editor, and packaging remain later work unless explicitly prioritized.
+Windows x64 is verified. Linux, macOS, mobile, WASM, standalone packaging and an
+editor remain future work. See [runtime compatibility](docs/runtime-compatibility.md),
+[backend API boundaries](docs/backend-apis.md), [client/server behavior](docs/client-server.md)
+and [TCP transport](docs/socket-transport.md).
 
 ## Compatibility approach
 
-- Treat compatibility as matching observable behavior, including types, defaults, return values, errors, events, and scheduling where applicable—not just matching API names.
-- Define the reference Roblox API version or snapshot before measuring coverage.
-- Maintain a compatibility inventory with implemented, partial, unsupported, and intentionally different entries.
-- Define what counts toward the 99% target: runtime APIs, editor APIs, plugins, deprecated APIs, and hosted Roblox services need explicit scope decisions.
-- Track unsupported features explicitly; avoid silently presenting placeholders as working APIs.
-- Keep engine behavior in C# and distinguish it from the Luau embedding layer and eventual editor.
-- Evaluate Luau integration options against both native and browser targets before committing to a binding. The binding, .NET version, graphics stack, physics stack, and editor toolkit are undecided.
+Compatibility means observable behavior: types, defaults, results, errors, events
+and scheduling where applicable. API names alone do not establish compatibility.
+The [readiness audit](docs/backend-api-readiness.md) pins an official creator-docs
+revision and inventories 930 selected symbols. This is a documentation subset,
+not a complete Engine API dump, engine-build pin or global compatibility percentage.
 
-## Questions to resolve
+Maintain explicit implementation limits and extend local behavior tests with each
+feature. Do not add a Studio behavior-comparison harness. Keep engine state and
+behavior in C# with native and Luau glue for VM integration and scheduling.
 
-### Before initial implementation
+The recorded complete-suite baseline is 161 passing checks, and the synthetic
+readiness workload reports 19 available and 0 blocked checks. Neither establishes
+arbitrary full-game support. See [build and verification commands](README.md).
 
-1. Which APIs or existing example scripts should define the first working milestone? The proposed default is `Instance`, hierarchy operations, basic services, value types, and events. This API selection has not yet been approved.
+## Representative backend workload
 
-### Before expanding the engine
+The [headless round game](examples/round-game/README.md) combines persistent test
+profiles and currency, tagged inventory, teams, a Heartbeat-driven round, validated
+remote requests, joins/leaves and shutdown saves. Its acceptance test runs separate
+server/client processes, completes a round, restarts the server and verifies saved
+currency, completed rounds and inventory. It uses two fixed test identities and
+one round per server session; in-session reconnect remains outside this demo.
+No engine API changes were required for this bounded workload. Broader game
+support and production identity, concurrency and failure handling still need work.
 
-5. What does the 99% compatibility target include: game runtime APIs only, or Studio/editor/plugin APIs too? Should deprecated behavior be included?
-6. Is importing existing Roblox place/model files and assets required? If so, which formats and what example projects should we support first?
-7. Should games use Roblox-style client/server execution and replication from the outset, or begin with local single-player execution?
-8. Which standalone targets are required: Windows, Linux, macOS, mobile, or others? Does standalone compilation mean a packaged runtime plus game assets, or native/AOT executables?
-9. Should browser games support multiplayer immediately? What hosting and backend functionality should woorf provide?
-10. How should Roblox-hosted features such as asset delivery, identity, persistence, purchases, and matchmaking map to woorf: replacements, adapters, or explicitly unsupported APIs?
-11. Are there preferred rendering, physics, editor UI, or .NET technologies?
-12. Will woorf be open source, and what license and dependency constraints should guide library choices?
+Characters and physics are runtime requirements for games that use them, even
+while backend APIs remain the immediate priority. Execution budgets, inbound rate
+limits, authentication/TLS and sustained-load qualification remain production gates.
 
-## Current decisions and status
+## Open decisions
 
-- Project name: **woorf**.
-- Engine language: **C#**.
-- Game scripting language: **Luau**.
-- Runtime: **the actual official Luau runtime**, with C# integration allowed.
-- Platform strategy: **platform-agnostic; capable of running everywhere**.
-- First development focus: **headless execution, embedded Luau, and Roblox-compatible APIs**.
-- Long-term delivery: **browser/WASM and standalone games**, plus a familiar editor.
-- Implementation is now authorized for the first milestone: embed the official Luau runtime and provide a headless C# CLI that compiles and runs a `.luau` file, starting with `print("hello world")`.
-- The initial integration uses vendored Luau 0.745, a small native compiler/VM bridge, and a C# engine library plus CLI.
-- The hierarchy milestone adds a C# DataModel/Instance graph, Luau-facing structural APIs, filesystem project loading, and synchronous server-script execution. See [project format](docs/project-format.md) and [runtime compatibility](docs/runtime-compatibility.md) for the supported surface and remaining work.
-- The signals milestone adds immediate `Connect`/`Once`/`Disconnect`, connection state, hierarchy notifications, property-change signals, and destruction cleanup.
-- The modules milestone adds ModuleScript `require()` with isolated environments, shared per-instance cached results, source cloning, cached failures, and fail-fast cycle diagnostics. Asset-ID/path requires remain unsupported.
-- The scheduler milestone adds cooperative task execution, waits and delays, signal waits and yielding callbacks, `WaitForChild`, and concurrent yielding module execution, driven by a C# monotonic-clock headless loop. See [scheduler behavior](docs/scheduler.md) for timing and shutdown conventions.
-- Unanswered proposals above remain open decisions.
+- Define the 99% scope: runtime, Studio/plugin APIs, deprecated behavior, hosted
+  services, overloads and behavioral cases.
+- Choose place/model and asset import formats and representative game dependencies.
+- Select standalone targets and packaging strategy, plus the browser/WASM build path.
+- Define production hosting, stable authenticated identity and service adapters for
+  assets, persistence, purchases, moderation and matchmaking.
+- Select rendering, physics and editor technologies when those milestones begin.
+- Decide licensing and dependency constraints.
 
-- The spatial milestone adds immutable C# Vector3 values with Luau bindings and headless Part properties (Position, Size, Anchored), including size bounds, cloning, and change notifications. See [spatial types](docs/spatial-types.md). Physics and rendering remain future work.
-
-- The CFrame milestone adds immutable managed transforms, Luau constructors and operations, and synchronized Part Position/CFrame properties. Documentation guides compatibility; local CLI tests verify implementation without a Studio comparison harness. See [CFrame and Part transforms](docs/cframe.md).
-
-- The pivot milestone adds Part PivotOffset, Part/Model GetPivot and PivotTo, Model PrimaryPart/WorldPivot, descendant movement with cached relative offsets, and cloned reference remapping. See [headless pivots](docs/pivots.md).
-
-- The bounds milestone exposes Model GetBoundingBox and GetExtentsSize using shared pivot-oriented descendant Part bounds. See [Model bounds](docs/bounds.md).
+See [context-2.md](context-2.md) for continuation guidance and working-tree precautions.

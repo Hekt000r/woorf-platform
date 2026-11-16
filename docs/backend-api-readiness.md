@@ -73,12 +73,15 @@ and Player. The original ten recognized service roots were: Workspace, Replicate
 ReplicatedFirst, ServerStorage, ServerScriptService, StarterGui, StarterPack,
 StarterPlayer, Players, and RunService.
 
-Examples are feature demonstrations. None is a representative complete game with
-persistent player profiles, inventory, a round/session loop, and all dependencies.
+The [headless round game](../examples/round-game/README.md) exercises persistent
+test profiles, currency, inventory, teams, a Heartbeat round and validated remotes
+together. Its acceptance test runs separate TCP server/client processes, saves on
+leave and shutdown, then restarts and verifies saved totals. It uses fixed test
+identities and one round per server session; it is not a port of an existing game.
 
 ## Executable readiness results
 
-The complete integration command now passes with **160 PASS checks**:
+The complete integration command now passes with **161 PASS checks**:
 
 ```powershell
 dotnet run --project tests/Woorf.Cli.Tests --no-restore
@@ -98,8 +101,8 @@ The RemoteFunction event-member discrepancy is also fixed.
 
 Probes deliberately continue after each failure and exit successfully after
 printing a summary; BLOCKED lines are findings, not a green readiness result.
-An AVAILABLE result is limited to its assertions. For example, accessing a future
-data-store handle would not prove durability. The workload is synthetic and is
+An AVAILABLE result is limited to its assertions. For example, obtaining a
+data-store handle alone would not prove durability. The workload is synthetic and is
 not a port of an actual game or a coverage denominator.
 
 ## Confirmed discrepancies and compatibility risks
@@ -148,7 +151,7 @@ and services. See [current backend APIs](backend-apis.md).
 | 3 | Remaining utilities, Enum and datatype coverage | warn, Color3, Random, missing Vector3/CFrame helpers, prioritized Enum values, JSON utilities, Debris; representative server modules execute without placeholder services |
 | 4 | Heartbeat/shutdown added; script and simulation lifecycle remain | Defined Heartbeat timing, supported script activation rules, BindToClose with bounded orderly shutdown |
 | 5 | Local durable stores added; production identity/persistence remain | Explicit local-hosted adapter policy; authenticated/stable identity for production; durable atomic updates, restart and concurrency tests |
-| 6 | A representative headless backend game | Profiles, inventory, session/round logic, joins/leaves and reconnect expectations run together over separate processes |
+| 6 | Completed bounded workload: headless round game | Separate-process round, request validation, leave/shutdown saves and restart persistence pass with explicit test identities; in-session reconnect remains outside the demo |
 
 Execution budgets, inbound traffic limits, and authentication/TLS are parallel
 production-readiness gates, not deferred merely because APIs have familiar names.

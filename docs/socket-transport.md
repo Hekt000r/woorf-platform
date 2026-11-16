@@ -25,7 +25,7 @@ or SocketTransport.Connect(address, cancellationToken).
 ## Runtime behavior
 
 Each process owns its own Luau VM and DataModel. Connections receive monotonically
-increasing local Player identities assigned by the server. A versioned handshake
+allocated local Player identities assigned by the server. A saved server-issued credential restores the same identity on reconnect; see [credentials](runtime-hardening.md#reconnect-credentials). A versioned handshake
 precedes the initial shared-state snapshot. The snapshot includes client script
 templates; server script sources and private storage are excluded. Client scripts
 start after their LocalPlayer and the initial snapshot are available.
@@ -50,7 +50,7 @@ calculations can still inspect descendants of an affected model. Snapshot chunki
 and interest management remain future optimizations.
 
 RemoteEvents and RemoteFunctions use the existing value-copying semantics:
-nil-preserving tuples, tables, booleans, numbers, strings, Vector3, CFrame, and
+nil-preserving tuples, tables, booleans, numbers, strings, Vector3, CFrame, Color3, and
 replicated Instance references. Local or private Instance references become nil.
 The sending Player is derived from the socket connection. Clients cannot supply
 a sender identity or write replication state to the server.
@@ -62,7 +62,7 @@ client's process stops its VM. Loss of the server connection stops the client.
 
 ## Protocol and limits
 
-Protocol v3 uses UTF-8 JSON frames with a four-byte big-endian byte-length prefix.
+Protocol v4 uses UTF-8 JSON frames with a four-byte big-endian byte-length prefix.
 Frames are limited to 4 MiB. Invalid versions, lengths, remote targets, and values
 disconnect the offending peer. Handshakes time out after five seconds and the
 server accepts up to 32 simultaneous peers. Socket reads, nonblocking writes, and VM execution occur on the runtime thread.
@@ -77,10 +77,10 @@ connections without queued data are not treated as stalled. Replication frames
 remain ordered before related remote messages. Client leave requests drain their
 queued messages before closing.
 
-This milestone provides ordered TCP delivery and local identity, without account
-authentication, TLS, reconnect/resume, compression, interest management, or network
-rate fidelity. Use loopback addresses for local testing. Binding another interface
-permits connections reachable on that interface; no authentication is enforced.
+This milestone provides ordered TCP delivery and local identity, with server-issued reconnect credentials and inbound admission limits. External account
+authentication, TLS, automatic reconnect/state resume, compression, interest management
+and Roblox network-rate fidelity remain unsupported. Use loopback addresses for local testing. Binding another interface
+permits connections reachable on that interface; there is no TLS or external account authentication. Reconnect credentials are bearer secrets.
 
 ## Incremental replication verification
 
@@ -118,7 +118,7 @@ Cumulative sent counters include peers that have disconnected. Tick duration exc
 the observer callback and the loop's deliberate sleep.
 
 This bounds application-level outgoing traffic and avoids blocking writes; script
-execution quotas and inbound rate limits remain separate work.
+VM budgets and inbound limits are now implemented; see [runtime hardening](runtime-hardening.md). Memory quotas and sustained-load qualification remain separate work.
 
 Backend attributes, tags, typed values, health, team references and Color3 are
-carried by protocol v3. See [backend APIs](backend-apis.md) for scope and limits.
+carried by protocol v4. See [backend APIs](backend-apis.md) for scope and limits.

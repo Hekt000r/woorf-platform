@@ -32,9 +32,9 @@ src/
     Menu.client.luau
 ```
 
-Top-level source directories identify services. The current supported containers are `Workspace`, `ReplicatedStorage`, `ReplicatedFirst`, `ServerStorage`, `ServerScriptService`, `StarterGui`, `StarterPack`, and `StarterPlayer`. Only `Workspace` exists automatically; other supported services are created when loaded or requested through `game:GetService()`.
+Top-level source directories identify services. The current supported containers are `Workspace`, `ReplicatedStorage`, `ReplicatedFirst`, `ServerStorage`, `ServerScriptService`, `StarterGui`, `StarterPack`, `StarterPlayer`, `Players`, `RunService`, `CollectionService`, `HttpService`, `Debris`, `DataStoreService`, and `Teams`. Only `Workspace` exists automatically; other supported services are created when loaded or requested through `game:GetService()`.
 
-Nested directories become `Folder` instances named after the directory. An optional `init.meta.json` inside a directory selects its class:
+Nested directories become `Folder` instances named after the directory, except `StarterPlayer/StarterPlayerScripts`, which receives its runtime class. An optional `init.meta.json` inside a directory selects its class:
 
 ```json
 { "className": "Model" }
@@ -48,7 +48,7 @@ Directory classes currently supported are `Folder`, `Model`, and `Configuration`
 | `.client.luau` | `LocalScript` | `Menu.client.luau` → `Menu` |
 | `.luau` | `ModuleScript` | `Shared.luau` → `Shared` |
 
-The loader reads the complete hierarchy and script sources before execution. The headless runner starts server `Script` instances under `Workspace` or `ServerScriptService` in ordinal source-file path order. Yielding scripts allow later scripts to start; deferred work and timers drain after startup. Each script receives its own global environment and `script` reference while sharing the same C# DataModel. Startup script failures return exit code 1. Server scripts in storage containers and `LocalScript` instances remain inactive. ModuleScripts execute on demand through `require(moduleScript)`; see [module behavior](runtime-compatibility.md#modules) and [scheduler behavior](scheduler.md).
+The loader reads the complete hierarchy and script sources before execution. The headless runner starts server `Script` instances under `Workspace` or `ServerScriptService` in ordinal source-file path order. Yielding scripts allow later scripts to start; deferred work and timers drain after startup. Each script receives its own global environment and `script` reference while sharing the same C# DataModel. Startup script failures return exit code 1. In server-only mode, server scripts in storage containers and all `LocalScript` instances remain inactive. In --clients or TCP mode, supported StarterPlayerScripts and StarterGui templates start LocalScripts in isolated client VMs; see [client startup](client-server.md). Loaded scripts and clones can start dynamically under the [supported lifecycle rules](runtime-hardening.md#script-lifecycle). ModuleScripts execute on demand through `require(moduleScript)`; see [module behavior](runtime-compatibility.md#modules) and [scheduler behavior](scheduler.md).
 
 Unknown service directories, unsupported directory classes, invalid JSON, duplicate sibling names, and linked source paths produce load errors. Other file types are ignored. Runtime hierarchy edits remain in memory; this milestone does not save them to disk.
 

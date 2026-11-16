@@ -6,23 +6,25 @@ using Woorf.Engine.DataModel;
 
 namespace Woorf.Engine.Networking;
 
-internal sealed record WirePacket(string Kind, int Version = 3, int Player = 0, int Remote = 0,
+internal sealed record WirePacket(string Kind, int Version = 4, int Player = 0, int Remote = 0,
     WireValue[]? Arguments = null, WireNode[]? Nodes = null,
-    WirePatch[]? Updates = null, int[]? Removed = null);
+    WirePatch[]? Updates = null, int[]? Removed = null, string? Credential = null);
 
 internal sealed class SocketPeer : IDisposable
 {
     private readonly TcpClient client;
     internal SocketWrites Writes { get; }
 
-    internal SocketPeer(TcpClient client)
+    internal SocketPeer(TcpClient client, bool shouldLimitInput = false)
     {
         this.client = client;
+        inbound = shouldLimitInput ? new InboundBudget() : null;
         client.SendBufferSize = 64 * 1024;
         client.Client.Blocking = false;
         Writes = new SocketWrites(client.Client);
     }
 
+    private readonly InboundBudget? inbound;
     private const int MaxFrame = 4 * 1024 * 1024;
     internal static readonly JsonSerializerOptions Options = new()
     {
@@ -43,6 +45,7 @@ internal sealed class SocketPeer : IDisposable
     internal IReadOnlyList<WirePacket> Read()
     {
         var packets = new List<WirePacket>();
+        var received = 0;
         for (var iteration = 0; iteration < 64; iteration++)
         {
             if (count >= 4)
@@ -51,12 +54,14 @@ internal sealed class SocketPeer : IDisposable
                 if (length is < 1 or > MaxFrame) throw new InvalidDataException("Invalid socket frame length.");
                 if (count >= length + 4)
                 {
+                    inbound?.Dispatch();
                     var packet = JsonSerializer.Deserialize<WirePacket>(buffer.AsSpan(4, length), Options)
                         ?? throw new InvalidDataException("Empty socket packet.");
-                    if (packet.Version != 3) throw new InvalidDataException("Unsupported socket protocol version.");
+                    if (packet.Version != 4) throw new InvalidDataException("Unsupported socket protocol version.");
                     packets.Add(packet);
                     count -= length + 4;
                     Buffer.BlockCopy(buffer, length + 4, buffer, 0, count);
+                    if (packets.Count == 32) break;
                     continue;
                 }
             }
@@ -65,7 +70,10 @@ internal sealed class SocketPeer : IDisposable
                 if (client.Client.Poll(0, SelectMode.SelectRead) && client.Available == 0) IsClosed = true;
                 break;
             }
-            var read = client.Client.Receive(buffer, count, Math.Min(buffer.Length - count, client.Available), SocketFlags.None);
+            if (received >= 256 * 1024) break;
+            var read = client.Client.Receive(buffer, count, Math.Min(256 * 1024 - received, Math.Min(buffer.Length - count, client.Available)), SocketFlags.None);
+            inbound?.Receive(read);
+            received += read;
             if (read == 0) { IsClosed = true; break; }
             count += read;
         }

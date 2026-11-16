@@ -4,7 +4,7 @@ using Woorf.Engine.Datatypes;
 namespace Woorf.Engine.Networking;
 
 internal sealed record ReplicaState(string Name, Instance? Parent, bool Archivable, CFrame Frame,
-    CFrame PivotOffset, Vector3 Size, bool Anchored, CFrame WorldPivot, BasePart? PrimaryPart, int UserId, string Source, ReplicatedBackendState? Backend = null)
+    CFrame PivotOffset, Vector3 Size, bool Anchored, CFrame WorldPivot, BasePart? PrimaryPart, int UserId, string Source, ReplicatedBackendState? Backend = null, bool Enabled = true, int RunContext = 0)
 {
     internal static ReplicaState Capture(Instance instance) => new(instance.Name, instance.Parent, instance.Archivable,
         instance is BasePart part ? part.CFrame : default,
@@ -14,10 +14,17 @@ internal sealed record ReplicaState(string Name, Instance? Parent, bool Archivab
         instance is Model model ? model.WorldPivot : default,
         instance is Model primaryModel ? primaryModel.PrimaryPart : null,
         instance is Player player ? player.UserId : 0,
-        instance.ClassName == "ModuleScript" ? instance.ScriptSource : "", ReplicatedBackendState.Capture(instance));
+        instance.ClassName is "ModuleScript" or "LocalScript" || instance is ScriptInstance { RunContext: 2 } ? instance.ScriptSource : "",
+        ReplicatedBackendState.Capture(instance), instance is not ScriptInstance script || script.Enabled,
+        instance is ScriptInstance contextScript ? contextScript.RunContext : 0);
 
     internal void ApplyValues(Instance replica, ReplicaState? previous, Func<Instance, Instance?> translate)
     {
+        if (replica is ScriptInstance script)
+        {
+            if (previous is null || previous.Enabled != Enabled) script.Enabled = Enabled;
+            if (previous is null || previous.RunContext != RunContext) script.RunContext = RunContext;
+        }
         Backend?.Apply(replica, previous?.Backend, translate);
         if (replica is BasePart part)
         {
@@ -33,6 +40,6 @@ internal sealed record ReplicaState(string Name, Instance? Parent, bool Archivab
                 model.PrimaryPart = PrimaryPart is null ? null : translate(PrimaryPart) as BasePart;
         }
         if (replica is Player player && (previous is null || previous.UserId != UserId)) player.UserId = UserId;
-        if (replica.ClassName == "ModuleScript" && (previous is null || previous.Source != Source)) replica.ScriptSource = Source;
+        if (replica.ClassName is "ModuleScript" or "LocalScript" or "Script" && (previous is null || previous.Source != Source)) replica.ScriptSource = Source;
     }
 }

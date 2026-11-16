@@ -45,6 +45,8 @@ static int reportValueFailure(Runtime* runtime, lua_State* thread)
 WOORF_EXPORT int woorf_invoke_values(void* handle, int reference, PushArguments push)
 {
     auto* runtime = static_cast<Runtime*>(handle);
+    if (runtime->executionFailed) return 1;
+    ExecutionScope execution(runtime);
     const int savedTop = lua_gettop(runtime->state);
     try
     {
@@ -52,8 +54,8 @@ WOORF_EXPORT int woorf_invoke_values(void* handle, int reference, PushArguments 
         lua_getglobal(thread, "_woorf_callback");
         lua_getref(thread, reference);
         const int count = push(thread);
-        const int status = count < 0 ? 1 : lua_pcall(thread, count + 1, 0, 0);
-        const int result = status == 0 ? 0 : reportValueFailure(runtime, thread);
+        const int status = count < 0 ? 1 : lua_resume(thread, nullptr, count + 1);
+        const int result = reportExecutionFailure(runtime) ? 1 : status == 0 ? 0 : reportValueFailure(runtime, thread);
         lua_settop(runtime->state, savedTop);
         return result;
     }

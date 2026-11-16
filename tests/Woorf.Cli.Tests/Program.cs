@@ -1,5 +1,23 @@
 using System.Diagnostics;
 
+if (args.Length == 2 && args[0] == "--reference-game")
+    return await ReferenceGameTests.RunAsync(args[1]);
+
+if (args.Length == 2 && args[0] == "--reference-host")
+    return ReferenceGameTests.RunHost(args[1]);
+
+if (args.Length == 2 && args[0] == "--lifecycle")
+    return await ScriptLifecycleTests.RunAsync(args[1]);
+
+if (args.Length == 2 && args[0] == "--inbound")
+    return await InboundLimitTests.RunAsync(args[1]);
+
+if (args.Length == 2 && args[0] == "--identities")
+    return await StableIdentityTests.RunAsync(args[1]);
+
+if (args.Length == 2 && args[0] == "--persistence")
+    return await BackendPersistenceTests.RunAsync(args[1]);
+
 // These cases catch skipped execution, lost output, Lua substitution, and swallowed errors.
 var cliPath = Path.Combine(AppContext.BaseDirectory, "Woorf.Cli.dll");
 var cases = new (string Name, string? Source, int Exit, string Output, string Error)[]
@@ -15,7 +33,9 @@ var cases = new (string Name, string? Source, int Exit, string Output, string Er
     .Concat(HierarchyCases.GetCases()).Concat(SignalCases.GetCases())
     .Concat(PartPivotCases.GetCases()).Concat(ModelPivotCases.GetCases())
     .Concat(ModelBoundsCases.GetCases())
-    .Concat(InstanceEventCases.GetCases()).Concat(SchedulerCases.GetCases()).Concat(BackendApiCases.GetCases()).ToArray();
+    .Concat(InstanceEventCases.GetCases()).Concat(SchedulerCases.GetCases()).Concat(BackendApiCases.GetCases()).Concat(RuntimeSafetyCases.GetCases()).ToArray();
+if (args.Length == 2 && args[0] == "--case")
+    cases = cases.Where(test => test.Name.Contains(args[1], StringComparison.OrdinalIgnoreCase)).ToArray();
 var failedCount = 0;
 foreach (var test in cases)
 {
@@ -52,6 +72,7 @@ foreach (var test in cases)
     }
     finally { File.Delete(scriptPath); }
 }
+if (args.Length == 2 && args[0] == "--case") return failedCount == 0 ? 0 : 1;
 failedCount += await NetworkProjectTests.RunAsync(cliPath);
 failedCount += await ProjectTests.RunAsync(cliPath);
 failedCount += await ProjectValidationTests.RunAsync(cliPath);
@@ -62,4 +83,8 @@ failedCount += await SocketBackpressureTests.RunAsync(cliPath);
 failedCount += await SocketMetricsTests.RunAsync();
 failedCount += DirtyReplicationTests.Run();
 failedCount += await BackendPersistenceTests.RunAsync(cliPath);
+failedCount += await ReferenceGameTests.RunAsync(cliPath);
+failedCount += await ScriptLifecycleTests.RunAsync(cliPath);
+failedCount += await InboundLimitTests.RunAsync(cliPath);
+failedCount += await StableIdentityTests.RunAsync(cliPath);
 return failedCount == 0 ? 0 : 1;

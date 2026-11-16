@@ -5,6 +5,9 @@ namespace Woorf.Engine.Scripting;
 internal static partial class NativeMethods
 {
     [DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int woorf_transform(nint state, int callbackIndex);
+
+    [DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
     internal static extern int woorf_initialize_remote(nint handle, int id);
 
     [DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
