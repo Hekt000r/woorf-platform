@@ -1,5 +1,76 @@
 # Woorf continuation context
 
+## Latest follow-up: viewer performance fixes (2026-11-16)
+
+The user reported severe lag while moving/orbiting the camera and requested engine
+performance fixes with rendering owned centrally by the engine. This is implemented;
+read docs/graphics-performance.md for the reproduced cause and measured limits.
+
+- Baseline profiling found simulation, not GPU submission, causing multi-second
+  frames. Fast bodies falling far below the scene forced global collision substeps,
+  then slow frames caused more fixed-step catch-up. CollisionSubsteps now considers
+  swept potential pairs and relative motion; distant unrelated velocity and common
+  falling motion no longer impose extra slices. Gravity reversal has a ceiling test.
+  The fixed 120 Hz steps, 64-slice ceiling and qualified high-speed tests remain.
+- Rendering remains centralized: WorkspaceScene is now a dirty cache, not a full
+  per-frame Workspace traversal; unchanged captures allocate nothing. OpenGlRenderer
+  batches primitives into at most two real instanced draws using shared meshes,
+  cached uniform locations and reusable instance data. Normal transforms are cached
+  on the CPU instead of inverted per vertex. Instances own no renderer/GPU resources.
+- FramePacer uses a high-resolution Windows waitable timer to avoid coarse sleeps
+  stretching otherwise fast frames to 31 ms. It requires Windows 10 1803+.
+- --profile report.csv records simulation/collection/render/present/frame timings,
+  per-frame managed allocation, Part count and actual draw calls. Use --frames N;
+  rows are buffered and saved on normal exit. Benchmark separate output copies to
+  avoid locking CLI DLLs while rebuilding. Hidden-window benchmarks need GUI access.
+- The initial 763-frame stalled run took ~473 seconds, with frame p95 ~2054 ms.
+  The optimized 3600-frame soak took ~one minute: median frame 17.023 ms, p95
+  17.217 ms, maximum 48.474 ms. Simulation p95 was 7.221 ms and draw count was 2.
+  These are same-machine workload measurements, not a universal FPS guarantee.
+- Default regression count is now 210; optional --graphics still reports two
+  aggregate real-GPU checks, expanded for batching, moved-camera depth and pacing.
+  --graphics-scene and --physics-isolation are targeted CPU regressions.
+- TDD observed failures for profiling, uncached scene collection, missing batching,
+  distant-body integration coupling, gravity reversal and missing precise pacing
+  before their corresponding fixes. All earlier uncommitted graphics work is preserved.
+
+## Latest milestone: first OpenGL graphical output (2026-11-16)
+
+The user explicitly authorized a custom renderer using OpenGL with no external
+packages, superseding the earlier statement that rendering had not started.
+The first implementation is now present in Woorf.Graphics and CLI --render mode.
+Read docs/graphics.md for architecture, commands, verification and boundaries.
+
+- Woorf.Graphics is independent of Woorf.Engine and uses System.Numerics plus
+  direct OpenGL/OS interop. The first window/context host is Win32/WGL and requires
+  an OpenGL 3.3 core driver; other graphics hosts are not implemented.
+- Indexed box/sphere meshes, GLSL directional/ambient lighting, depth/cull state,
+  inverse-transpose normals, perspective camera, resized viewport, frame capture,
+  creating-thread access checks and GPU resource disposal are implemented.
+- CLI RenderCli owns the window/renderer and existing LuauSession on one thread.
+  Physics and scripts advance before WorkspaceScene captures geometry. Existing
+  headless commands and networking retain their behavior; rendering is currently
+  standalone/project server visualization, not a graphical TCP client.
+- The viewer uses an explicit diagnostic palette, not Part.Color. No Roblox
+  Camera/input/Lighting APIs, shadows, textures, GUI, asset meshes or animation
+  were added. Character lifecycle and movement remain unimplemented.
+- Run: dotnet run --project src/Woorf.Cli --no-restore -- examples/graphics-showcase --render
+  WASD/QE moves, arrows orbit, Shift speeds up, Escape closes.
+- TDD observed missing --render/mesh failures and a singular-transform failure
+  before implementing their behavior. The complete default suite passed 208 checks;
+  --graphics passes two additional actual-GPU checks for depth order, box/sphere
+  silhouettes/sizing, deletion and padded framebuffer capture. Visual inspection
+  of .local/graphics-preview.bmp confirmed the showcase on Intel UHD OpenGL 3.3.
+- --graphics-math is a targeted CPU check. --graphics opens hidden windows and
+  requires an interactive Windows desktop/driver. It is intentionally separate
+  from the headless default suite. No external graphics packages were added.
+- This session began with a clean working tree at 7b162d5; the earlier physics
+  work had been committed by the user. Graphics work is currently uncommitted.
+  Preserve the user's work; no commit/reset/cleanup has been requested.
+
+The earlier sections below retain physics/backend history. Statements there that
+rendering has not started and the 207-check baseline predate this graphics work.
+
 Updated: 2026-11-16, after completing physics foundations for characters and discussing game readiness. This is the primary continuation file; context.md is only an index.
 
 ## Resume here

@@ -6,15 +6,7 @@ internal static class PhysicsSolver
 {
     internal static IReadOnlyList<BodyContact> Step(IReadOnlyList<RigidBody> bodies, float gravity, float step)
     {
-        var subdivisions = 1;
-        foreach (var body in bodies.Where(body => !body.IsAnchored && body.CanCollide))
-        {
-            var minimum = MathF.Min(body.Size.X, MathF.Min(body.Size.Y, body.Size.Z));
-            var speed = body.LinearVelocity.Magnitude + MathF.Abs(gravity) * step;
-            if (!body.IsRotationLocked) speed += body.AngularVelocity.Magnitude * body.Size.Magnitude * 0.5f;
-            var required = MathF.Ceiling(speed * step / MathF.Max(minimum * 0.25f, 0.00025f));
-            subdivisions = Math.Max(subdivisions, (int)Math.Clamp(required, 1, 64));
-        }
+        var subdivisions = CollisionSubsteps.Calculate(bodies, gravity, step);
         IReadOnlyList<BodyContact> contacts = [];
         for (var index = 0; index < subdivisions; index++) contacts = StepDiscrete(bodies, gravity, step / subdivisions, step);
         return contacts;

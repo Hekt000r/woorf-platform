@@ -92,8 +92,11 @@ not claims about Roblox's proprietary solver.
 Sphere/sphere contacts use center distance; sphere/box contacts use the closest
 point on the oriented box, with a nearest-face escape for an embedded center.
 Each fixed step can use up to 64 collision substeps. The subdivision count uses
-linear travel, angular surface travel and the smallest dynamic collider dimension,
-targeting at most one quarter of that dimension per substep. This reduces tunnelling;
+relative linear travel, gravity, angular surface travel and the smallest dynamic
+collider dimension for potentially intersecting swept pairs. Distant fast bodies
+do not impose subdivisions when they have no potential collision; common falling
+velocity cancels in relative motion, and sphere spin does not enlarge its geometry.
+It targets at most one quarter of the dimension per substep. This reduces tunnelling;
 it is bounded adaptive discrete collision detection, not general time-of-impact CCD.
 Tests include 2-stud boxes and spheres moving at 1200 studs/second into a 0.05-stud
 wall. That fixture is evidence for that case, not a guarantee at arbitrary speeds.

@@ -6,6 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Woorf.Cli.Tests" />
+    <InternalsVisibleTo Include="Woorf.Cli" />
     <EmbeddedResource Include="Scripting/ScriptLifecycle.luau" />
     <EmbeddedResource Include="Scripting/Scheduler.luau" />
     <EmbeddedResource Include="Scripting/RemoteFunctions.luau" />

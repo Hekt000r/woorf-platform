@@ -1,6 +1,14 @@
 {
-  "scope": "Audited working-tree source/test/build files and the round-game and physics-boxes workloads; excludes build outputs and does not identify an engine release.",
+  "scope": "Audited working-tree source/test/build files and the round-game, physics-boxes and graphics-showcase workloads; excludes build outputs and does not identify an engine release.",
   "files": [
+    {
+      "path": "examples/graphics-showcase/src/ServerScriptService/Main.server.luau",
+      "sha256": "c05b2e4c939cfea0eb0b21471fc0e89e3905f7046a26e730feacd6c3c87bd926"
+    },
+    {
+      "path": "examples/graphics-showcase/woorf.project.json",
+      "sha256": "648ee1715ea21cbfddf62121e6301bc86b711fe22e8e9cb7d135a38ccac6c7e9"
+    },
     {
       "path": "examples/physics-boxes/src/ServerScriptService/Main.server.luau",
       "sha256": "8dae1ab59a5631b9117014f3bf3eeeaf9ad4bf030203132fa33b92c45e19ad79"
@@ -95,7 +103,27 @@
     },
     {
       "path": "src/Woorf.Cli/Program.cs",
-      "sha256": "40930556aad1f5cfc98fcb9498edccca08169c2479a72f3fcb1a33fa850f2c3f"
+      "sha256": "b4f1344c70bbaa78d89a546670e619d5f0b1020437d5472194e3ec4f9e90baa2"
+    },
+    {
+      "path": "src/Woorf.Cli/Rendering/FrameProfile.cs",
+      "sha256": "ae048f3a8a3e0f960afcec8eac24692a21c92860676bddbca3357b86a446b292"
+    },
+    {
+      "path": "src/Woorf.Cli/Rendering/RenderCli.cs",
+      "sha256": "2ceb71a6b41950f7a5d79e50c186e53a3b4fa2d0fcbc1e5430a208f7c783ba89"
+    },
+    {
+      "path": "src/Woorf.Cli/Rendering/RenderOptions.cs",
+      "sha256": "395c0effa0606cc7835613ab5cc410dbb6402aadb27ee28254a6d95b476f3099"
+    },
+    {
+      "path": "src/Woorf.Cli/Rendering/ViewerCamera.cs",
+      "sha256": "cd9f87a1a49e7fe847f79f3450dc6967064151bb4139d94efb7f27e782e4b596"
+    },
+    {
+      "path": "src/Woorf.Cli/Rendering/WorkspaceScene.cs",
+      "sha256": "363036f491333cfd3ea694c16734fa4c62dc4fcad1b2e3c67bba019530a5d02b"
     },
     {
       "path": "src/Woorf.Cli/SocketCli.cs",
@@ -103,7 +131,7 @@
     },
     {
       "path": "src/Woorf.Cli/Woorf.Cli.csproj",
-      "sha256": "758bdc31211d474aeb5bf9b63d78d082c6127d4bbf2bfecb5730cec67cf823a3"
+      "sha256": "c30fe4c3c3e4ef8ba0cee451e2ce9fce89dc8df025e28a568699daa2b9865239"
     },
     {
       "path": "src/Woorf.Engine/DataModel/BasePart.Physics.cs",
@@ -318,6 +346,10 @@
       "sha256": "fe65bef3d0ce386dc36ace2105aa87a7d4045ddfc794cea3f4d8c8a136902743"
     },
     {
+      "path": "src/Woorf.Engine/Physics/CollisionSubsteps.cs",
+      "sha256": "7543a004596bd110d4f8e835c299d3d439fd22ba005177c8fb80577f7401fec8"
+    },
+    {
       "path": "src/Woorf.Engine/Physics/ContactConstraint.cs",
       "sha256": "44bf7e348a464285b0e0d98d1f65d6a488d6b7916568ccfeb3af589f8be3b7ea"
     },
@@ -327,7 +359,7 @@
     },
     {
       "path": "src/Woorf.Engine/Physics/PhysicsSolver.cs",
-      "sha256": "2e48f8aa8345a58127b4b0d37fdc4e46daeecf3020b4a574267c226c2ce98d46"
+      "sha256": "5fc5957124ce54a3f48701adb2e362084be7e5f7201b778c44ab47bd55d8d05c"
     },
     {
       "path": "src/Woorf.Engine/Physics/PhysicsWorld.cs",
@@ -463,7 +495,63 @@
     },
     {
       "path": "src/Woorf.Engine/Woorf.Engine.csproj",
-      "sha256": "0756ce273c643a2545769d4249800d9322f12d3c2ec2e7268ad2e6397874f2f8"
+      "sha256": "16b11771673d0aa745aa2e808c05ad9598b507cc2d58a024a36ca4983b5c6957"
+    },
+    {
+      "path": "src/Woorf.Graphics/FrameCapture.cs",
+      "sha256": "3e434c8a49d121431be1d3bc1e045139fb0934f67568295c6a9e2375ef3d83ff"
+    },
+    {
+      "path": "src/Woorf.Graphics/MeshData.cs",
+      "sha256": "b978b5c597e89889e93e3ba9e43e350856fb5d7c19fd9488e8e3a9085c973e65"
+    },
+    {
+      "path": "src/Woorf.Graphics/OpenGL/Gl.cs",
+      "sha256": "33e5317893097fd076cd45632a9b8714c8b87d1fedc07398f477c3d2d0b2e0e7"
+    },
+    {
+      "path": "src/Woorf.Graphics/OpenGL/GpuMesh.cs",
+      "sha256": "b547c0b89fa6acecf00d1497a50885254cf5513f888d3a9623309bbb28ba0f03"
+    },
+    {
+      "path": "src/Woorf.Graphics/OpenGL/InstanceBatch.cs",
+      "sha256": "cce0fc5f755f3529e4d635e834cec67f18a90722493e3f2cace1ade938941aaf"
+    },
+    {
+      "path": "src/Woorf.Graphics/OpenGL/SceneShaders.cs",
+      "sha256": "43ea9c50819aa3370bb8411e6c12b9beedc7a443dc4b57f5ea02958e88aa5f35"
+    },
+    {
+      "path": "src/Woorf.Graphics/OpenGL/ShaderProgram.cs",
+      "sha256": "4d5b69d7afe9e90ae761c9517d380d2874b25370f61aa1e355fdb52d1cef8e5d"
+    },
+    {
+      "path": "src/Woorf.Graphics/OpenGlRenderer.cs",
+      "sha256": "f027812779a9358df9d6f58a7962135fa829c60ab9eadc711280a6cb4bbce850"
+    },
+    {
+      "path": "src/Woorf.Graphics/PerspectiveCamera.cs",
+      "sha256": "4169d2dc00d68044e2cfbd1b041571c9ec44fc02597729251187047eb8528e0e"
+    },
+    {
+      "path": "src/Woorf.Graphics/Platform/FramePacer.cs",
+      "sha256": "b479a67fa53155a9bf759782d02e0b3411afe23dfb382e1854c7f386be8286e4"
+    },
+    {
+      "path": "src/Woorf.Graphics/Platform/OpenGlWindow.cs",
+      "sha256": "18107b50a5206745e906f2a75c9a947778eb2785463a432173d5ce4d3048b718"
+    },
+    {
+      "path": "src/Woorf.Graphics/Platform/Win32.cs",
+      "sha256": "bdfb0da9d5eacb14ce079c6f4e57e0d0ed7426dd68911180ae0715c5cc502d6a"
+    },
+    {
+      "path": "src/Woorf.Graphics/RenderItem.cs",
+      "sha256": "ec8e3f8e33c4c33f71da99546bdf8cfd1ee23a662e994e8ea4918a2247cf2b59"
+    },
+    {
+      "path": "src/Woorf.Graphics/Woorf.Graphics.csproj",
+      "sha256": "fa6375684d4de4f1bcd0aafb6276543df3b66460d98c49190cd7c2fcd815821c"
     },
     {
       "path": "tests/Woorf.Cli.Tests/BackendApiCases.cs",
@@ -492,6 +580,22 @@
     {
       "path": "tests/Woorf.Cli.Tests/DirtyReplicationTests.cs",
       "sha256": "15569cfce402fcb984022b7d2872bea5c520cd88675531264d79abc2dd918dce"
+    },
+    {
+      "path": "tests/Woorf.Cli.Tests/GraphicsDeviceTests.cs",
+      "sha256": "76e1546919129bd64c20d6137c0fa52e7ee251081bb787e5eca8313cb573679c"
+    },
+    {
+      "path": "tests/Woorf.Cli.Tests/GraphicsIntegrationTests.cs",
+      "sha256": "da52373141d63ee88bed883a3e7a5fd0b420614d9512972f27e04539cb6e0109"
+    },
+    {
+      "path": "tests/Woorf.Cli.Tests/GraphicsMathTests.cs",
+      "sha256": "297261c25513389e3b5eeb2cc83ea2b3488987b7a412559f13fdf1885a9abbf1"
+    },
+    {
+      "path": "tests/Woorf.Cli.Tests/GraphicsSceneTests.cs",
+      "sha256": "295bc2cefc2c5a8c5dbdacfd7464c2042cf4078355c7b60ddd6bf597f2dc7a22"
     },
     {
       "path": "tests/Woorf.Cli.Tests/HierarchyCases.cs",
@@ -558,6 +662,10 @@
       "sha256": "1342a0443d4b8d77f3decbb4eaee0903c652761ef2b5d055665b67822f6e6ed1"
     },
     {
+      "path": "tests/Woorf.Cli.Tests/PhysicsIsolationTests.cs",
+      "sha256": "d205f942e3b652c1c7728c2a42008642c4e81c56c8f3bbbd3236ae71080eb8a9"
+    },
+    {
       "path": "tests/Woorf.Cli.Tests/PhysicsNetworkTests.cs",
       "sha256": "d6dadd2df48236452d901cecd66a8c2d766a56862061a002bee5093047c98d14"
     },
@@ -571,7 +679,7 @@
     },
     {
       "path": "tests/Woorf.Cli.Tests/Program.cs",
-      "sha256": "609ba936e7bee3ebca99f70b4c44228beab14ed415470d3b5e3efe4f9dce44f8"
+      "sha256": "42a480cd046a4f6da70a1dd78c58c8c5d5a5c0367df5256ddd4ac73195573e9e"
     },
     {
       "path": "tests/Woorf.Cli.Tests/ProjectTests.cs",

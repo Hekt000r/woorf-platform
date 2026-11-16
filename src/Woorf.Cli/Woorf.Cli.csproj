@@ -6,6 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="Woorf.Cli.Tests" />
     <ProjectReference Include="../Woorf.Engine/Woorf.Engine.csproj" />
+    <ProjectReference Include="../Woorf.Graphics/Woorf.Graphics.csproj" />
   </ItemGroup>
 </Project>

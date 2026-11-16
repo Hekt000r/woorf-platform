@@ -5,11 +5,14 @@ using Woorf.Engine.Projects;
 Console.OutputEncoding = new UTF8Encoding(false);
 try
 {
+    var renderStatus = RenderCli.Run(args);
+    if (renderStatus is int rendered) return rendered;
     var socketStatus = SocketCli.Run(args);
     if (socketStatus is int result) return result;
 }
 catch (Exception error) when (error is IOException or InvalidDataException or System.Net.Sockets.SocketException or ArgumentException
-    or System.Text.Json.JsonException or FormatException or InvalidOperationException or OperationCanceledException)
+    or System.Text.Json.JsonException or FormatException or InvalidOperationException or OperationCanceledException
+    or NotSupportedException or System.ComponentModel.Win32Exception or DllNotFoundException or EntryPointNotFoundException)
 {
     Console.Error.WriteLine(error.Message);
     return 1;

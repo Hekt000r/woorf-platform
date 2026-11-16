@@ -28,7 +28,10 @@ capture, bounded nonblocking outgoing queues and transport metrics.
 Backend APIs include attributes, tags, ValueObjects, BindableEvent, Color3, Random,
 JSON, Debris, headless Heartbeat, BindToClose, local durable DataStores, basic teams,
 health-only Humanoid and oriented-box raycasts. These are documented subsets;
-characters, character movement and rendering remain incomplete or absent. Box and sphere physics with character-controller foundations is implemented in a custom dependency-free C# solver; see [physics](docs/physics.md). Dynamic
+characters and character movement remain absent. A custom OpenGL 3.3 renderer now provides
+the first graphical output through a Windows viewer, with boxes, spheres, lighting,
+camera controls and live Workspace updates; see [graphics](docs/graphics.md).
+Box and sphere physics with character-controller foundations is implemented in a custom dependency-free C# solver; see [physics](docs/physics.md). Dynamic
 script lifecycle, VM budgets, inbound limits and atomic UpdateAsync are implemented.
 DataStores use Woorf's local backend. Saved TCP credentials preserve server-issued identities across reconnects and restarts;
 in-process UserIds remain session identities. External account login is not implemented.
@@ -50,7 +53,8 @@ Maintain explicit implementation limits and extend local behavior tests with eac
 feature. Do not add a Studio behavior-comparison harness. Keep engine state and
 behavior in C# with native and Luau glue for VM integration and scheduling.
 
-The recorded complete-suite baseline is 207 passing checks, and the synthetic
+The complete-suite baseline after graphics performance fixes is 210 passing checks, plus
+two optional real-OpenGL acceptance checks. The synthetic
 readiness workload reports 19 available and 0 blocked checks. Neither establishes
 arbitrary full-game support. See [build and verification commands](README.md).
 
@@ -77,7 +81,7 @@ accounts, memory quotas and sustained-load qualification remain production gates
 - Select standalone targets and packaging strategy, plus the browser/WASM build path.
 - Define production hosting, stable authenticated identity and service adapters for
   assets, persistence, purchases, moderation and matchmaking.
-- Select rendering and editor technologies when those milestones begin. Physics is custom managed C# by explicit user preference; broader simulation features remain future work.
+- Extend the custom OpenGL renderer and choose editor technology when that milestone begins. The first Win32/WGL window host is Windows-only; other graphics hosts remain future work. Physics is custom managed C# by explicit user preference; broader simulation features remain future work.
 - Decide licensing and dependency constraints.
 
 See [context-2.md](context-2.md) for continuation guidance and working-tree precautions.

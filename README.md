@@ -1,6 +1,6 @@
 # woorf
 
-woorf embeds the official Luau compiler and VM in a C# engine library, invoked by a headless CLI. It can run a standalone script or load a filesystem project into a C# DataModel with Roblox-style hierarchy APIs.
+woorf embeds the official Luau compiler and VM in a C# engine library, invoked by a CLI with headless and OpenGL viewer modes. It can run a standalone script or load a filesystem project into a C# DataModel with Roblox-style hierarchy APIs.
 
 ## Build and run
 
@@ -31,6 +31,18 @@ With MinGW, add `-DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++` to the configu
 
 In a restricted Windows environment where the user NuGet configuration cannot be read, set `$env:APPDATA = Join-Path $PWD '.local'` in PowerShell before invoking .NET. No NuGet packages are required.
 
+## First graphical output
+
+```powershell
+dotnet run --project src/Woorf.Cli --no-restore -- examples/graphics-showcase --render
+```
+
+The custom OpenGL 3.3 renderer draws live boxes and spheres with depth testing and
+lighting, with no external graphics packages. The first window backend requires
+Windows and an OpenGL 3.3 driver. WASD/QE moves, arrows orbit, Shift speeds up, and
+Escape closes. See [graphics foundations](docs/graphics.md) and the
+[showcase](examples/graphics-showcase/README.md) for captures, tests and boundaries.
+
 ## Tests
 
 Module example: `dotnet run --project src/Woorf.Cli -- examples/modules` loads a shared configuration with `require()`. See [module semantics](docs/runtime-compatibility.md#modules). [examples/scheduler.luau](examples/scheduler.luau) demonstrates tasks and child waits; see [scheduler behavior](docs/scheduler.md).
@@ -45,7 +57,7 @@ CLI exit codes: `0` success, `1` file/compilation/execution/native-loading failu
 
 ## Scope
 
-The native bridge uses portable CMake and the managed engine uses C#/.NET. Windows x64 is currently verified; Linux, macOS, mobile, and WASM have not been verified. Browser support will require a separate .NET/WASM and native interoperability build path. The current runtime includes a structural subset of Roblox APIs with signals, property-change events, yielding ModuleScript `require`, and cooperative task scheduling. Local headless client/server execution, RemoteEvents and yielding RemoteFunctions are supported through --clients N; see [client/server runtime](docs/client-server.md). TCP transport supports separate server/client processes; editor and rendering remain future work. A custom managed box-and-sphere physics subset now runs headlessly; see [physics](docs/physics.md). VM execution budgets and inbound limits are implemented; memory quotas remain absent. See [runtime hardening](docs/runtime-hardening.md).
+The native bridge uses portable CMake and the managed engine uses C#/.NET. Windows x64 is currently verified; Linux, macOS, mobile, and WASM have not been verified. Browser support will require a separate .NET/WASM and native interoperability build path. The current runtime includes a structural subset of Roblox APIs with signals, property-change events, yielding ModuleScript `require`, and cooperative task scheduling. Local headless client/server execution, RemoteEvents and yielding RemoteFunctions are supported through --clients N; see [client/server runtime](docs/client-server.md). TCP transport supports separate server/client processes. The [OpenGL viewer](docs/graphics.md) provides the first Windows graphical output; an editor remains future work. A custom managed box-and-sphere physics subset runs headlessly and in the viewer; see [physics](docs/physics.md). VM execution budgets and inbound limits are implemented; memory quotas remain absent. See [runtime hardening](docs/runtime-hardening.md).
 
 See [project.md](project.md) for the broader goals and [vendor/LUAU.md](vendor/LUAU.md) for upstream provenance and licenses.
 
