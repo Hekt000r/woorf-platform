@@ -46,6 +46,7 @@ inline Runtime* getRuntime(lua_State* state)
 void initializeInstances(lua_State* state, int gameId, int workspaceId);
 void initializeVector3(lua_State* state);
 void initializeCFrame(lua_State* state);
+void initializeColor(lua_State* state);
 void initializeSignals(lua_State* state);
 void initializeModules(lua_State* state);
 void initializeSchedulerHelpers(lua_State* state);

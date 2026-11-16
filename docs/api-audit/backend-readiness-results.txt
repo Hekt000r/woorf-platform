@@ -1,0 +1,20 @@
+AVAILABLE	hierarchy
+AVAILABLE	spatial_state
+AVAILABLE	task_spawn
+AVAILABLE	warn_global
+AVAILABLE	attributes
+AVAILABLE	collection_tags
+AVAILABLE	value_objects
+AVAILABLE	bindable_events
+AVAILABLE	random
+AVAILABLE	json
+AVAILABLE	debris_service_entry
+AVAILABLE	heartbeat
+AVAILABLE	persistence_service_entry
+AVAILABLE	shutdown_hook_registration
+AVAILABLE	teams
+AVAILABLE	humanoid
+AVAILABLE	raycast
+AVAILABLE	color3
+AVAILABLE	remote_function_has_no_event_methods
+SUMMARY	19	0

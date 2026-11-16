@@ -79,7 +79,7 @@ local function trackThread(thread, owner)
             local ownedThreads = {}
             for ownedThread in ownerState.threads do table.insert(ownedThreads, ownedThread) end
             for _, ownedThread in ownedThreads do
-                if coroutine.status(ownedThread) ~= "running" and coroutine.status(ownedThread) ~= "dead" then
+                if coroutine.status(ownedThread) == "suspended" then
                     cancelThread(ownedThread)
                 end
             end

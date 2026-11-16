@@ -6,6 +6,19 @@ static char instanceCacheKey;
 static int dispatchHost(lua_State* state)
 {
     const char* operation = lua_tostring(state, lua_upvalueindex(1));
+    if ((std::string(operation) == "get" || std::string(operation) == "set")
+        && lua_type(state, 2) == LUA_TSTRING)
+    {
+        const std::string property = lua_tostring(state, 2);
+        if (property == "OnServerInvoke" || property == "OnClientInvoke")
+        {
+            const int count = lua_gettop(state);
+            lua_getglobal(state, std::string(operation) == "get" ? "_woorf_remote_get" : "_woorf_remote_set");
+            lua_insert(state, 1);
+            lua_call(state, count, LUA_MULTRET);
+            return lua_gettop(state);
+        }
+    }
     const int result = getRuntime(state)->host(state, operation);
     // Managed exceptions are converted to stack strings before returning here.
     if (result < 0)
@@ -15,6 +28,16 @@ static int dispatchHost(lua_State* state)
 
 WOORF_EXPORT void woorf_push_method(lua_State* state, const char* operation)
 {
+    if (std::string(operation) == "AddItem" || std::string(operation) == "Raycast")
+    {
+        lua_getglobal(state, std::string(operation) == "AddItem" ? "_woorf_add_item" : "_woorf_raycast");
+        return;
+    }
+    if (std::string(operation) == "InvokeServer" || std::string(operation) == "InvokeClient")
+    {
+        lua_getglobal(state, std::string(operation) == "InvokeServer" ? "_woorf_invoke_server" : "_woorf_invoke_client");
+        return;
+    }
     if (std::string(operation) == "Wait" || std::string(operation) == "WaitForChild")
     {
         lua_getglobal(state, std::string(operation) == "Wait" ? "_woorf_signal_wait" : "_woorf_wait_for_child");

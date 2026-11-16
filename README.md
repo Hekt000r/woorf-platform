@@ -45,7 +45,7 @@ CLI exit codes: `0` success, `1` file/compilation/execution/native-loading failu
 
 ## Scope
 
-The native bridge uses portable CMake and the managed engine uses C#/.NET. Windows x64 is currently verified; Linux, macOS, mobile, and WASM have not been verified. Browser support will require a separate .NET/WASM and native interoperability build path. The current runtime includes a structural subset of Roblox APIs with signals, property-change events, yielding ModuleScript `require`, and cooperative task scheduling. Client execution, editor, rendering, physics, and multiplayer remain future work. There are no execution time or memory quotas yet.
+The native bridge uses portable CMake and the managed engine uses C#/.NET. Windows x64 is currently verified; Linux, macOS, mobile, and WASM have not been verified. Browser support will require a separate .NET/WASM and native interoperability build path. The current runtime includes a structural subset of Roblox APIs with signals, property-change events, yielding ModuleScript `require`, and cooperative task scheduling. Local headless client/server execution and RemoteEvents are supported through --clients N; see [client/server runtime](docs/client-server.md). TCP transport supports separate server/client processes; editor, rendering, and physics remain future work. There are no execution time or memory quotas yet.
 
 See [project.md](project.md) for the broader goals and [vendor/LUAU.md](vendor/LUAU.md) for upstream provenance and licenses.
 
@@ -57,3 +57,11 @@ See [CFrame and Part transforms](docs/cframe.md) and run `examples/cframe.luau` 
 [Part and Model pivots](docs/pivots.md) support moving groups while preserving relative transforms. Run `examples/pivots.luau` for an example.
 
 [Model bounds](docs/bounds.md) expose `GetBoundingBox()` and `GetExtentsSize()`. Try `examples/bounds.luau`.
+
+Run a server and separate clients using [TCP transport](docs/socket-transport.md).
+
+See the [backend API readiness audit](docs/backend-api-readiness.md) for the pinned
+reference snapshot, measured subset, confirmed gaps, and prioritized API roadmap.
+
+The [backend API milestone](docs/backend-apis.md) documents the implemented audit
+paths, local persistence contract, and remaining compatibility limits.

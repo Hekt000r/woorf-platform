@@ -22,7 +22,7 @@ public static class ProjectLoader
         var comparison = OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
         for (var path = sourcePath; !path.Equals(projectPath, comparison); path = Path.GetDirectoryName(path)!)
             RejectLink(path);
-        var game = new GameDataModel { Name = ReadString(manifest.RootElement, "name", "Game") };
+        var game = new GameDataModel { Name = ReadString(manifest.RootElement, "name", "Game"), DataDirectory = Path.Combine(projectPath, ".woorf", "data") };
         var scripts = new List<ProjectScript>();
         foreach (var servicePath in Directory.EnumerateDirectories(sourcePath).Order(StringComparer.Ordinal))
         {

@@ -4,6 +4,7 @@ public sealed class ScriptSignal
 {
     private readonly List<ScriptConnection> connections = [];
     private bool isClosed;
+    internal bool HasConnections => connections.Count > 0;
 
     public ScriptConnection Connect(Action<object?[]> handler, bool isOnce = false)
     {

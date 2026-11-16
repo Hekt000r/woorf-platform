@@ -6,7 +6,7 @@ using static Woorf.Engine.Scripting.NativeMethods;
 
 namespace Woorf.Engine.Scripting;
 
-internal sealed class SignalBindings(Func<Instance?, int> getInstanceId) : IDisposable
+internal sealed class SignalBindings(LuaValueCodec codec) : IDisposable
 {
     private readonly Dictionary<ScriptSignal, int> signalIds = [];
     private readonly Dictionary<int, ScriptSignal> signals = [];
@@ -84,11 +84,7 @@ internal sealed class SignalBindings(Func<Instance?, int> getInstanceId) : IDisp
 
     private void Invoke(int reference, object?[] arguments)
     {
-        byte[]? text = arguments.Length == 1 && arguments[0] is string value
-            ? Encoding.UTF8.GetBytes(value) : null;
-        var firstId = text is null && arguments.Length > 0 ? getInstanceId((Instance?)arguments[0]) : 0;
-        var secondId = arguments.Length > 1 ? getInstanceId((Instance?)arguments[1]) : 0;
-        woorf_invoke(handle, reference, arguments.Length, firstId, secondId, text, (nuint)(text?.Length ?? 0));
+        codec.Invoke(handle, reference, arguments);
     }
 
     private ScriptSignal ReadSignal(nint state)

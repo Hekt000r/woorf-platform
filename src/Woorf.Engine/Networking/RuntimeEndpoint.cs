@@ -6,7 +6,7 @@ namespace Woorf.Engine.Networking;
 
 internal sealed class RuntimeEndpoint : IDisposable
 {
-    internal RuntimeEndpoint(DataModel.DataModel game, LocalNetworkHost host, IRuntimeClock clock, Player? player = null)
+    internal RuntimeEndpoint(DataModel.DataModel game, IRuntimeHost host, IRuntimeClock clock, Player? player = null)
     {
         Game = game;
         Host = host;
@@ -16,8 +16,9 @@ internal sealed class RuntimeEndpoint : IDisposable
     }
 
     internal DataModel.DataModel Game { get; }
-    internal LocalNetworkHost Host { get; }
+    internal IRuntimeHost Host { get; }
     internal Player? ServerPlayer { get; }
+    internal bool IsConnected { get; set; } = true;
     internal bool IsClient => ServerPlayer is not null;
     internal LuauSession Session { get; }
     internal ReplicaMap? Replicas { get; set; }

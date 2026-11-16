@@ -4,7 +4,7 @@ using Woorf.Engine.Datatypes;
 namespace Woorf.Engine.Networking;
 
 internal sealed record ReplicaState(string Name, Instance? Parent, bool Archivable, CFrame Frame,
-    CFrame PivotOffset, Vector3 Size, bool Anchored, CFrame WorldPivot, BasePart? PrimaryPart, int UserId, string Source)
+    CFrame PivotOffset, Vector3 Size, bool Anchored, CFrame WorldPivot, BasePart? PrimaryPart, int UserId, string Source, ReplicatedBackendState? Backend = null)
 {
     internal static ReplicaState Capture(Instance instance) => new(instance.Name, instance.Parent, instance.Archivable,
         instance is BasePart part ? part.CFrame : default,
@@ -14,10 +14,11 @@ internal sealed record ReplicaState(string Name, Instance? Parent, bool Archivab
         instance is Model model ? model.WorldPivot : default,
         instance is Model primaryModel ? primaryModel.PrimaryPart : null,
         instance is Player player ? player.UserId : 0,
-        instance.ClassName == "ModuleScript" ? instance.ScriptSource : "");
+        instance.ClassName == "ModuleScript" ? instance.ScriptSource : "", ReplicatedBackendState.Capture(instance));
 
     internal void ApplyValues(Instance replica, ReplicaState? previous, Func<Instance, Instance?> translate)
     {
+        Backend?.Apply(replica, previous?.Backend, translate);
         if (replica is BasePart part)
         {
             if (previous is null || previous.Frame != Frame) part.CFrame = Frame;

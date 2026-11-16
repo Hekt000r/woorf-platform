@@ -10,10 +10,11 @@ public sealed class Players : Instance
         {
             if (arguments[0] is Player player) PlayerAdded.Fire(player);
         });
-        GetSignal("Destroying").Connect(_ => PlayerAdded.Close());
+        GetSignal("Destroying").Connect(_ => { PlayerAdded.Close(); PlayerRemoving.Close(); });
     }
 
     public Player? LocalPlayer { get; internal set; }
+    public ScriptSignal PlayerRemoving { get; } = new();
     public ScriptSignal PlayerAdded { get; } = new();
     public IReadOnlyList<Player> GetPlayers() => GetChildren().OfType<Player>().ToArray();
 

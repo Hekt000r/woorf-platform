@@ -1,5 +1,6 @@
 #include "LuauBridge.h"
 #include <exception>
+#include <cstring>
 
 using PushArguments = int (*)(lua_State*);
 
@@ -19,6 +20,7 @@ WOORF_EXPORT int woorf_value_kind(lua_State* state, int index)
     }
     if (lua_touserdatatagged(state, index, 1)) return 3;
     if (lua_touserdatatagged(state, index, 4)) return 11;
+    if (lua_touserdatatagged(state, index, 5)) return 12;
     return 4;
 }
 
@@ -62,4 +64,38 @@ WOORF_EXPORT int woorf_invoke_values(void* handle, int reference, PushArguments 
         lua_settop(runtime->state, savedTop);
         return 1;
     }
+}
+WOORF_EXPORT int woorf_initialize_remote(void* handle, int id)
+{
+    auto* runtime = static_cast<Runtime*>(handle);
+    const int savedTop = lua_gettop(runtime->state);
+    lua_getglobal(runtime->state, "_woorf_remote_init");
+    woorf_push_instance(runtime->state, id);
+    const int status = lua_pcall(runtime->state, 1, 0, 0);
+    if (status != 0) reportValueFailure(runtime, runtime->state);
+    lua_settop(runtime->state, savedTop);
+    return status;
+}
+WOORF_EXPORT int woorf_ref_shutdown(lua_State* state, int index)
+{
+    if (!lua_isfunction(state, index)) return -1;
+    const int absolute = index > 0 ? index : lua_gettop(state) + index + 1;
+    auto* root = getRuntime(state)->state;
+    lua_getglobal(root, "_woorf_wrap_shutdown");
+    if (root != state) lua_xmove(root, state, 1);
+    lua_pushvalue(state, absolute);
+    if (lua_pcall(state, 1, 1, 0) != 0) { lua_pop(state, 1); return -1; }
+    const int reference = lua_ref(state, -1);
+    lua_pop(state, 1);
+    return reference;
+}
+
+WOORF_EXPORT int woorf_shutdown_pending(void* handle)
+{
+    auto* runtime = static_cast<Runtime*>(handle);
+    lua_getglobal(runtime->state, "_woorf_shutdown_pending");
+    const int status = lua_pcall(runtime->state, 0, 1, 0);
+    const int pending = status == 0 ? lua_tointeger(runtime->state, -1) : 0;
+    lua_pop(runtime->state, 1);
+    return pending;
 }

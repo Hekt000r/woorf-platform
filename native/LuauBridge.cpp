@@ -41,6 +41,7 @@ WOORF_EXPORT void* woorf_create(WriteOutput write, HostCall host, int gameId, in
         initializeSignals(runtime->state);
         initializeModules(runtime->state);
         initializeSchedulerHelpers(runtime->state);
+        initializeColor(runtime->state);
         return runtime.release();
     }
     catch (const std::exception& error)

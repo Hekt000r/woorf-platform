@@ -4,6 +4,19 @@ namespace Woorf.Engine.Scripting;
 
 internal static partial class NativeMethods
 {
+    [DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int woorf_initialize_remote(nint handle, int id);
+
+    [DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int woorf_get_color3(nint state, int index, out float red, out float green, out float blue);
+    [DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern void woorf_push_color3(nint state, float red, float green, float blue);
+
+    [DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int woorf_ref_shutdown(nint state, int index);
+    [DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int woorf_shutdown_pending(nint handle);
+
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     internal delegate int PushArguments(nint state);
 

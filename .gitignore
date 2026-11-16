@@ -4,3 +4,5 @@ artifacts/
 build/
 .local/
 vendor/luau/.git/
+
+.woorf/

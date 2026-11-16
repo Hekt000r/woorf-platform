@@ -8,6 +8,8 @@ namespace Woorf.Engine.Scripting;
 
 internal sealed class LuaValueCodec(Func<Instance?, int> getInstanceId, Func<int, Instance?> findInstance)
 {
+    internal object? ReadValue(nint state, int index) => Read(state, index, [], 0, false);
+
     internal object?[] ReadArguments(nint state, int first)
     {
         var count = woorf_get_top(state) - first + 1;
@@ -37,7 +39,7 @@ internal sealed class LuaValueCodec(Func<Instance?, int> getInstanceId, Func<int
         return result;
     }
 
-    private object? Read(nint state, int index, HashSet<nint> ancestors, int depth)
+    private object? Read(nint state, int index, HashSet<nint> ancestors, int depth, bool shouldAllowFunctions = true)
     {
         if (depth > 64) throw new InvalidOperationException("Remote values exceed the supported nesting depth.");
         return woorf_value_kind(state, index) switch
@@ -46,16 +48,24 @@ internal sealed class LuaValueCodec(Func<Instance?, int> getInstanceId, Func<int
             1 => woorf_get_bool(state, index) != 0,
             2 => ReadString(state, index),
             3 => findInstance(woorf_get_id(state, index)),
-            7 => null,
+            7 => shouldAllowFunctions ? null : throw new InvalidOperationException("Functions are not supported values."),
             8 => ReadNumber(state, index),
-            9 => ReadTable(state, index, ancestors, depth),
+            9 => ReadTable(state, index, ancestors, depth, shouldAllowFunctions),
             10 => Vector3Bindings.Read(state, index),
             11 => CFrameBindings.Read(state, index),
+            12 => ReadColor(state, index),
             _ => throw new InvalidOperationException("Unsupported remote argument type."),
         };
     }
 
-    private LuaTableValue ReadTable(nint state, int index, HashSet<nint> ancestors, int depth)
+    private static Color3 ReadColor(nint state, int index)
+    {
+        if (woorf_get_color3(state, index, out var red, out var green, out var blue) == 0)
+            throw new InvalidOperationException("Expected Color3.");
+        return new(red, green, blue);
+    }
+
+    private LuaTableValue ReadTable(nint state, int index, HashSet<nint> ancestors, int depth, bool shouldAllowFunctions = true)
     {
         var originalTop = woorf_get_top(state);
         var absoluteIndex = index > 0 ? index : originalTop + index + 1;
@@ -68,7 +78,7 @@ internal sealed class LuaValueCodec(Func<Instance?, int> getInstanceId, Func<int
             while (woorf_table_next(state, absoluteIndex) != 0)
             {
                 var key = ReadKey(state, -2);
-                var value = Read(state, -1, ancestors, depth + 1);
+                var value = Read(state, -1, ancestors, depth + 1, shouldAllowFunctions);
                 entries.Add(new(key, value));
                 woorf_set_top(state, woorf_get_top(state) - 1);
             }
@@ -104,6 +114,7 @@ internal sealed class LuaValueCodec(Func<Instance?, int> getInstanceId, Func<int
             case Instance instance: woorf_push_instance(state, getInstanceId(instance)); break;
             case Vector3 vector: Vector3Bindings.Push(state, vector); break;
             case CFrame frame: CFrameBindings.Push(state, frame); break;
+            case Color3 color: woorf_push_color3(state, color.R, color.G, color.B); break;
             case LuaTableValue table: PushTable(state, table, depth); break;
             default: throw new InvalidOperationException("Unsupported callback argument type.");
         }

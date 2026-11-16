@@ -15,7 +15,7 @@ var cases = new (string Name, string? Source, int Exit, string Output, string Er
     .Concat(HierarchyCases.GetCases()).Concat(SignalCases.GetCases())
     .Concat(PartPivotCases.GetCases()).Concat(ModelPivotCases.GetCases())
     .Concat(ModelBoundsCases.GetCases())
-    .Concat(InstanceEventCases.GetCases()).Concat(SchedulerCases.GetCases()).ToArray();
+    .Concat(InstanceEventCases.GetCases()).Concat(SchedulerCases.GetCases()).Concat(BackendApiCases.GetCases()).ToArray();
 var failedCount = 0;
 foreach (var test in cases)
 {
@@ -56,4 +56,10 @@ failedCount += await NetworkProjectTests.RunAsync(cliPath);
 failedCount += await ProjectTests.RunAsync(cliPath);
 failedCount += await ProjectValidationTests.RunAsync(cliPath);
 failedCount += RuntimeClockTests.Run();
+failedCount += NetworkLifecycleTests.Run();
+failedCount += await SocketTransportTests.RunAsync(cliPath);
+failedCount += await SocketBackpressureTests.RunAsync(cliPath);
+failedCount += await SocketMetricsTests.RunAsync();
+failedCount += DirtyReplicationTests.Run();
+failedCount += await BackendPersistenceTests.RunAsync(cliPath);
 return failedCount == 0 ? 0 : 1;

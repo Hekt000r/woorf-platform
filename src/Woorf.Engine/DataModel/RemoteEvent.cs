@@ -2,9 +2,9 @@ using Woorf.Engine.Events;
 
 namespace Woorf.Engine.DataModel;
 
-public sealed class RemoteEvent : Instance
+public class RemoteEvent : Instance
 {
-    internal RemoteEvent() : base("RemoteEvent")
+    internal RemoteEvent(string className = "RemoteEvent") : base(className)
     {
         GetSignal("Destroying").Connect(_ =>
         {

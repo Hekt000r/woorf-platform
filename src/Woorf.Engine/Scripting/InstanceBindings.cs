@@ -9,6 +9,8 @@ internal sealed class InstanceBindings : IDisposable
 {
     private readonly DataModel.DataModel game;
     private readonly SignalBindings signalBindings;
+    private readonly NetworkBindings networkBindings;
+    private readonly BackendBindings backendBindings;
     private readonly Dictionary<Instance, int> identifiers = [];
     private readonly Dictionary<int, Instance> instances = [];
     private static readonly HashSet<string> Methods =
@@ -19,14 +21,19 @@ internal sealed class InstanceBindings : IDisposable
         "IsAncestorOf", "Clone", "Destroy", "ClearAllChildren", "GetPropertyChangedSignal", "WaitForChild",
     ];
 
-    internal InstanceBindings(DataModel.DataModel game)
+    internal InstanceBindings(DataModel.DataModel game, Woorf.Engine.Networking.RuntimeEndpoint? endpoint = null)
     {
         this.game = game;
-        signalBindings = new SignalBindings(GetId);
+        var codec = new LuaValueCodec(GetId, id => instances.GetValueOrDefault(id));
+        signalBindings = new SignalBindings(codec);
+        networkBindings = new NetworkBindings(endpoint, codec, signalBindings);
+        backendBindings = new BackendBindings(game, codec, signalBindings);
     }
 
-    internal void AttachRuntime(nint handle) => signalBindings.AttachRuntime(handle);
-    public void Dispose() => signalBindings.Dispose();
+    internal void AttachRuntime(nint handle) { signalBindings.AttachRuntime(handle); backendBindings.AttachRuntime(handle); }
+    public void Dispose() { backendBindings.Dispose(); signalBindings.Dispose(); }
+    internal bool HasShutdown => backendBindings.HasShutdown;
+    internal void BeginShutdown() => backendBindings.BeginShutdown();
 
     internal int GetId(Instance? instance)
     {
@@ -91,6 +98,8 @@ internal sealed class InstanceBindings : IDisposable
     private int ReadProperty(nint state, Instance instance)
     {
         var property = ReadString(state, 2);
+        if (backendBindings.TryRead(state, instance, property, out var backendResult)) return backendResult;
+        if (networkBindings.TryRead(state, instance, property, out var result)) return result;
         if (Instance.IsSignalName(property)) return signalBindings.PushSignal(state, instance.GetSignal(property));
         if (instance is Model && property is "GetBoundingBox" or "GetExtentsSize")
         {
@@ -128,6 +137,7 @@ internal sealed class InstanceBindings : IDisposable
     private int WriteProperty(nint state, Instance instance)
     {
         var property = ReadString(state, 2);
+        if (backendBindings.TryWrite(state, instance, property)) return 0;
         switch (property)
         {
             case "PivotOffset" when instance is BasePart part: part.PivotOffset = CFrameBindings.Read(state, 3); break;
@@ -152,6 +162,8 @@ internal sealed class InstanceBindings : IDisposable
 
     private int CallMethod(nint state, Instance instance, string method)
     {
+        if (backendBindings.TryCall(state, instance, method, out var backendResult)) return backendResult;
+        if (networkBindings.TryCall(state, instance, method, out var result)) return result;
         switch (method)
         {
             case "GetBoundingBox" when instance is Model model:

@@ -1,4 +1,6 @@
-# Initial hierarchy runtime
+# Runtime compatibility inventory
+
+For the pinned API audit and backend roadmap, see [backend API readiness](backend-api-readiness.md).
 
 The C# graph is authoritative. Native Luau userdata hold object identifiers and call C# for properties and methods. References retain identity across lookups and scripts; `typeof(instance)` returns `Instance`. Every invocation creates a new world; project scripts share one world and VM, with a separate global environment per script.
 
@@ -22,7 +24,7 @@ The C# graph is authoritative. Native Luau userdata hold object identifiers and 
 | Signals | `RBXScriptSignal:Connect`, `Once`; `RBXScriptConnection.Connected`, `Disconnect`; typed userdata with stable signal identity |
 | Notifications | `Changed`, `GetPropertyChangedSignal`, `ChildAdded`, `ChildRemoved`, `AncestryChanged`, `DescendantAdded`, `DescendantRemoving`, `Destroying` |
 
-Creatable classes: `Folder`, `Model`, `Configuration`, `Script`, `LocalScript`, `ModuleScript`, `Part`. ModuleScripts support on-demand execution; Script/LocalScript class-specific APIs remain partial. Services: `Workspace`, `ReplicatedStorage`, `ReplicatedFirst`, `ServerStorage`, `ServerScriptService`, `StarterGui`, `StarterPack`, `StarterPlayer`. These containers provide hierarchy behavior, without their class-specific engine features. Workspace also reports its Model/PVInstance ancestry. Part reports FormFactorPart/BasePart/PVInstance ancestry; abstract ancestors are not creatable.
+Creatable classes: `Folder`, `Model`, `Configuration`, `Script`, `LocalScript`, `ModuleScript`, `Part`, `RemoteEvent`, `RemoteFunction`, `Player`, `BindableEvent`, `Humanoid`, `Team`, `IntValue`, `NumberValue`, `BoolValue`, `StringValue`, `ObjectValue`, `Vector3Value`, `CFrameValue`, `Color3Value`. Services: `Workspace`, `ReplicatedStorage`, `ReplicatedFirst`, `ServerStorage`, `ServerScriptService`, `StarterGui`, `StarterPack`, `StarterPlayer`, `Players`, `RunService`, `CollectionService`, `HttpService`, `Debris`, `DataStoreService`, `Teams`. These expose only their documented subsets; see [backend APIs](backend-apis.md).
 
 `GetService` creates a supported service on demand and finds it by class even after renaming. `FindService` never creates one. Workspace is created with the world. Loaded projects are complete before scripts execute, so `IsLoaded` is true during execution. Parent assignments reject cycles, invalid argument types, destroyed targets, and changes to the DataModel root. Unknown classes, services, properties, and methods raise errors.
 
@@ -53,12 +55,12 @@ Try `dotnet run --project src/Woorf.Cli -- examples/signals.luau` for a complete
 ## Limits and deliberate initial conventions
 
 - This is a structural foundation, not a complete Roblox compatibility layer or measured 99% coverage.
-- `task.spawn`, `task.defer`, `task.wait`, `task.delay`, `task.cancel`, signal `Wait`, yielding callbacks, and `WaitForChild` are supported; see [scheduler semantics](scheduler.md). Destroying a Script cancels its suspended work. `ConnectParallel`, deferred Instance event delivery, attributes, tags, and deprecated aliases remain unsupported.
+- `task.spawn`, `task.defer`, `task.wait`, `task.delay`, `task.cancel`, signal `Wait`, yielding callbacks, and `WaitForChild` are supported; see [scheduler semantics](scheduler.md). Destroying a Script cancels its suspended work. `ConnectParallel`, deferred Instance event delivery, deprecated aliases remain unsupported. Attributes and tags are implemented; see [backend APIs](backend-apis.md).
 - Supported service roots are locked to their DataModel after creation and cannot be destroyed or reparented. This preserves singleton identity; exact class-specific Roblox lifecycle rules remain to be expanded. Workspace starts without Terrain or Camera. Other containers are lazy-created rather than matching Studio's complete default tree.
 - Project scripts begin in deterministic source-path order and may yield while later scripts start. Roblox scheduling phases, Heartbeat, and RunContext semantics are not implemented.
-- LocalScripts load as objects only. There is no client runtime, source editing, or dynamic script startup. Cloning copies stored script source but does not execute a new script automatically.
+- LocalScripts execute in isolated client runtimes from supported StarterPlayerScripts/StarterGui templates. Source editing and general dynamic script startup remain unsupported. Cloning copies source but does not automatically start a new script.
 - The filesystem loader rejects duplicate sibling names to keep file mapping unambiguous; runtime-created instances may share names.
-- Hierarchy changes stay in memory. There is no place-file import, saving, rendering, physics, replication, persistence, or Roblox-hosted service access.
+- Hierarchy changes stay in memory. There is no place-file import, saving, rendering, physics, persistence, or Roblox-hosted service access. Shared state replicates over the local host and TCP transport.
 - Errors describe woorf validation failures; exact Roblox error wording and coercion rules are not promised.
 
 ## References
@@ -72,3 +74,19 @@ Implementation consulted Roblox's official documentation on 2026-11-15:
 - [RBXScriptSignal](https://create.roblox.com/docs/reference/engine/datatypes/RBXScriptSignal) and [RBXScriptConnection](https://create.roblox.com/docs/reference/engine/datatypes/RBXScriptConnection)
 
 These are live references, not a pinned API snapshot. Future compatibility work should pin an API dump and extend behavior tests alongside each feature.
+
+## Networking and lifecycle
+
+RemoteEvents, RemoteFunctions, local player identities, join/removal, Kick, and
+isolated server/client VMs are implemented as a subset. TCP protocol v3 supports
+separate processes, incremental replication, dirty capture, bounded outgoing
+queues, and transport measurements. Read [client/server semantics](client-server.md)
+and [TCP transport](socket-transport.md) for behavior and limits.
+
+The [backend readiness audit](backend-api-readiness.md) records known mismatches,
+including the now-fixed RemoteFunction event-member leakage, and identifies remaining backend APIs.
+No complete-engine or full-game compatibility percentage is currently established.
+
+The [backend API milestone](backend-apis.md) adds attributes, tags, ValueObjects,
+BindableEvent, Color3/Random, JSON, Debris, Heartbeat, local stores, shutdown hooks,
+Teams, health-only Humanoid and box raycasts. These are scoped subsets.

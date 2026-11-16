@@ -6,6 +6,8 @@
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="Scripting/Scheduler.luau" />
+    <EmbeddedResource Include="Scripting/RemoteFunctions.luau" />
+    <EmbeddedResource Include="Scripting/BackendTypes.luau" />
     <Content Include="../../artifacts/native/*" Link="%(Filename)%(Extension)"
              CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>

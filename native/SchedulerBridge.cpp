@@ -24,8 +24,19 @@ WOORF_EXPORT void woorf_set_clock(void* handle, ReadClock read)
     static_cast<Runtime*>(handle)->readClock = read;
 }
 
+static int newTypedProxy(lua_State* state)
+{
+    luaL_checktype(state, 1, LUA_TTABLE);
+    lua_newuserdata(state, 1);
+    lua_pushvalue(state, 1);
+    lua_setmetatable(state, -2);
+    return 1;
+}
+
 void initializeSchedulerHelpers(lua_State* state)
 {
+    lua_pushcfunction(state, newTypedProxy, "typed proxy");
+    lua_setglobal(state, "_woorf_new_proxy");
     lua_pushcfunction(state, reportMessage, "report");
     lua_setglobal(state, "_woorf_report");
     lua_pushcfunction(state, readClock, "clock");

@@ -8,6 +8,8 @@ public sealed class DataModel : Instance
         Workspace = GetService("Workspace");
     }
 
+    internal string DataDirectory { get; set; } = Path.Combine(Environment.CurrentDirectory, ".woorf", "data");
+
     public Instance Workspace { get; }
 
     public Instance? FindService(string className) =>

@@ -18,6 +18,8 @@ public class Model : Instance
         GetSignal("Destroying").Connect(_ => DisconnectPrimaryPart());
     }
 
+    internal bool HasAutomaticWorldPivot => !hasWorldPivot;
+
     public BasePart? PrimaryPart
     {
         get => primaryPart;

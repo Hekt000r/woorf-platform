@@ -2,8 +2,10 @@ using Woorf.Engine.Events;
 
 namespace Woorf.Engine.DataModel;
 
-public class Instance
+public partial class Instance
 {
+    internal event Action<Instance, string>? DescendantMutated;
+
     private readonly List<Instance> children = [];
     private Instance? parent;
     private string name;
@@ -63,6 +65,10 @@ public class Instance
             "Players" => new Players(),
             "RunService" => new RunService(),
             "RemoteEvent" => new RemoteEvent(),
+            "RemoteFunction" => new RemoteFunction(),
+            "IntValue" or "NumberValue" or "BoolValue" or "StringValue" or "ObjectValue" or "Vector3Value" or "CFrameValue" or "Color3Value" => new ValueObject(className),
+            "BindableEvent" => new BindableEvent(),
+            "Humanoid" => new Humanoid(),
             _ => new Instance(className),
         };
     }
@@ -138,6 +144,7 @@ public class Instance
         clones.Add(this, clone);
         clone.Name = Name;
         clone.ScriptSource = ScriptSource;
+        CopyMetadataTo(clone);
         CopyPropertiesTo(clone);
         foreach (var child in children)
         {
@@ -178,8 +185,17 @@ public class Instance
         return signal;
     }
 
-    protected void FirePropertyChanged(string property)
+    internal void NotifyMutation(string property) => NotifyDescendantMutation(this, property);
+
+    private void NotifyDescendantMutation(Instance origin, string property)
     {
+        for (Instance? ancestor = this; ancestor is not null; ancestor = ancestor.Parent)
+            ancestor.DescendantMutated?.Invoke(origin, property);
+    }
+
+    protected virtual void FirePropertyChanged(string property)
+    {
+        NotifyMutation(property);
         FireSignal("Changed", property);
         if (propertySignals.TryGetValue(property, out var signal)) signal.Fire();
     }
@@ -191,6 +207,7 @@ public class Instance
 
     private void CloseSignals()
     {
+        CloseMetadataSignals();
         foreach (var signal in signals.Values) signal.Close();
         foreach (var signal in propertySignals.Values) signal.Close();
     }
@@ -230,6 +247,9 @@ public class Instance
         previous?.children.Remove(this);
         parent = value;
         parent?.children.Add(this);
+        previous?.NotifyDescendantMutation(this, "Parent");
+        previous?.NotifyMutation("Descendants");
+        NotifyMutation("Parent");
         var version = ++parentVersion;
         previous?.FireSignal("ChildRemoved", this);
         if (parentVersion != version) return;

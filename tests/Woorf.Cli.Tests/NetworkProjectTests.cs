@@ -37,7 +37,10 @@ static class NetworkProjectTests
     {
         yield return ("routes queued RemoteEvents between two isolated clients and authentic Players", ArrangeRoundtrip, "roundtrip\n");
         foreach (var test in NetworkValueCases.GetCases()) yield return test;
+        foreach (var test in RemoteFunctionCases.GetCases()) yield return test;
         foreach (var test in NetworkIsolationCases.GetCases()) yield return test;
+        foreach (var test in PlayerLifecycleCases.GetCases()) yield return test;
+        foreach (var test in BackendNetworkCases.GetCases()) yield return test;
     }
 
     private static void ArrangeRoundtrip(string root)
