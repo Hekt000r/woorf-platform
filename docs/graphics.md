@@ -94,13 +94,18 @@ run in the complete default suite.
 ## Boundaries
 
 The first window backend is Windows only; the engine and mesh/camera math remain
-platform-neutral. No cross-platform window host, browser/WebGL path, renderer for
-TCP clients, client prediction, GUI, shadows, textures, asset loading, transparency,
-postprocessing, skeletal animation or Roblox Camera/Lighting service API exists yet.
+platform-neutral. [Graphical TCP clients](multiplayer-play.md) share authoritative
+characters and skies. No cross-platform window host, browser/WebGL path,
+client prediction, GUI, shadows, general Part textures, transparency,
+postprocessing, skeletal animation or a full Roblox Camera/Lighting API exists yet.
 Only opaque boxes and spheres are drawn. Frustum culling, asset batching beyond the
 two primitive meshes and broader sustained-load performance qualification remain
 future work. OpenGL failures are reported rather than silently
 falling back to an older fixed-function renderer.
+
+The [skybox subset](skybox.md) adds six textured Sky faces under Lighting, with
+orientation, bundled default skies and local PNG/BMP content. General Part textures
+and the remaining Lighting environment features are not implemented.
 
 Context setup follows [Khronos WGL guidance](https://wikis.khronos.org/opengl/Creating_an_OpenGL_Context_%28WGL%29)
 and [Microsoft's pixel-format contract](https://learn.microsoft.com/en-us/windows/win32/opengl/pixel-format-functions).

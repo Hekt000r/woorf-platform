@@ -10,6 +10,7 @@ internal sealed class RigidBody(int id)
     internal Vector3 LinearVelocity, AngularVelocity, Size;
     internal PhysicalProperties Material;
     internal bool IsAnchored, CanCollide;
+    internal bool CanTouch = true;
     internal bool IsRotationLocked;
     internal PartType Shape = PartType.Block;
     internal float Radius => MathF.Min(Size.X, MathF.Min(Size.Y, Size.Z)) * 0.5f;

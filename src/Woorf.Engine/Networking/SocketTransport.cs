@@ -10,8 +10,9 @@ namespace Woorf.Engine.Networking;
 public static class SocketTransport
 {
     public static int Listen(LoadedProject project, string address, CancellationToken cancellation = default,
-        Action<SocketTransportMetrics>? observe = null)
+        Action<SocketTransportMetrics>? observe = null, bool shouldLoadCharacters = false)
     {
+        if (shouldLoadCharacters) ((Players)project.Game.GetService("Players")).CharacterAutoLoads = true;
         var endpoint = IPEndPoint.Parse(address);
         using var runtime = new SocketRuntime(project, observe);
         return runtime.Finish(runtime.Listen(endpoint, cancellation));
@@ -106,6 +107,7 @@ internal sealed partial class SocketRuntime : IRuntimeHost, IDisposable
 
     private bool Step()
     {
+        ExpirePlayInput();
         endpoint!.Session.Step(clock.ElapsedSeconds);
         return !endpoint.Session.HasFailed;
     }

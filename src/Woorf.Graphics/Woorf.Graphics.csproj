@@ -4,4 +4,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Assets/Sky/*.png" LogicalName="Woorf.Graphics.Sky.%(Filename)%(Extension)" />
+  </ItemGroup>
 </Project>

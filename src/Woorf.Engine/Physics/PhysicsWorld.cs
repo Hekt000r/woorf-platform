@@ -7,6 +7,7 @@ internal sealed class PhysicsWorld : IDisposable
 {
     internal const double FixedStep = 1d / 120;
     private readonly Workspace workspace;
+    private readonly PhysicsTouchTracker touches;
     private readonly Dictionary<BasePart, RigidBody> bodies = [];
     private bool isHierarchyDirty = true;
     private int nextId;
@@ -29,7 +30,7 @@ internal sealed class PhysicsWorld : IDisposable
     internal bool HasDynamicBodies => bodies.Keys.Any(part => !part.Anchored);
     internal PhysicsWorld(Workspace workspace, double now)
     {
-        this.workspace = workspace; previousTime = now;
+        this.workspace = workspace; touches = new(workspace); previousTime = now;
         workspace.DescendantMutated += OnMutation;
     }
     private void OnMutation(Instance instance, string property)
@@ -38,6 +39,7 @@ internal sealed class PhysicsWorld : IDisposable
     }
     private void Synchronize()
     {
+        var changedTouchGeometry = new HashSet<BasePart>();
         if (isHierarchyDirty)
         {
             var current = workspace.GetDescendants().OfType<BasePart>().Where(part => !part.IsDestroyed).ToArray();
@@ -54,13 +56,19 @@ internal sealed class PhysicsWorld : IDisposable
         {
             var state = Snapshot.Capture(part);
             if (!expectedStates.TryGetValue(part, out var expected) || state != expected) InvalidateContacts(part);
+            if (!expectedStates.ContainsKey(part) || state.Frame != expected.Frame || state.Size != expected.Size
+                || state.Anchored != expected.Anchored || state.CanTouch != expected.CanTouch || state.Shape != expected.Shape)
+                changedTouchGeometry.Add(part);
             expectedStates[part] = state;
             body.Frame = part.CFrame; body.Size = part.Size; body.IsAnchored = part.Anchored;
             body.CanCollide = part.CanCollide; body.Material = part.CustomPhysicalProperties ?? PhysicalProperties.Default;
+            body.CanTouch = part.CanTouch;
             body.LinearVelocity = part.AssemblyLinearVelocity; body.AngularVelocity = part.AssemblyAngularVelocity;
             body.Shape = part is Part shaped ? shaped.Shape : PartType.Block;
             body.IsRotationLocked = rotationLocked.Contains(part);
+            body.UpdateBounds();
         }
+        touches.Synchronize(bodies, changedTouchGeometry);
     }
     private void InvalidateContacts(BasePart part)
     {
@@ -78,7 +86,7 @@ internal sealed class PhysicsWorld : IDisposable
             BeforeStep?.Invoke((float)FixedStep);
             var valid = bodies.Where(entry => !entry.Key.IsDestroyed && entry.Key.IsDescendantOf(workspace)
                 && IsFinite(entry.Value.Frame) && IsFinite(entry.Value.Size)).Select(entry => entry.Value).OrderBy(body => body.Id).ToArray();
-            var result = PhysicsSolver.Step(valid, (float)workspace.Gravity, (float)FixedStep);
+            var result = PhysicsSolver.Step(valid, (float)workspace.Gravity, (float)FixedStep, touches.Capture);
             CaptureContacts(result);
             accumulator = Math.Max(0, accumulator - FixedStep);
         }
@@ -89,6 +97,7 @@ internal sealed class PhysicsWorld : IDisposable
             expectedStates[part] = originals[part] with { Frame = body.Frame, Linear = body.LinearVelocity, Angular = body.AngularVelocity };
             part.ApplyPhysicsState(body.Frame, body.LinearVelocity, body.AngularVelocity);
         }
+        touches.Publish();
     }
     private void CaptureContacts(IReadOnlyList<BodyContact> result)
     {
@@ -103,12 +112,12 @@ internal sealed class PhysicsWorld : IDisposable
             contacts[b].Add(new(a, contact.Point, contact.Normal, contact.Separation));
         }
     }
-    private readonly record struct Snapshot(CFrame Frame, Vector3 Size, Vector3 Linear, Vector3 Angular, bool Anchored, bool CanCollide, PhysicalProperties? Material, PartType Shape)
+    private readonly record struct Snapshot(CFrame Frame, Vector3 Size, Vector3 Linear, Vector3 Angular, bool Anchored, bool CanCollide, PhysicalProperties? Material, PartType Shape, bool CanTouch)
     {
         internal static Snapshot Capture(BasePart part) => new(part.CFrame, part.Size, part.AssemblyLinearVelocity,
-            part.AssemblyAngularVelocity, part.Anchored, part.CanCollide, part.CustomPhysicalProperties, part is Part shaped ? shaped.Shape : PartType.Block);
+            part.AssemblyAngularVelocity, part.Anchored, part.CanCollide, part.CustomPhysicalProperties, part is Part shaped ? shaped.Shape : PartType.Block, part.CanTouch);
     }
     private static bool IsFinite(Vector3 value) => float.IsFinite(value.X) && float.IsFinite(value.Y) && float.IsFinite(value.Z);
     private static bool IsFinite(CFrame value) => IsFinite(value.Position) && IsFinite(value.RightVector) && IsFinite(value.UpVector) && IsFinite(value.ZVector);
-    public void Dispose() => workspace.DescendantMutated -= OnMutation;
+    public void Dispose() { workspace.DescendantMutated -= OnMutation; touches.Dispose(); }
 }

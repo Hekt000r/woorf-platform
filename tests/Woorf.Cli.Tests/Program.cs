@@ -1,5 +1,17 @@
 using System.Diagnostics;
 
+if (args.Length == 1 && args[0] == "--multiplayer-visible")
+    return await MultiplayerGraphicsTests.RunAsync(Path.Combine(AppContext.BaseDirectory, "Woorf.Cli.dll"), true);
+
+if (args.Length == 1 && args[0] == "--multiplayer-play") return MultiplayerPlayTests.Run();
+if (args.Length == 1 && args[0] == "--multiplayer-input")
+    return await MultiplayerInputTests.RunAsync(Path.Combine(AppContext.BaseDirectory, "Woorf.Cli.dll"));
+if (args.Length == 1 && args[0] == "--sky") return SkyTests.Run();
+if (args.Length == 1 && args[0] == "--sky-graphics") return SkyGraphicsTests.Run();
+if (args.Length == 1 && args[0] == "--touch-replication") return PhysicsTouchReplicationTests.Run();
+if (args.Length == 1 && args[0] == "--multiplayer-graphics")
+    return await MultiplayerGraphicsTests.RunAsync(Path.Combine(AppContext.BaseDirectory, "Woorf.Cli.dll"));
+
 if (args.Length == 1 && args[0] == "--obby") return ObbyTests.Run();
 
 if (args.Length == 1 && args[0] == "--character-controller") return CharacterControllerTests.Run();
@@ -17,7 +29,10 @@ if (args.Length == 1 && args[0] == "--physics-isolation") return PhysicsIsolatio
 
 if (args.Length == 1 && args[0] == "--graphics")
     return GraphicsDeviceTests.Run() + await GraphicsIntegrationTests.RunAsync(Path.Combine(AppContext.BaseDirectory, "Woorf.Cli.dll"))
-        + await CharacterGraphicsTests.RunAsync(Path.Combine(AppContext.BaseDirectory, "Woorf.Cli.dll")) == 0 ? 0 : 1;
+        + await CharacterGraphicsTests.RunAsync(Path.Combine(AppContext.BaseDirectory, "Woorf.Cli.dll"))
+        + SkyGraphicsTests.Run()
+        + await MultiplayerGraphicsTests.RunAsync(Path.Combine(AppContext.BaseDirectory, "Woorf.Cli.dll"))
+        + await MultiplayerGraphicsTests.RunAsync(Path.Combine(AppContext.BaseDirectory, "Woorf.Cli.dll"), true) == 0 ? 0 : 1;
 
 if (args.Length == 2 && args[0] == "--reference-game")
     return await ReferenceGameTests.RunAsync(args[1]);
@@ -58,7 +73,7 @@ var cases = new (string Name, string? Source, int Exit, string Output, string Er
     ("reports missing files", "MISSING_FILE", 1, "", "missing.luau"),
     ("preserves UTF-8 output", "print('cześć 世界')", 0, "cześć 世界\n", ""),
 }.Concat(Vector3Cases.GetCases()).Concat(CFrameCases.GetCases()).Concat(PartCases.GetCases()).Concat(PartCFrameCases.GetCases())
-    .Concat(HierarchyCases.GetCases()).Concat(SignalCases.GetCases())
+    .Concat(HierarchyCases.GetCases()).Concat(SignalCases.GetCases()).Concat(SkyCases.GetCases()).Concat(PhysicsTouchCases.GetCases())
     .Concat(PartPivotCases.GetCases()).Concat(ModelPivotCases.GetCases())
     .Concat(ModelBoundsCases.GetCases())
     .Concat(InstanceEventCases.GetCases()).Concat(SchedulerCases.GetCases()).Concat(BackendApiCases.GetCases()).Concat(RuntimeSafetyCases.GetCases()).Concat(PhysicsCases.GetCases()).Concat(PhysicsShapeCases.GetCases()).Concat(CharacterBindingCases.GetCases()).ToArray();
@@ -110,6 +125,9 @@ failedCount += PhysicsFoundationTests.Run();
 failedCount += PhysicsIsolationTests.Run();
 failedCount += GraphicsMathTests.Run();
 failedCount += GraphicsSceneTests.Run();
+failedCount += MultiplayerPlayTests.Run();
+failedCount += SkyTests.Run();
+failedCount += PhysicsTouchReplicationTests.Run();
 failedCount += CharacterControllerTests.Run();
 failedCount += ObbyTests.Run();
 failedCount += CharacterLifecycleTests.Run();
@@ -128,4 +146,5 @@ failedCount += await InboundLimitTests.RunAsync(cliPath);
 failedCount += await StableIdentityTests.RunAsync(cliPath);
 failedCount += await PhysicsNetworkTests.RunAsync(cliPath);
 failedCount += await CharacterNetworkTests.RunAsync(cliPath);
+failedCount += await MultiplayerInputTests.RunAsync(cliPath);
 return failedCount == 0 ? 0 : 1;

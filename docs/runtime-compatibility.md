@@ -78,7 +78,7 @@ These links are live references. The [backend audit](backend-api-readiness.md) p
 ## Networking and lifecycle
 
 RemoteEvents, RemoteFunctions, local player identities, join/removal, Kick, and
-isolated server/client VMs are implemented as a subset. TCP protocol v7 supports
+isolated server/client VMs are implemented as a subset. TCP protocol v8 supports
 separate processes, incremental replication, dirty capture, bounded outgoing
 queues, and transport measurements. Read [client/server semantics](client-server.md)
 and [TCP transport](socket-transport.md) for behavior and limits.

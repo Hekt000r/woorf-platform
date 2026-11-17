@@ -4,16 +4,25 @@ namespace Woorf.Engine.Physics;
 
 internal static class PhysicsSolver
 {
-    internal static IReadOnlyList<BodyContact> Step(IReadOnlyList<RigidBody> bodies, float gravity, float step)
+    internal static IReadOnlyList<BodyContact> Step(IReadOnlyList<RigidBody> bodies, float gravity, float step,
+        Action<IReadOnlyList<RigidBody>, IReadOnlySet<RigidBody>>? observeTouch = null)
     {
         var subdivisions = CollisionSubsteps.Calculate(bodies, gravity, step);
         IReadOnlyList<BodyContact> contacts = [];
-        for (var index = 0; index < subdivisions; index++) contacts = StepDiscrete(bodies, gravity, step / subdivisions, step);
+        for (var index = 0; index < subdivisions; index++) contacts = StepDiscrete(bodies, gravity, step / subdivisions, step, observeTouch);
         return contacts;
     }
-    private static IReadOnlyList<BodyContact> StepDiscrete(IReadOnlyList<RigidBody> bodies, float gravity, float step, float fixedStep)
+    private static IReadOnlyList<BodyContact> StepDiscrete(IReadOnlyList<RigidBody> bodies, float gravity, float step, float fixedStep,
+        Action<IReadOnlyList<RigidBody>, IReadOnlySet<RigidBody>>? observeTouch)
     {
-        foreach (var body in bodies) { body.Integrate(gravity, step); body.UpdateBounds(); }
+        var moved = new HashSet<RigidBody>();
+        foreach (var body in bodies)
+        {
+            var previous = body.Frame;
+            body.Integrate(gravity, step); body.UpdateBounds();
+            if (previous != body.Frame) moved.Add(body);
+        }
+        observeTouch?.Invoke(bodies, moved);
         var sorted = bodies.Where(body => body.CanCollide).OrderBy(body => body.Minimum.X).ThenBy(body => body.Id).ToArray();
         var contacts = new List<ContactConstraint>();
         var pairs = new List<(RigidBody A, RigidBody B, Vector3 Normal, float Depth)>();

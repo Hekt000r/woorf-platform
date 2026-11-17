@@ -4,7 +4,7 @@ using Woorf.Engine.Datatypes;
 namespace Woorf.Engine.Networking;
 
 internal sealed record ReplicaState(string Name, Instance? Parent, bool Archivable, CFrame Frame,
-    CFrame PivotOffset, Vector3 Size, bool Anchored, CFrame WorldPivot, BasePart? PrimaryPart, int UserId, string Source, ReplicatedBackendState? Backend = null, bool Enabled = true, int RunContext = 0, ReplicatedPhysicsState? Physics = null, ReplicatedCharacterState? CharacterState = null)
+    CFrame PivotOffset, Vector3 Size, bool Anchored, CFrame WorldPivot, BasePart? PrimaryPart, int UserId, string Source, ReplicatedBackendState? Backend = null, bool Enabled = true, int RunContext = 0, ReplicatedPhysicsState? Physics = null, ReplicatedCharacterState? CharacterState = null, ReplicatedSkyState? SkyState = null)
 {
     internal static ReplicaState Capture(Instance instance) => new(instance.Name, instance.Parent, instance.Archivable,
         instance is BasePart part ? part.CFrame : default,
@@ -16,7 +16,7 @@ internal sealed record ReplicaState(string Name, Instance? Parent, bool Archivab
         instance is Player player ? player.UserId : 0,
         instance.ClassName is "ModuleScript" or "LocalScript" || instance is ScriptInstance { RunContext: 2 } ? instance.ScriptSource : "",
         ReplicatedBackendState.Capture(instance), instance is not ScriptInstance script || script.Enabled,
-        instance is ScriptInstance contextScript ? contextScript.RunContext : 0, ReplicatedPhysicsState.Capture(instance), ReplicatedCharacterState.Capture(instance));
+        instance is ScriptInstance contextScript ? contextScript.RunContext : 0, ReplicatedPhysicsState.Capture(instance), ReplicatedCharacterState.Capture(instance), ReplicatedSkyState.Capture(instance));
 
     internal void ApplyValues(Instance replica, ReplicaState? previous, Func<Instance, Instance?> translate)
     {
@@ -26,6 +26,7 @@ internal sealed record ReplicaState(string Name, Instance? Parent, bool Archivab
             if (previous is null || previous.RunContext != RunContext) script.RunContext = RunContext;
         }
         Physics?.Apply(replica, previous?.Physics);
+        SkyState?.Apply(replica, previous?.SkyState);
         CharacterState?.ApplyValues(replica, previous?.CharacterState);
         Backend?.Apply(replica, previous?.Backend, translate);
         if (replica is BasePart part)

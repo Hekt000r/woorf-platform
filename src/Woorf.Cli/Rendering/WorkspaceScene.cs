@@ -36,8 +36,8 @@ internal sealed class WorkspaceScene : IDisposable
         if (isHierarchyDirty) return Rebuild();
         foreach (var part in dirty)
         {
+            if (!slots.TryGetValue(part, out var index)) continue;
             var next = CapturePart(part);
-            var index = slots[part];
             if (next is null || index < 0) return Rebuild();
             items[index] = next.Value;
         }
@@ -53,6 +53,7 @@ internal sealed class WorkspaceScene : IDisposable
         foreach (var part in workspace.GetDescendants().OfType<BasePart>())
         {
             if (part == hiddenPart) continue;
+            if (part.Name == "HumanoidRootPart" && part.Parent is Model model && model.GetAttribute("WoorfCharacter") is true) continue;
             var item = CapturePart(part);
             slots.Add(part, item is null ? -1 : next.Count);
             if (item is not null) next.Add(item.Value);

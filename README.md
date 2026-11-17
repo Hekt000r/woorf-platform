@@ -59,6 +59,16 @@ counter-rotating spinners, a checkpoint and a balance-beam finish:
 dotnet run --project src/Woorf.Cli --no-restore -- examples/obby --play
 ```
 
+Launch one shared server with two player windows side by side:
+
+```powershell
+dotnet run --project src/Woorf.Cli --no-restore -- examples/obby --play --clients 2
+```
+
+Focus either window to control that player. See [graphical multiplayer](docs/multiplayer-play.md)
+for separate TCP clients and captures. The obby uses engine [touch events](docs/physics.md#touch-events)
+for hazards and checkpoints, and a six-face [Sky under Lighting](docs/skybox.md).
+
 ## Tests
 
 Module example: `dotnet run --project src/Woorf.Cli -- examples/modules` loads a shared configuration with `require()`. See [module semantics](docs/runtime-compatibility.md#modules). [examples/scheduler.luau](examples/scheduler.luau) demonstrates tasks and child waits; see [scheduler behavior](docs/scheduler.md).

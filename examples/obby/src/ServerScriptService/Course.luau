@@ -32,21 +32,6 @@ local function box(parent, name, size, position, isHazard)
     return part
 end
 
--- All course boxes rotate only about Y; test both boxes' horizontal axes
--- so rotated spinner tips and the character's full collider count as contact.
-local function overlaps(a, b)
-    local delta = b.Position - a.Position
-    if math.abs(delta.Y) > (a.Size.Y + b.Size.Y) / 2 then return false end
-    local ar, az = a.CFrame.RightVector, a.CFrame.ZVector
-    local br, bz = b.CFrame.RightVector, b.CFrame.ZVector
-    for _, axis in {ar, az, br, bz} do
-        local extentA = (math.abs(axis:Dot(ar)) * a.Size.X + math.abs(axis:Dot(az)) * a.Size.Z) / 2
-        local extentB = (math.abs(axis:Dot(br)) * b.Size.X + math.abs(axis:Dot(bz)) * b.Size.Z) / 2
-        if math.abs(delta:Dot(axis)) > extentA + extentB then return false end
-    end
-    return true
-end
-
 local function buildFirstStage(folder, hazards)
     box(folder, "Start", Vector3.new(16, 1, 16), Vector3.new(0, 0, 6))
     for index = 1, 3 do
@@ -89,7 +74,29 @@ function Course.build()
     self.finish = folder.Finish
     self.players = game:GetService("Players")
     self.players.RespawnTime = 1
+    self:connectTouches()
     return self
+end
+
+function Course:connectTouches()
+    for _, hazard in self.hazards do
+        hazard.Touched:Connect(function(other)
+            local humanoid = other.Parent and other.Parent:FindFirstChildOfClass("Humanoid")
+            if humanoid then humanoid.Health = 0 end
+        end)
+    end
+    self.checkpoint.Touched:Connect(function(other)
+        local player = other.Parent and self.players:GetPlayerFromCharacter(other.Parent)
+        if not player or player:GetAttribute("ObbyStage") == 2 then return end
+        player:SetAttribute("ObbyStage", 2)
+        print(player.Name .. " reached the checkpoint!")
+    end)
+    self.finish.Touched:Connect(function(other)
+        local player = other.Parent and self.players:GetPlayerFromCharacter(other.Parent)
+        if not player or player:GetAttribute("ObbyFinished") then return end
+        player:SetAttribute("ObbyFinished", true)
+        print(player.Name .. " finished the obby! Press R to return to the checkpoint.")
+    end)
 end
 
 function Course:addPlayer(player)
@@ -98,41 +105,29 @@ function Course:addPlayer(player)
     player.CharacterAdded:Connect(function(character)
         if player:GetAttribute("ObbyStage") == 2 then
             character.PrimaryPart.Position = self.checkpoint.Position + Vector3.new(0, 3, 0)
-            character.PrimaryPart.AssemblyLinearVelocity = Vector3.zero
+        else
+            local spawn = workspace:GetAttribute("CharacterSpawn")
+            character.PrimaryPart.Position = spawn + Vector3.new(player.UserId % 2 == 0 and -2 or 2, 0, 0)
         end
+        character.PrimaryPart.AssemblyLinearVelocity = Vector3.zero
     end)
 end
 
-function Course:checkPlayer(player)
+function Course:checkFall(player)
     local character = player.Character
     if not character then return end
     local root, humanoid = character.PrimaryPart, character:FindFirstChild("Humanoid")
     if not root or not humanoid or humanoid.Health <= 0 then return end
     if root.Position.Y < -12 then humanoid.Health = 0 return end
-    for _, hazard in self.hazards do
-        if overlaps(root, hazard) then humanoid.Health = 0 return end
-    end
-    if overlaps(root, self.checkpoint) and player:GetAttribute("ObbyStage") ~= 2 then
-        player:SetAttribute("ObbyStage", 2)
-        print(player.Name .. " reached the checkpoint!")
-    end
-    if overlaps(root, self.finish) and not player:GetAttribute("ObbyFinished") then
-        player:SetAttribute("ObbyFinished", true)
-        print(player.Name .. " finished the obby! Press R to return to the checkpoint.")
-    end
 end
 
 function Course:update(delta)
-    -- Bound each angular sweep to reduce missed contacts on slow viewer frames.
-    local steps = math.max(1, math.ceil(delta / (1 / 120)))
-    for _ = 1, steps do
-        self.time += delta / steps
-        for index, arm in self.spinners do
-            local speed = index == 1 and 1.5 or -2
-            arm.CFrame = CFrame.new(arm.Position) * CFrame.Angles(0, self.time * speed, 0)
-        end
-        for _, player in self.players:GetPlayers() do self:checkPlayer(player) end
+    self.time += delta
+    for index, arm in self.spinners do
+        local speed = index == 1 and 1.5 or -2
+        arm.CFrame = CFrame.new(arm.Position) * CFrame.Angles(0, self.time * speed, 0)
     end
+    for _, player in self.players:GetPlayers() do self:checkFall(player) end
 end
 
 return Course

@@ -18,10 +18,11 @@ after reaching it, deaths and R return you there. Restart the example to start o
 The scene uses gravity 80 and the default jump speed 30, giving roughly 5.5 studs
 of jump height. The course gaps fit that jump at the default walk speed.
 
-`Course.luau` builds the geometry and checks the full upright character collider
-against hazard boxes using separating axes. Heartbeat advances the anchored
-spinners with small angular increments and checks hazards, checkpoints and finish.
-There are no Touched events, moving-platform attachment, UI widgets or persistence.
+`Course.luau` builds the geometry and connects ordinary `Part.Touched` handlers
+for kill bricks, the checkpoint and finish. The engine detects actual box/sphere
+contact; the game does not poll custom overlap geometry. Heartbeat animates the
+anchored spinners and checks fall height. Moving-platform attachment, UI widgets
+and persistence remain outside this example.
 Hazards use noncolliding geometry so contact kills instead of blocking movement.
 Red bars are lethal; the green pad after the hurdles is the checkpoint. Jump pads
 are blue, purple and pink; the balance beam is orange and the finish arch is gold.

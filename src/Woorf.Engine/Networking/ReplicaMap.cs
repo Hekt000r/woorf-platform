@@ -15,7 +15,7 @@ internal sealed class ReplicaMap(DataModel.DataModel server, DataModel.DataModel
     internal void Synchronize()
     {
         var visible = server.GetChildren().Where(root => root.ClassName is
-            "Workspace" or "ReplicatedStorage" or "ReplicatedFirst" or "Players" or "Teams")
+            "Workspace" or "ReplicatedStorage" or "ReplicatedFirst" or "Players" or "Teams" or "Lighting")
             .SelectMany(root => root.GetDescendants().Prepend(root)).ToArray();
         var current = visible.ToHashSet();
         visibleInstances = current;

@@ -70,7 +70,7 @@ airborne jump requests without buffering, and clips inward movement at wall cont
 
 ## Replication and verification
 
-TCP protocol v7 carries Player.Character references, movement tuning/direction and
+TCP protocol v8 carries Player.Character references, movement tuning/direction and
 player-service spawn settings. Character references are published after the model's
 replicated hierarchy and properties are initialized. Visibility changes clear and
 restore references without exposing private geometry. Clients do not simulate the
@@ -80,10 +80,11 @@ LocalScripts in the owning Player.Character can now start and stop with the exis
 dynamic script lifecycle. Other players' Legacy LocalScripts remain ineligible.
 An application can validate RemoteEvents and drive Humanoid:Move on the server;
 the two-client TCP acceptance test does this for walking, wall collision, jumping,
-death and respawn. A graphical TCP client/input transport remains future work.
+death and respawn. [Graphical multiplayer play](multiplayer-play.md) now supplies
+TCP client windows, authenticated movement input and all-player character visuals.
 
-The normal suite passes 232 checks; `--graphics` adds three real-GPU checks, including
-play-mode character capture. Targeted switches include `--character-controller`,
+The normal suite covers character behavior; `--graphics` adds real-GPU checks,
+including play-mode and multiplayer character captures. Targeted switches include `--character-controller`,
 `--character-lifecycle`, `--character-input`, `--character-view`,
 `--character-replication`, `--character-network` and `--character-graphics`.
 The 1,800-frame idle playground soak measured median 17.025 ms and p95 17.236 ms
@@ -96,9 +97,10 @@ is left to the user; computer-use automation was unavailable.
 The collider is a single independent body. Capsules, assembled rigs, joints, step
 climbing, moving-platform attachment, ladders, swimming, climbing and Roblox's full
 Humanoid state machine are absent. Appearance does not change the collision shape.
-The viewer currently controls its local player directly; this does not establish
-client prediction, network ownership or a graphical TCP input protocol. Camera and
-procedural pose behavior are Woorf viewer conventions.
+Single-player play controls its local authoritative character directly. Multiplayer
+play sends validated movement requests to the server and renders replicated poses;
+client prediction, interpolation and client physics ownership remain absent. Camera
+and procedural pose behavior are Woorf viewer conventions.
 
 The [playground](../examples/character-playground/README.md) offers walls, jump
 platforms, a ramp, an arch and a fall boundary as a concrete acceptance scene.

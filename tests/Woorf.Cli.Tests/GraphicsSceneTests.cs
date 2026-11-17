@@ -6,6 +6,7 @@ static class GraphicsSceneTests
     {
         try
         {
+            CheckHiddenCharacterRoots();
             var workspace = new DataModel().Workspace;
             var part = (Part)Instance.Create("Part"); part.Parent = workspace; part.Anchored = true;
             using var scene = new WorkspaceScene(workspace);
@@ -37,5 +38,19 @@ static class GraphicsSceneTests
             return 0;
         }
         catch (Exception error) { Console.Error.WriteLine("FAIL renderer scene cache: " + error.Message); return 1; }
+    }
+
+    private static void CheckHiddenCharacterRoots()
+    {
+        var workspace = new DataModel().Workspace;
+        var character = (Model)Instance.Create("Model");
+        character.SetAttribute("WoorfCharacter", true);
+        character.Parent = workspace;
+        var root = (Part)Instance.Create("Part");
+        root.Name = "HumanoidRootPart"; root.Parent = character;
+        using var scene = new WorkspaceScene(workspace);
+        if (scene.Capture().Length != 0) throw new Exception("Character colliders must stay hidden.");
+        root.Position = new(4, 3, 0);
+        if (scene.Capture().Length != 0) throw new Exception("Moving a peer must not expose its collider.");
     }
 }

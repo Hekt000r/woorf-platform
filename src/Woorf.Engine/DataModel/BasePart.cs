@@ -10,7 +10,12 @@ public abstract partial class BasePart : Instance
     private Vector3 size = new(4, 1.2f, 2);
     private bool isAnchored;
 
-    internal BasePart(string className) : base(className) { }
+    internal BasePart(string className) : base(className)
+    {
+        Touched = new(() => CanTouch);
+        TouchEnded = new(() => CanTouch);
+        GetSignal("Destroying").Connect(_ => { Touched.Close(); TouchEnded.Close(); touchingParts.Clear(); });
+    }
 
     public Vector3 Position
     {
@@ -78,7 +83,7 @@ public abstract partial class BasePart : Instance
     }
 
     protected override bool HasProperty(string property) =>
-        property is "Position" or "CFrame" or "PivotOffset" or "Size" or "Anchored" || HasPhysicsProperty(property) || base.HasProperty(property);
+        property is "Position" or "CFrame" or "PivotOffset" or "Size" or "Anchored" or "CanTouch" || HasPhysicsProperty(property) || base.HasProperty(property);
 
     protected override void CopyPropertiesTo(Instance clone)
     {
@@ -87,6 +92,7 @@ public abstract partial class BasePart : Instance
         part.pivotOffset = pivotOffset;
         part.size = size;
         part.isAnchored = isAnchored;
+        part.canTouch = canTouch;
         CopyPhysicsTo(part);
     }
 }

@@ -79,7 +79,7 @@ these are local identities rather than external account login.
 
 ## Verification
 
-The complete suite passes 232 checks. Tests include all requested entry paths,
+The complete suite exercises the supported APIs. Tests include all requested entry paths,
 invalid member access, unsupported values, attribute/tag change behavior, clone
 independence, local and TCP replication, Color3 single-precision roundtrips,
 store scope isolation, separate-process durability and concurrent increments,
@@ -90,7 +90,7 @@ dotnet run --project tests/Woorf.Cli.Tests --no-restore
 dotnet run --project src/Woorf.Cli --no-restore -- docs/api-audit/probes/backend-readiness.luau
 ```
 
-TCP protocol v7 carries the additional replicated backend state and Color3 values.
+TCP protocol v8 carries the additional replicated backend state and Color3 values.
 Older explicit protocol versions are rejected. Use matching server/client builds.
 
 The [round game](../examples/round-game/README.md) also combines these APIs in a

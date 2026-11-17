@@ -57,6 +57,7 @@ internal static class Win32
     [DllImport("user32")] internal static extern bool AdjustWindowRect(ref Rectangle rectangle, uint style, bool menu);
     [DllImport("user32")] internal static extern short GetAsyncKeyState(int key);
     [DllImport("user32")] internal static extern nint GetForegroundWindow();
+    [DllImport("user32")] internal static extern bool SetWindowPos(nint window, nint insertAfter, int x, int y, int width, int height, uint flags);
     [DllImport("kernel32", CharSet = CharSet.Unicode)] internal static extern nint GetModuleHandleW(string? name);
     [DllImport("gdi32")] internal static extern int ChoosePixelFormat(nint dc, ref PixelFormat format);
     [DllImport("gdi32")] internal static extern bool SetPixelFormat(nint dc, int index, ref PixelFormat format);

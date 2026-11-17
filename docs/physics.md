@@ -10,7 +10,7 @@ The existing official Luau bridge remains the scripting boundary.
 - Oriented box and spherical Parts, including rotated ramps and dynamic/dynamic contacts.
 - Fixed 120 Hz semi-implicit integration of linear and world-space angular velocity.
 - Gravity in studs/second squared, default 196.2; finite negative gravity reverses its direction.
-- Anchored bodies, CanCollide, live Part transforms, sizes, insertion/removal and destruction.
+- Anchored bodies, CanCollide, CanTouch, live Part transforms, sizes, insertion/removal and destruction.
 - Volume/density-derived mass and box inertia; normal impulses, Coulomb friction,
   restitution and positional penetration correction.
 - PhysicalProperties numeric constructors with three or five arguments, immutable
@@ -48,8 +48,43 @@ assert(math.abs(box.Position.Y - 1) < 0.08)
 ```
 
 Try the [two-client physics scene](../examples/physics-boxes/README.md), which now
-also drops a sphere and verifies a live Block-to-Ball change. TCP protocol v7
+also drops a sphere and verifies a live Block-to-Ball change. TCP protocol v8
 requires matching builds; explicit older protocol versions are rejected.
+
+## Touch events
+
+BasePart exposes `Touched(otherPart)` and `TouchEnded(otherPart)` signals and a
+`CanTouch` boolean (default true). Both participants must have CanTouch enabled;
+CanCollide=false sensors still generate touch events. Two anchored parts never
+generate events. Disabling CanTouch disconnects the part's existing touch handlers;
+connecting while disabled raises an error. Re-enabling it permits new connections.
+CanTouch clones and replicates to local and TCP clients.
+
+```luau
+killBrick.CanCollide = false
+killBrick.Touched:Connect(function(otherPart)
+    local humanoid = otherPart.Parent and otherPart.Parent:FindFirstChildOfClass("Humanoid")
+    if humanoid then humanoid.Health = 0 end
+end)
+```
+
+The engine uses the existing box/sphere narrowphase at physics collision substeps,
+tracks pair entry/exit, and publishes callbacks after authoritative transforms.
+Handlers can destroy or teleport participants without stale reverse delivery.
+Changing velocity while touching preserves the later exit event. Direct Position
+or CFrame edits alone do not synthesize touch events; subsequent physical motion
+can establish contact. Fast CFrame sweeps are not continuous collision detection.
+
+`part:GetTouchingParts()` reads the physics contact cache and returns intersecting
+CanCollide=true parts. A noncolliding receiver needs an active Touched subscription
+to return contacts. This is not an arbitrary overlap query. `Players:GetPlayerFromCharacter(model)`
+resolves current character models for checkpoint scripts.
+
+These semantics follow Roblox's [BasePart reference](https://create.roblox.com/docs/reference/engine/classes/BasePart)
+and [collision events](https://create.roblox.com/docs/workspace/collisions).
+TouchTransmitter instances, collision groups and client-side physical ownership
+are not implemented. Touch events run on the authoritative simulation; they are
+not independently simulated or retransmitted as client touch signals.
 
 ## Queries and grounding
 
@@ -151,7 +186,7 @@ This is a tested box-physics subset, not Roblox-identical physics. Current limit
 - Each Part is an independent body. Welded assemblies, joints, constraints,
   assembled character rigs and network ownership are not implemented. The separate
   single-collider controller provides the documented basic character movement subset.
-- No cylinder/capsule/mesh/terrain collisions, collision groups, Touched events,
+- No cylinder/capsule/mesh/terrain collisions, collision groups,
   fluids, aerodynamic forces or automatic fallen-part destruction.
 - Collision substeps are capped at 64: extreme speeds, thin dynamic bodies or
   large angular motion can still tunnel. Spherecast is a query, not automatic CCD.
@@ -188,5 +223,5 @@ elastic bounce, density-based momentum transfer, signed gravity, anchoring/filte
 changes, immutable material validation and callback edits. A controlled clock
 checks analytical free fall and independence from timer partition. The real TCP
 scene verifies both clients receive motion, velocity, sphere shape changes and
-settled state. The complete suite passes 232 checks; the backend readiness workload
+settled state. The complete suite includes the touch-event and character regressions; the backend readiness workload
 continues to report 19 available and 0 blocked checks.

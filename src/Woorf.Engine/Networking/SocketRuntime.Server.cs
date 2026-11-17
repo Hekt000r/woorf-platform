@@ -56,6 +56,7 @@ internal sealed partial class SocketRuntime
                     peer.ReplicationRevision = graph.Revision;
                 }
                 else if (packet.Kind == "leave") { RemovePeer(peer); return; }
+                else if (packet.Kind == "input") ReceivePlayInput(packet, peer.Player);
                 else Deliver(packet, peer.Player);
             }
             if (peer.IsClosed || peer.Player is null && DateTime.UtcNow - peer.ConnectedAt > TimeSpan.FromSeconds(5))

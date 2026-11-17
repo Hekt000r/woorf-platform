@@ -12,11 +12,11 @@ internal static class CollisionSubsteps
         for (var index = 0; index < bodies.Count; index++)
         {
             var a = bodies[index];
-            if (a.IsAnchored || !a.CanCollide) continue;
+            if (a.IsAnchored || !a.CanCollide && !a.CanTouch) continue;
             for (var other = 0; other < bodies.Count; other++)
             {
                 var b = bodies[other];
-                if (!b.CanCollide || a == b || !b.IsAnchored && a.Id >= b.Id) continue;
+                if (!(a.CanCollide && b.CanCollide || a.CanTouch && b.CanTouch) || a == b || !b.IsAnchored && a.Id >= b.Id) continue;
                 var relative = a.LinearVelocity - (b.IsAnchored ? default : b.LinearVelocity);
                 var acceleration = b.IsAnchored ? new Vector3(0, -gravity * step * step, 0) : default;
                 var travel = relative * step + acceleration;

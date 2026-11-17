@@ -34,6 +34,7 @@ public sealed class Players : Instance
         }
     }
     public IReadOnlyList<Player> GetPlayers() => GetChildren().OfType<Player>().ToArray();
+    public Player? GetPlayerFromCharacter(Instance character) => GetPlayers().FirstOrDefault(player => player.Character == character);
 
     protected override bool HasProperty(string property) => property is "LocalPlayer" or "CharacterAutoLoads" or "RespawnTime" || base.HasProperty(property);
 }

@@ -70,6 +70,7 @@ public partial class Instance
             "IntValue" or "NumberValue" or "BoolValue" or "StringValue" or "ObjectValue" or "Vector3Value" or "CFrameValue" or "Color3Value" => new ValueObject(className),
             "BindableEvent" => new BindableEvent(),
             "Humanoid" => new Humanoid(),
+            "Sky" => new Sky(),
             _ => new Instance(className),
         };
     }

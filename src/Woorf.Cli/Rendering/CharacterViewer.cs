@@ -3,7 +3,7 @@ using Woorf.Engine.DataModel;
 using Woorf.Graphics;
 using Woorf.Graphics.Platform;
 
-internal sealed class CharacterViewer(Player player)
+internal sealed class CharacterViewer(Player player, Action<CharacterInput>? sendInput = null)
 {
     private readonly CharacterControls controls = new();
     private Part? followedRoot;
@@ -26,6 +26,7 @@ internal sealed class CharacterViewer(Player player)
         pitch = Math.Clamp(pitch + pitchAxis * elapsed, 0.15f, 1.15f);
         Follow(camera, 0);
         var input = controls.Update(camera, forward, right, isJumpPressed, isResetPressed);
+        if (sendInput is not null) { sendInput(input); return; }
         if (inputCharacter != player.Character)
         {
             inputCharacter = player.Character;

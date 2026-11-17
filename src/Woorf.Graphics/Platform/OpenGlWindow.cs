@@ -80,6 +80,11 @@ public sealed class OpenGlWindow : IDisposable
         return !shouldClose;
     }
     public bool IsKeyDown(int key) => Win32.GetForegroundWindow() == window && (Win32.GetAsyncKeyState(key) & 0x8000) != 0;
+    public void SetPosition(int x, int y)
+    {
+        AssertThread();
+        if (!Win32.SetWindowPos(window, 0, x, y, 0, 0, 0x1 | 0x4)) throw new Win32Exception();
+    }
     public void MakeCurrent()
     {
         AssertThread();

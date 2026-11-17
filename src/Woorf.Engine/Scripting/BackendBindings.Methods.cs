@@ -14,6 +14,8 @@ internal sealed partial class BackendBindings
         if (instance.ClassName is "DataStoreService" or "GlobalDataStore") { result = CallStore(state, instance, method); return true; }
         switch (method)
         {
+            case "GetTouchingParts": result = List(state, ((BasePart)instance).GetTouchingParts()); break;
+            case "GetPlayerFromCharacter": result = Push(state, ((Players)instance).GetPlayerFromCharacter(Require(state, 2))); break;
             case "SetAttribute": instance.SetAttribute(Text(state, 2), Read(state, 3)); break;
             case "GetAttribute": result = Push(state, instance.GetAttribute(Text(state, 2))); break;
             case "GetAttributes": result = Push(state, new LuaTableValue(instance.GetAttributes().Select(entry => new KeyValuePair<object, object?>(entry.Key, entry.Value)).ToArray())); break;

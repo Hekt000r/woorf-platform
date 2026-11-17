@@ -8,6 +8,7 @@ public static class ClassCatalog
         ["BoolValue"] = "ValueBase", ["StringValue"] = "ValueBase", ["ObjectValue"] = "ValueBase",
         ["Vector3Value"] = "ValueBase", ["CFrameValue"] = "ValueBase", ["Color3Value"] = "ValueBase",
         ["BindableEvent"] = "Instance", ["Humanoid"] = "Instance", ["Team"] = "Instance",
+        ["Lighting"] = "Instance", ["Sky"] = "Instance",
         ["CollectionService"] = "Instance", ["HttpService"] = "Instance", ["Debris"] = "Instance",
         ["DataStoreService"] = "Instance", ["GlobalDataStore"] = "Instance", ["Teams"] = "Instance",
         ["Object"] = null, ["Instance"] = "Object", ["ServiceProvider"] = "Instance",
@@ -28,11 +29,11 @@ public static class ClassCatalog
     public static bool IsService(string className) => className is "Workspace" or "ReplicatedStorage"
         or "ReplicatedFirst" or "ServerStorage" or "ServerScriptService" or "StarterGui"
         or "StarterPack" or "StarterPlayer" or "Players" or "RunService"
-        or "CollectionService" or "HttpService" or "Debris" or "DataStoreService" or "Teams";
+        or "CollectionService" or "HttpService" or "Debris" or "DataStoreService" or "Teams" or "Lighting";
 
     public static bool IsCreatable(string className) => className is "Folder" or "Model"
         or "Configuration" or "Script" or "LocalScript" or "ModuleScript" or "Part" or "RemoteEvent" or "RemoteFunction" or "Player"
-        or "BindableEvent" or "Humanoid" or "Team"
+        or "BindableEvent" or "Humanoid" or "Team" or "Sky"
         or "IntValue" or "NumberValue" or "BoolValue" or "StringValue" or "ObjectValue"
         or "Vector3Value" or "CFrameValue" or "Color3Value";
 
