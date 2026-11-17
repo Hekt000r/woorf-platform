@@ -4,6 +4,7 @@ using Woorf.Engine.DataModel;
 using Woorf.Engine.Scheduling;
 using Woorf.Engine.Networking;
 using Woorf.Engine.Physics;
+using Woorf.Engine.Characters;
 using static Woorf.Engine.Scripting.NativeMethods;
 
 namespace Woorf.Engine.Scripting;
@@ -23,6 +24,7 @@ internal sealed class LuauSession : IDisposable
     private bool hasLifecycleFailure;
     private bool hasFinishedFailure;
     private readonly PhysicsWorld? physics;
+    private CharacterWorld? characters;
 
     internal LuauSession(DataModel.DataModel game, IRuntimeClock clock, RuntimeEndpoint? endpoint = null)
     {
@@ -38,7 +40,11 @@ internal sealed class LuauSession : IDisposable
         try { InitializeScheduler(); }
         catch { bindings.Dispose(); woorf_close(handle); throw; }
         lifecycle = new ScriptLifecycle(game, this, endpoint?.IsClient == true);
-        if (endpoint?.IsClient != true) physics = new PhysicsWorld((Workspace)game.Workspace, clock.ElapsedSeconds);
+        if (endpoint?.IsClient != true)
+        {
+            physics = new PhysicsWorld((Workspace)game.Workspace, clock.ElapsedSeconds);
+            bindings.AttachCharacters(player => GetCharacters().LoadCharacter(player));
+        }
     }
 
     private void InitializeScheduler()
@@ -82,6 +88,7 @@ internal sealed class LuauSession : IDisposable
     internal double Step(double now)
     {
         if (lifecycle.Synchronize() != 0) { hasLifecycleFailure = true; return -1; }
+        if (physics is not null && game.FindService("Players") is not null) GetCharacters().Synchronize(now);
         physics?.Advance(now);
         var run = (RunService)game.GetService("RunService");
         if (now - lastHeartbeat >= 1d / 60)
@@ -96,6 +103,7 @@ internal sealed class LuauSession : IDisposable
         return next < 0 && run.Heartbeat.HasConnections ? now + 1d / 60 : next;
     }
     internal bool HasFailed => isDisposed ? hasFinishedFailure : hasLifecycleFailure || woorf_scheduler_failed(handle) != 0;
+    private CharacterWorld GetCharacters() => characters ??= new CharacterWorld(game, physics!, clock.ElapsedSeconds);
     internal int Finish(int status) { Dispose(); return status != 0 || HasFailed ? 1 : 0; }
 
     internal int Execute(string source, string filePath, Instance? script = null)
@@ -128,6 +136,7 @@ internal sealed class LuauSession : IDisposable
             }
         }
         hasFinishedFailure = HasFailed;
+        characters?.Dispose();
         physics?.Dispose();
         lifecycle.Dispose();
         bindings.Dispose();

@@ -24,6 +24,8 @@ internal sealed partial class BackendBindings
             case "GetTags": result = List(state, instance.GetTags()); break;
             case "Fire": ((BindableEvent)instance).Fire(codec.ReadArguments(state, 2)); break;
             case "TakeDamage": ((Humanoid)instance).TakeDamage(Number(state, 2)); break;
+            case "Move":
+            case "LoadCharacter": CallCharacter(state, instance, method); break;
             case "GetTeams": result = List(state, instance.GetChildren().Where(child => child.ClassName == "Team")); break;
             case "GetPlayers": result = List(state, ((Players)game.GetService("Players")).GetPlayers().Where(player => player.Team == instance)); break;
             case "Raycast":

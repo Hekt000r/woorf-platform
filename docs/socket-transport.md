@@ -1,5 +1,9 @@
 # TCP transport
 
+Protocol v7 adds character references and movement state. Use matching server and
+client builds; explicit older protocol versions are rejected. CharacterAdded is
+delivered after the replicated character model is initialized. See [characters](characters.md).
+
 Run an authoritative server in one terminal:
 
 ```powershell
@@ -63,7 +67,7 @@ client's process stops its VM. Loss of the server connection stops the client.
 
 ## Protocol and limits
 
-Protocol v6 uses UTF-8 JSON frames with a four-byte big-endian byte-length prefix.
+Protocol v7 uses UTF-8 JSON frames with a four-byte big-endian byte-length prefix.
 Frames are limited to 4 MiB. Invalid versions, lengths, remote targets, and values
 disconnect the offending peer. Handshakes time out after five seconds and the
 server accepts up to 32 simultaneous peers. Socket reads, nonblocking writes, and VM execution occur on the runtime thread.
@@ -122,4 +126,4 @@ This bounds application-level outgoing traffic and avoids blocking writes; scrip
 VM budgets and inbound limits are now implemented; see [runtime hardening](runtime-hardening.md). Memory quotas and sustained-load qualification remain separate work.
 
 Backend attributes, tags, typed values, health, team references and Color3 are
-carried by protocol v6. Gravity, velocities, CanCollide and custom physical properties also replicate; see [physics](physics.md). See [backend APIs](backend-apis.md) for scope and limits.
+carried by protocol v7. Gravity, velocities, CanCollide and custom physical properties also replicate; see [physics](physics.md). See [backend APIs](backend-apis.md) for scope and limits.

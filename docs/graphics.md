@@ -1,5 +1,9 @@
 # OpenGL graphics foundations
 
+Use `examples/character-playground --play` for a controllable humanoid figure with
+walking, jump, follow camera and respawn. It reuses the central instanced renderer;
+see [characters](characters.md) for the controller, input and compatibility limits.
+
 Woorf's first graphical path is a custom C# OpenGL 3.3 core renderer. It adds no
 NuGet dependencies. The existing native Luau library remains the only bundled
 native runtime dependency; graphics calls use the operating system's OpenGL driver.
@@ -51,8 +55,12 @@ drains; normal headless commands retain their existing lifetime behavior.
   busy-spin or change the system-wide multimedia timer period. This timer backend
   requires Windows 10 version 1803 or later.
 
-The viewer uses slate for anchored Parts, teal for dynamic boxes and orange for
-dynamic spheres. The library accepts draw colors; Part.Color is not implemented.
+The viewer defaults to slate for anchored Parts, teal for dynamic boxes and orange
+for dynamic spheres. Set a Part's `RenderColor` attribute to a Color3 to override
+that palette, for example `part:SetAttribute("RenderColor", Color3.fromRGB(255, 55, 65))`.
+Attribute changes refresh the cached color; removing the attribute restores the
+default. Finite channels are clamped to 0–1; invalid values use the default palette.
+This is a viewer convention; Part.Color is not implemented.
 WASD/QE moves the viewer camera, arrows orbit, Shift speeds movement and Escape
 closes it. These are viewer controls, not a Roblox Camera or input scripting API.
 

@@ -43,6 +43,22 @@ Windows and an OpenGL 3.3 driver. WASD/QE moves, arrows orbit, Shift speeds up, 
 Escape closes. See [graphics foundations](docs/graphics.md) and the
 [showcase](examples/graphics-showcase/README.md) for captures, tests and boundaries.
 
+The playable character scene adds camera-relative walking, jumping and respawn:
+
+```powershell
+dotnet run --project src/Woorf.Cli --no-restore -- examples/character-playground --play
+```
+
+WASD walks, Space jumps, arrows orbit, R resets, and Escape closes. See
+[characters](docs/characters.md) for the single-collider controller and API limits.
+
+Try the [Spinner Obby](examples/obby/README.md) for jump pads, kill strips,
+counter-rotating spinners, a checkpoint and a balance-beam finish:
+
+```powershell
+dotnet run --project src/Woorf.Cli --no-restore -- examples/obby --play
+```
+
 ## Tests
 
 Module example: `dotnet run --project src/Woorf.Cli -- examples/modules` loads a shared configuration with `require()`. See [module semantics](docs/runtime-compatibility.md#modules). [examples/scheduler.luau](examples/scheduler.luau) demonstrates tasks and child waits; see [scheduler behavior](docs/scheduler.md).

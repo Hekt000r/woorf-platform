@@ -1,6 +1,14 @@
 {
-  "scope": "Audited working-tree source/test/build files and the round-game, physics-boxes and graphics-showcase workloads; excludes build outputs and does not identify an engine release.",
+  "scope": "Audited working-tree source/test/build files and the round-game, physics-boxes, graphics-showcase and character-playground workloads; excludes build outputs and does not identify an engine release.",
   "files": [
+    {
+      "path": "examples/character-playground/src/ServerScriptService/Main.server.luau",
+      "sha256": "987ff43993df50453ef3f0920d0e6b64e43b989be9bdf01d22ae6a568384e5a2"
+    },
+    {
+      "path": "examples/character-playground/woorf.project.json",
+      "sha256": "c518ff5aa63308b9b8d40c9ef2b9662e7b6c081069225774d7879c47b2f53b09"
+    },
     {
       "path": "examples/graphics-showcase/src/ServerScriptService/Main.server.luau",
       "sha256": "c05b2e4c939cfea0eb0b21471fc0e89e3905f7046a26e730feacd6c3c87bd926"
@@ -106,16 +114,32 @@
       "sha256": "b4f1344c70bbaa78d89a546670e619d5f0b1020437d5472194e3ec4f9e90baa2"
     },
     {
+      "path": "src/Woorf.Cli/Rendering/CharacterControls.cs",
+      "sha256": "1459803357689eb43c574427927e11fc21ce336147e5f6f1181c309a84315b32"
+    },
+    {
+      "path": "src/Woorf.Cli/Rendering/CharacterFrameComposer.cs",
+      "sha256": "752d05a6193659c08ade3716714862aeca8022b2c95af5cb3714992667f1707e"
+    },
+    {
+      "path": "src/Woorf.Cli/Rendering/CharacterView.cs",
+      "sha256": "4b7bf6d438a6526ebf15c7e243f0ea660e532818acab0ca087922000753fdd68"
+    },
+    {
+      "path": "src/Woorf.Cli/Rendering/CharacterViewer.cs",
+      "sha256": "dcf2f6c623e4bd2ca0625cd49c9cd27e2351e923c052a12a92b8079976c9bff6"
+    },
+    {
       "path": "src/Woorf.Cli/Rendering/FrameProfile.cs",
       "sha256": "ae048f3a8a3e0f960afcec8eac24692a21c92860676bddbca3357b86a446b292"
     },
     {
       "path": "src/Woorf.Cli/Rendering/RenderCli.cs",
-      "sha256": "2ceb71a6b41950f7a5d79e50c186e53a3b4fa2d0fcbc1e5430a208f7c783ba89"
+      "sha256": "9129f010b0bdad97f40babaedfdb98b00aa7fcaeb2eb69ea9ac4ee66baf51dd4"
     },
     {
       "path": "src/Woorf.Cli/Rendering/RenderOptions.cs",
-      "sha256": "395c0effa0606cc7835613ab5cc410dbb6402aadb27ee28254a6d95b476f3099"
+      "sha256": "cd7ac75f4ec7a135ab87d9e9490ca108033a1e1be1dcea2d1befdb118d82f06a"
     },
     {
       "path": "src/Woorf.Cli/Rendering/ViewerCamera.cs",
@@ -123,7 +147,7 @@
     },
     {
       "path": "src/Woorf.Cli/Rendering/WorkspaceScene.cs",
-      "sha256": "363036f491333cfd3ea694c16734fa4c62dc4fcad1b2e3c67bba019530a5d02b"
+      "sha256": "359d7fac32bdf18af3ab25927c70210b84d1f81277961056d0805847706dfcf4"
     },
     {
       "path": "src/Woorf.Cli/SocketCli.cs",
@@ -132,6 +156,14 @@
     {
       "path": "src/Woorf.Cli/Woorf.Cli.csproj",
       "sha256": "c30fe4c3c3e4ef8ba0cee451e2ce9fce89dc8df025e28a568699daa2b9865239"
+    },
+    {
+      "path": "src/Woorf.Engine/Characters/CharacterController.cs",
+      "sha256": "96cfdb5fb7a94a52bca8ec2508dcf7c5127394562d9a7cee29e3212f0aac1188"
+    },
+    {
+      "path": "src/Woorf.Engine/Characters/CharacterWorld.cs",
+      "sha256": "aca049922d169b1d02af6628d5b13cf133b0b13746d790519c9d467c51045233"
     },
     {
       "path": "src/Woorf.Engine/DataModel/BasePart.Physics.cs",
@@ -154,8 +186,12 @@
       "sha256": "637d3c662834a3f60ec7272915b0be351d942a8e560b3e27d63a39f591a9ae86"
     },
     {
+      "path": "src/Woorf.Engine/DataModel/Humanoid.Movement.cs",
+      "sha256": "1c07616dc8af08ef54a8129fa4ad8fc3150b4c69191508fe6539b9e4d01be33a"
+    },
+    {
       "path": "src/Woorf.Engine/DataModel/Humanoid.cs",
-      "sha256": "7dcc15746e94f5f2c2241c48ee84dd24ca42414ae27317fb8620a7a2d65fddcb"
+      "sha256": "3b73be8fc59118bc33aba10b99ca056ac3d8961b22b362bd38ef4a3cd968517a"
     },
     {
       "path": "src/Woorf.Engine/DataModel/Instance.Metadata.cs",
@@ -182,12 +218,16 @@
       "sha256": "154457df3f9521b481f2c405fd407084b12cad99823fb9ec77bf76c11e51bfdb"
     },
     {
+      "path": "src/Woorf.Engine/DataModel/Player.Character.cs",
+      "sha256": "deadcf3b4b5f5f2a3e79ede7d03efd20c56d449b56e802701591b138f51ce055"
+    },
+    {
       "path": "src/Woorf.Engine/DataModel/Player.cs",
-      "sha256": "417d6c6f26fbafb81b688d58d619a92b1d29bca885bce0d3fe482f5b300f6ceb"
+      "sha256": "db439d5a847a9ab6ec51c12802d1d82f165ae13ae3841f99f3d16bd0b016730e"
     },
     {
       "path": "src/Woorf.Engine/DataModel/Players.cs",
-      "sha256": "c05190131907de0962a8f04135587f98bd4a5a45a32e1a584da23210dd6c2a39"
+      "sha256": "41e0afd4b3f3e0aafac100b64206ded0199a7ee0fa5f802b43bb8f3b98e8e93c"
     },
     {
       "path": "src/Woorf.Engine/DataModel/RemoteEvent.cs",
@@ -275,15 +315,19 @@
     },
     {
       "path": "src/Woorf.Engine/Networking/ReplicaMap.cs",
-      "sha256": "c87a3f4ed5ebf4a9c1b90c96544f7f1943caf2ccfbfa5917cc015db10b46ca8d"
+      "sha256": "c70ccf54133af9b78622045612f61f8964cae3ec00c81bdebc2926fd63f8f437"
     },
     {
       "path": "src/Woorf.Engine/Networking/ReplicaState.cs",
-      "sha256": "5a7d7a2c63cb2a46fd5a52766a8a214b40e7225d65122f35a8161b067c48ad43"
+      "sha256": "021be46e1c7aefb0effb78de054135d92640d4e48045f86158e7c7bf3a5c29e2"
     },
     {
       "path": "src/Woorf.Engine/Networking/ReplicatedBackendState.cs",
       "sha256": "3882378b04f64c4a7746533f0b9a54f1e3207735f86a18b48b460e8d3a058b86"
+    },
+    {
+      "path": "src/Woorf.Engine/Networking/ReplicatedCharacterState.cs",
+      "sha256": "ea30e69ee711332b5e57ccb3e5c62d85a2cb9b782dc67e75bc19242f23862b6c"
     },
     {
       "path": "src/Woorf.Engine/Networking/ReplicatedPhysicsState.cs",
@@ -303,7 +347,7 @@
     },
     {
       "path": "src/Woorf.Engine/Networking/SocketPeer.cs",
-      "sha256": "1cb4ab48e39f4eb91997b7a4d0c8e32486920415aad141617125030e2cca7332"
+      "sha256": "758f8c018785e18aa01ac2537dcc84e89f852a3f4f319c2dc1beeb8916fae069"
     },
     {
       "path": "src/Woorf.Engine/Networking/SocketRuntime.Client.cs",
@@ -326,12 +370,16 @@
       "sha256": "5d6332d6da9ae84cfcb1db59c1ce149ed053aac43a1e6cabb1f68ad1f225c5c0"
     },
     {
+      "path": "src/Woorf.Engine/Networking/WireGraph.Characters.cs",
+      "sha256": "20080bf903884ff6555afe7b503ca465167c533eb14a72f9066d3b7669fcebc2"
+    },
+    {
       "path": "src/Woorf.Engine/Networking/WireGraph.Tracking.cs",
-      "sha256": "afb2f3a4410f4cfc862b8a1cf38f1fecee840e943120d9a354068a7232275598"
+      "sha256": "20f88940260c1fbc53b937aeaf39a0bdae01f05be1e5c03c632917b99a48f46b"
     },
     {
       "path": "src/Woorf.Engine/Networking/WireGraph.cs",
-      "sha256": "6df435618e44431e49dc3cc9c76f3686305d0354d50b81367c9321fb7d93d5d6"
+      "sha256": "26433838d7c3273aa44e19f57c1fc43a9d4f88c9788c11130fde07338bf6ba34"
     },
     {
       "path": "src/Woorf.Engine/Networking/WireValue.cs",
@@ -394,8 +442,12 @@
       "sha256": "d78e6afd12a94a255f5e9ef65165502cbe8e204bb46c9d638d8697464b9911b1"
     },
     {
+      "path": "src/Woorf.Engine/Scripting/BackendBindings.Characters.cs",
+      "sha256": "3545799c74c5677b7dbee6a2f864f45024a97bf7e21db14b241f00d460938aa2"
+    },
+    {
       "path": "src/Woorf.Engine/Scripting/BackendBindings.Methods.cs",
-      "sha256": "d45872319cc7c901a83ad18b94d46a50a1fa9361eaab1712c384b5afa9a63c17"
+      "sha256": "48b4c56e707ff9c9f17e9dab56d53d04ad77481d034e2e15fd862d2804ef4a4c"
     },
     {
       "path": "src/Woorf.Engine/Scripting/BackendBindings.Persistence.cs",
@@ -403,7 +455,7 @@
     },
     {
       "path": "src/Woorf.Engine/Scripting/BackendBindings.cs",
-      "sha256": "e70efdb5b5e4322003e57c406c17878a88a345fb9e30042f415d00b262e751eb"
+      "sha256": "8476d92042b8231bfd402d8ddedf1e5ed4b4057324108aba7cd65eb3b363196f"
     },
     {
       "path": "src/Woorf.Engine/Scripting/BackendJson.cs",
@@ -435,7 +487,7 @@
     },
     {
       "path": "src/Woorf.Engine/Scripting/InstanceBindings.cs",
-      "sha256": "3f5ea91c6cbd84f90c1ce9553743099f74fd9a77b24899d3da1ab3db2222550c"
+      "sha256": "f924727525a91a4c25d4b7d630600af8844dc379eac64af9842a267cf66a60d9"
     },
     {
       "path": "src/Woorf.Engine/Scripting/LuaTableValue.cs",
@@ -447,7 +499,7 @@
     },
     {
       "path": "src/Woorf.Engine/Scripting/LuauSession.cs",
-      "sha256": "e697b31962554978ba07a9ca86b849d5403d7e4905fa6633dde8211376dc2acf"
+      "sha256": "21d516cd81b3c45637dd4529f0482bbbaf15ff3afbd6c57e038be25400a5cc0a"
     },
     {
       "path": "src/Woorf.Engine/Scripting/NativeMethods.cs",
@@ -479,7 +531,7 @@
     },
     {
       "path": "src/Woorf.Engine/Scripting/ScriptLifecycle.cs",
-      "sha256": "8e932494a0d727eb047f5e34cb7025a674db6683491ff12664c7672724576ad7"
+      "sha256": "8ca8f0390c8d7c04932009beacf8f1c51a96433a4252156d3e08e53ca57d7c1d"
     },
     {
       "path": "src/Woorf.Engine/Scripting/ScriptLifecycle.luau",
@@ -576,6 +628,34 @@
     {
       "path": "tests/Woorf.Cli.Tests/CFrameCases.cs",
       "sha256": "0ef6d8eb16863608641a7a0f2513772db4a384e5b0b3651cbbe10123610fc594"
+    },
+    {
+      "path": "tests/Woorf.Cli.Tests/CharacterBindingCases.cs",
+      "sha256": "0fbb2cc067b3bd9c9090162427fba770406361861fe587b83c07e2483265122b"
+    },
+    {
+      "path": "tests/Woorf.Cli.Tests/CharacterControllerTests.cs",
+      "sha256": "9bb8037d99a4f1088c98c1f47a3cf744c1ac7b0fb88f3f6640b3918ddd5086ae"
+    },
+    {
+      "path": "tests/Woorf.Cli.Tests/CharacterGraphicsTests.cs",
+      "sha256": "95ec9dba3f0f17d195af730bebd59d25d52070f5be0ce8e71eb217b51711c761"
+    },
+    {
+      "path": "tests/Woorf.Cli.Tests/CharacterLifecycleTests.cs",
+      "sha256": "00ca01d51a3ea4d6bd7d2212dbdace62b4ba6e593366a646fe9da965290eb921"
+    },
+    {
+      "path": "tests/Woorf.Cli.Tests/CharacterNetworkTests.cs",
+      "sha256": "d607a6aad28851125ca9764f2806cddac44c0ab6481b4f646b5bf13644c666a9"
+    },
+    {
+      "path": "tests/Woorf.Cli.Tests/CharacterReplicationTests.cs",
+      "sha256": "f5c2391c915e401afac2bf0a8b4e789730114ae8f522493fced23a1f2b88e96b"
+    },
+    {
+      "path": "tests/Woorf.Cli.Tests/CharacterViewTests.cs",
+      "sha256": "7511d6fa732b2b7bd01b4024915c23ae3285d3c661ba1356e225a4682f12ef9e"
     },
     {
       "path": "tests/Woorf.Cli.Tests/DirtyReplicationTests.cs",
@@ -679,7 +759,7 @@
     },
     {
       "path": "tests/Woorf.Cli.Tests/Program.cs",
-      "sha256": "42a480cd046a4f6da70a1dd78c58c8c5d5a5c0367df5256ddd4ac73195573e9e"
+      "sha256": "6e223f692643eb5b992c8a7618e29dc77aedb8454c7f904026d6d9f7762d950b"
     },
     {
       "path": "tests/Woorf.Cli.Tests/ProjectTests.cs",
@@ -731,7 +811,7 @@
     },
     {
       "path": "tests/Woorf.Cli.Tests/SocketProtocolTests.cs",
-      "sha256": "eecb944bf48d0ee32965f78ecadd49e4e1b0ac12d0539ce4fd3c6c81de0fdddb"
+      "sha256": "25a9da71b03016924b7a137c40f9f6fb0d4fcc66d48cab1b64363b43d56bfebd"
     },
     {
       "path": "tests/Woorf.Cli.Tests/SocketTestClient.cs",

@@ -1,5 +1,59 @@
 # Woorf continuation context
 
+## Latest milestone: playable graphical character (2026-11-16)
+
+The user explicitly authorized a moving character integrated with graphics and
+recommended subagents. Three agents implemented physics control, lifecycle and
+graphical input/posing; root integrated scripting, replication and acceptance tests.
+The user later said computer use does not work and asked to own hands-on verification.
+Do not retry computer-use verification for this task; automated checks are complete.
+
+- Run `dotnet run --project src/Woorf.Cli --no-restore -- examples/character-playground --play`.
+  WASD walks camera-relative, Space requests one grounded jump per press, arrows orbit,
+  R kills/resets, Escape closes. The follow camera snaps to a respawned root.
+- Woorf.Engine/Characters contains CharacterWorld and CharacterController. The character
+  is a Model with Humanoid and a 2x4x2 upright HumanoidRootPart; PrimaryPart is the root.
+  Visual torso/head/limbs/eyes are centrally generated RenderItems, not extra physics
+  bodies or per-instance rendering. Procedural stride follows actual travel.
+- Player.Character (read-only in Luau), CharacterAdded/Removing and server-side
+  LoadCharacter are bound. Humanoid:Move(direction, false/nil), WalkSpeed16, JumpPower50,
+  MoveDirection and Jump are supported. Movement is world-horizontal and capped to one.
+- Players.CharacterAutoLoads is deliberately false by default to preserve headless
+  workloads; --play enables it. RespawnTime defaults3. CharacterSpawn Workspace
+  Vector3 attribute defaults(0,6,0), with four-stud X offsets by UserId modulo4.
+  Falling below Y=-100 kills; death/missing components respawn after the configured
+  delay. Leave/reload/disposal clean up the model and controller hooks.
+- Controller runs on live 120 Hz body hooks, locks root rotation, uses normal.Y>=0.7
+  support, clips inward horizontal wall/character movement, preserves airborne Y,
+  has full XZ air control and rejects air jump buffering. No step climbing, assemblies,
+  moving-platform attachment or full Humanoid state machine. +Y up/downward gravity
+  are assumed for the first controller. See docs/characters.md for boundaries.
+- TCP protocol is now v7; explicit older versions are rejected. Character references
+  and movement/service state replicate locally and over TCP. References publish after
+  the replicated model graph is initialized and obey shared visibility. LocalScripts
+  in the owning Player.Character now run and stop with character lifecycle. The
+  graphical viewer is still one authoritative local player, not a graphical TCP client.
+- Full regression: 232 PASS, zero FAIL/compiler warnings. --graphics now has three
+  real-GPU aggregate checks, including --play capture with eight visual items and two
+  draws. A 1800-frame idle playground soak measured median17.025 ms, p95 17.236 ms,
+  simulation p95 0.874 ms and two draw calls on Intel UHD OpenGL3.3. This is a workload
+  measurement, not arbitrary-game qualification. User owns hands-on input testing.
+- CharacterNetworkTests runs two separate TCP clients that walk/collide/jump/die/respawn
+  using validated application remotes. It also checks owning-character LocalScripts.
+  Controller regressions reproduced two-player wall penetration (8.602 vs8.5 bound),
+  fixed by contact clipping. Lifecycle tests reproduced a synchronous Died callback
+  destroying the player before auto-respawn; synchronization now safely rechecks it.
+- Targeted test flags: --character-controller, --character-lifecycle, --character-view,
+  --character-input, --character-replication, --character-network, --character-graphics.
+  .local/character-full-suite.txt and character-performance.csv hold diagnostics only.
+- The API inventory is 206 implemented subsets, 496 missing, 169 legacy-unimplemented,
+  59 restricted/non-scriptable across the unchanged930-symbol selected denominator.
+  This is still not a global compatibility percentage. Eleven selected character symbols
+  changed classification; see inventory qualifications and current source hashes.
+- The user committed the earlier graphics work as 84dbc21 while this work was underway.
+  Character changes remain uncommitted. No commit/reset/cleanup was requested. Preserve
+  all current work. See docs/characters.md and examples/character-playground/README.md.
+
 ## Latest follow-up: viewer performance fixes (2026-11-16)
 
 The user reported severe lag while moving/orbiting the camera and requested engine

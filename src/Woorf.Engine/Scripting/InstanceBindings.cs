@@ -34,6 +34,7 @@ internal sealed class InstanceBindings : IDisposable
     public void Dispose() { backendBindings.Dispose(); signalBindings.Dispose(); }
     internal bool HasShutdown => backendBindings.HasShutdown;
     internal void BeginShutdown() => backendBindings.BeginShutdown();
+    internal void AttachCharacters(Action<Player> load) => backendBindings.AttachCharacters(load);
 
     internal int GetId(Instance? instance)
     {

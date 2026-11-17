@@ -2,7 +2,7 @@ using Woorf.Engine.Events;
 
 namespace Woorf.Engine.DataModel;
 
-public sealed class Humanoid : Instance
+public sealed partial class Humanoid : Instance
 {
     private double health = 100;
     private double maxHealth = 100;
@@ -31,6 +31,11 @@ public sealed class Humanoid : Instance
     }
     public void TakeDamage(double damage) { Validate(damage); Health -= damage; }
     private static void Validate(double value) { if (!double.IsFinite(value)) throw new InvalidOperationException("Expected finite health value."); }
-    protected override bool HasProperty(string property) => property is "Health" or "MaxHealth" || base.HasProperty(property);
-    protected override void CopyPropertiesTo(Instance clone) { ((Humanoid)clone).health = health; ((Humanoid)clone).maxHealth = maxHealth; }
+    protected override bool HasProperty(string property) => property is "Health" or "MaxHealth" or "WalkSpeed" or "JumpPower" or "MoveDirection" or "Jump" || base.HasProperty(property);
+    protected override void CopyPropertiesTo(Instance clone)
+    {
+        var humanoid = (Humanoid)clone;
+        humanoid.health = health; humanoid.maxHealth = maxHealth;
+        humanoid.walkSpeed = walkSpeed; humanoid.jumpPower = jumpPower;
+    }
 }

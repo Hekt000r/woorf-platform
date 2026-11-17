@@ -1,5 +1,10 @@
 # Client/server runtime
 
+Opt-in [characters](characters.md) now add Player.Character, lifecycle signals and
+server-authoritative single-collider movement. LocalScripts can run inside their
+own player's character. The graphical `--play` viewer currently hosts one local
+authoritative player rather than a graphical network client.
+
 Run a project with an authoritative server and two local headless clients:
 
 ```powershell
@@ -16,7 +21,7 @@ Players exposes LocalPlayer on clients, GetPlayers, PlayerAdded and PlayerRemovi
 
 Server-visible shared state replicates to client copies; client mutations do not write into the server graph. Shared Instance references in remote messages resolve to the receiving endpoint's corresponding object. References unavailable to the receiver become nil. Argument tables are copied, rather than sharing memory across endpoints. Supported payloads include nil-preserving tuples, tables, booleans, numbers, strings, Vector3, CFrame, Color3 and mapped Instance references. Supported shared properties, attributes, tags, typed values, health and team state replicate; see [backend APIs](backend-apis.md) and [incremental TCP replication](socket-transport.md#runtime-behavior).
 
-UnreliableRemoteEvent, external account authentication, characters, client physics ownership, streaming, and Roblox scheduling/network-rate fidelity remain future work. Indefinite waits alone do not keep finite local CLI runs alive; queued work and timers drain before exit. Active Heartbeat subscriptions keep the scheduler alive. TCP listeners and connected clients remain alive for network input.
+UnreliableRemoteEvent, external account authentication, client physics ownership, streaming, and Roblox scheduling/network-rate fidelity remain future work. Indefinite waits alone do not keep finite local CLI runs alive; queued work and timers drain before exit. Active Heartbeat subscriptions keep the scheduler alive. TCP listeners and connected clients remain alive for network input.
 
 ## RemoteFunctions
 
@@ -76,7 +81,7 @@ can kick a connected player; a client can kick only its own LocalPlayer. The mes
 is currently accepted without a user-facing disconnect screen. The CLI --clients
 option continues to start an initial batch of clients; dynamic joins use the
 embedding API. This host API provides an in-process, headless lifecycle. TCP transport is available
-separately; authentication, reconnect, and character lifecycle remain future work.
+separately; external account authentication and automatic network state resume remain future work.
 
 Separate processes can use the [TCP transport](socket-transport.md). The local host
 API and --clients mode remain available for in-process tests.

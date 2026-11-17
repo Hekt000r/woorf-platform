@@ -27,6 +27,7 @@ internal sealed partial class BackendBindings : IDisposable
     internal bool TryRead(nint state, Instance instance, string property, out int result)
     {
         result = 1;
+        if (TryReadCharacter(state, instance, property)) return true;
         if (PhysicsBindings.TryRead(state, instance, property, codec)) return true;
         if (instance is ScriptInstance script && property is "Enabled" or "Disabled" or "_RunContext")
         {
@@ -49,7 +50,8 @@ internal sealed partial class BackendBindings : IDisposable
 
     private bool IsMethod(Instance instance, string name) => name is "SetAttribute" or "GetAttribute" or "GetAttributes" or "GetAttributeChangedSignal" or "AddTag" or "RemoveTag" or "HasTag" or "GetTags"
         || instance is BindableEvent && name == "Fire"
-        || instance is Humanoid && name == "TakeDamage"
+        || instance is Humanoid && name is "TakeDamage" or "Move"
+        || instance is Player && name == "LoadCharacter"
         || instance.ClassName == "CollectionService" && name is "AddTag" or "RemoveTag" or "HasTag" or "GetTags" or "GetTagged" or "GetAllTags" or "GetInstanceAddedSignal" or "GetInstanceRemovedSignal"
         || instance.ClassName == "HttpService" && name is "JSONEncode" or "JSONDecode"
         || instance.ClassName == "Debris" && name == "AddItem"
@@ -62,6 +64,7 @@ internal sealed partial class BackendBindings : IDisposable
 
     internal bool TryWrite(nint state, Instance instance, string property)
     {
+        if (TryWriteCharacter(state, instance, property)) return true;
         if (PhysicsBindings.TryWrite(state, instance, property, codec)) return true;
         if (instance is ScriptInstance script && property is "Enabled" or "Disabled" or "_RunContext")
         {

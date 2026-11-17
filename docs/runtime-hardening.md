@@ -13,7 +13,9 @@ are not implemented. ModuleScripts remain on-demand and have no Enabled flag.
 
 Legacy server Scripts run below Workspace or ServerScriptService. Server-context
 Scripts also run below ReplicatedStorage. LocalScripts run below the local Player,
-including the copied PlayerScripts and PlayerGui trees. Client-context Scripts
+including the copied PlayerScripts and PlayerGui trees, and below that player's
+Character model. Character replacement participates in lifecycle synchronization.
+Client-context Scripts
 also run in Workspace, ReplicatedStorage and ReplicatedFirst on clients. Template
 containers do not independently execute their contents.
 
@@ -28,7 +30,7 @@ The currently executing callback is not synchronously unwound by setting Enabled
 Initial server startup preserves project source-path order. Client startup copies
 StarterPlayerScripts and StarterGui before starting eligible scripts. Source remains
 read-only through Luau; cloning a loaded script copies its source. This does not
-add source editing, characters/Backpack startup, Studio plugin execution or exact
+add source editing, Backpack startup, Studio plugin execution or exact
 Roblox simulation-phase behavior. Script enabled/context state and client-executable
 sources replicate over local hosting and TCP. Private server source is excluded.
 
@@ -86,7 +88,7 @@ concurrent progress; it does not add distributed game-session ownership.
 
 ## Reconnect credentials
 
-TCP protocol v6 issues a cryptographically random bearer credential to a new
+TCP protocol v7 issues a cryptographically random bearer credential to a new
 connection. The server stores its hash and stable UserId in project-root/.woorf/auth,
 using locked atomic writes. Existing valid credentials recover the same UserId
 across disconnects and server restarts. Unknown, malformed and duplicate active

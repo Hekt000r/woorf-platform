@@ -21,6 +21,8 @@ internal sealed class ReplicaMap(DataModel.DataModel server, DataModel.DataModel
         visibleInstances = current;
         foreach (var source in visible) EnsureReplica(source);
         foreach (var source in visible) Apply(source);
+        foreach (var source in visible.OfType<Player>())
+            snapshots[source].CharacterState?.ApplyReference((Player)replicas[source], ToClient);
         foreach (var source in replicas.Keys.Where(source => !current.Contains(source)).ToArray())
         {
             var replica = replicas[source];

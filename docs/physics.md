@@ -48,7 +48,7 @@ assert(math.abs(box.Position.Y - 1) < 0.08)
 ```
 
 Try the [two-client physics scene](../examples/physics-boxes/README.md), which now
-also drops a sphere and verifies a live Block-to-Ball change. TCP protocol v6
+also drops a sphere and verifies a live Block-to-Ball change. TCP protocol v7
 requires matching builds; explicit older protocol versions are rejected.
 
 ## Queries and grounding
@@ -139,16 +139,18 @@ state, so managed substep logic should use live bodies/contact data where requir
 
 Controlled-clock tests drive an upright collider through sustained wall sliding,
 a corner, jumping, ceiling impact, stable landing and slope contact. This is enough
-foundation for a first single-collider character controller. Player spawning,
-Humanoid movement, step climbing, slope policy, air control, moving-platform
-attachment and multiplayer character lifecycle remain the next phase.
+foundation for the [single-collider character controller](characters.md), which now
+adds opt-in spawning, walking, grounded jumping, full horizontal air control and
+death/respawn. Step climbing, moving-platform attachment and richer character state
+remain future work. Its walkable support threshold is normal.Y >= 0.7.
 
 ## Compatibility boundaries
 
 This is a tested box-physics subset, not Roblox-identical physics. Current limits:
 
 - Each Part is an independent body. Welded assemblies, joints, constraints,
-  characters, Humanoid movement and network ownership are not implemented.
+  assembled character rigs and network ownership are not implemented. The separate
+  single-collider controller provides the documented basic character movement subset.
 - No cylinder/capsule/mesh/terrain collisions, collision groups, Touched events,
   fluids, aerodynamic forces or automatic fallen-part destruction.
 - Collision substeps are capped at 64: extreme speeds, thin dynamic bodies or
@@ -186,5 +188,5 @@ elastic bounce, density-based momentum transfer, signed gravity, anchoring/filte
 changes, immutable material validation and callback edits. A controlled clock
 checks analytical free fall and independence from timer partition. The real TCP
 scene verifies both clients receive motion, velocity, sphere shape changes and
-settled state. The complete suite passes 207 checks; the backend readiness workload
+settled state. The complete suite passes 232 checks; the backend readiness workload
 continues to report 19 available and 0 blocked checks.

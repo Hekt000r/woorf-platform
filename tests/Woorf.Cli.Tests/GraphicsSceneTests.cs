@@ -20,6 +20,13 @@ static class GraphicsSceneTests
             var moved = scene.Capture();
             if (scene.FullScans != 1 || scene.CapturedParts != 2 || moved[0].Transform.M41 != 2)
                 throw new Exception("A transform update must recapture only the changed Part.");
+            part.SetAttribute("RenderColor", new Woorf.Engine.Datatypes.Color3(1, 0.1f, 0.2f));
+            var colored = scene.Capture();
+            if (colored[0].Color != new System.Numerics.Vector3(1, 0.1f, 0.2f) || scene.FullScans != 1)
+                throw new Exception("Scripted colors must update cached geometry without a hierarchy scan.");
+            part.SetAttribute("RenderColor", null);
+            if (scene.Capture()[0].Color != new System.Numerics.Vector3(0.25f, 0.32f, 0.42f))
+                throw new Exception("Removing a color must restore the default palette.");
             var storage = Instance.Create("Folder"); part.Parent = storage;
             if (scene.Capture().Length != 0) throw new Exception("Reparented geometry remained in the renderer cache.");
             part.Parent = workspace;

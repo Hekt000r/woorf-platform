@@ -22,7 +22,7 @@ internal sealed class ScriptLifecycle : IDisposable
 
     private void OnMutation(Instance instance, string property)
     {
-        if (property is not ("Parent" or "Enabled" or "RunContext")) return;
+        if (property is not ("Parent" or "Enabled" or "RunContext" or "Character")) return;
         isDirty = true;
         foreach (var script in instance.GetDescendants().Prepend(instance).OfType<ScriptInstance>())
             if (active.GetValueOrDefault(script) && (property == "RunContext" || !CanRun(script))) stopping.Add(script);
@@ -35,7 +35,8 @@ internal sealed class ScriptLifecycle : IDisposable
         {
             if (!isClient) return false;
             var player = ((Players)game.GetService("Players")).LocalPlayer;
-            if (player is not null && script.IsDescendantOf(player)) return true;
+            if (player is not null && (script.IsDescendantOf(player)
+                || player.Character is Model character && script.IsDescendantOf(character))) return true;
             return script.RunContext == 2 && script.GetAncestors().Any(parent => parent.ClassName is "Workspace" or "ReplicatedStorage" or "ReplicatedFirst");
         }
         if (isClient) return false;

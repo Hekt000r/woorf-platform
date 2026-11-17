@@ -22,13 +22,15 @@ provide a headless spatial subset.
 
 Server and clients have separate VMs and object graphs. Local hosting and separate
 TCP processes support RemoteEvents, yielding RemoteFunctions, player join/removal,
-Kick and authoritative incremental replication. TCP protocol v6 includes dirty
+Kick and authoritative incremental replication. TCP protocol v7 includes dirty
 capture, bounded nonblocking outgoing queues and transport metrics.
 
 Backend APIs include attributes, tags, ValueObjects, BindableEvent, Color3, Random,
 JSON, Debris, headless Heartbeat, BindToClose, local durable DataStores, basic teams,
-health-only Humanoid and oriented-box raycasts. These are documented subsets;
-characters and character movement remain absent. A custom OpenGL 3.3 renderer now provides
+Humanoid health and basic movement, and box/sphere queries. These are documented subsets.
+Opt-in character spawning, walking, grounded jumping, death/respawn and an animated
+graphical figure are implemented around one upright collider; see [characters](docs/characters.md).
+A custom OpenGL 3.3 renderer now provides
 the first graphical output through a Windows viewer, with boxes, spheres, lighting,
 camera controls and live Workspace updates; see [graphics](docs/graphics.md).
 Box and sphere physics with character-controller foundations is implemented in a custom dependency-free C# solver; see [physics](docs/physics.md). Dynamic
@@ -53,8 +55,8 @@ Maintain explicit implementation limits and extend local behavior tests with eac
 feature. Do not add a Studio behavior-comparison harness. Keep engine state and
 behavior in C# with native and Luau glue for VM integration and scheduling.
 
-The complete-suite baseline after graphics performance fixes is 210 passing checks, plus
-two optional real-OpenGL acceptance checks. The synthetic
+The complete-suite baseline after the character milestone is 232 passing checks, plus
+three optional real-OpenGL acceptance checks. The synthetic
 readiness workload reports 19 available and 0 blocked checks. Neither establishes
 arbitrary full-game support. See [build and verification commands](README.md).
 

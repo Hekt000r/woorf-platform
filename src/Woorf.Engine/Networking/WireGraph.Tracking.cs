@@ -62,6 +62,7 @@ internal sealed partial class WireGraph : IDisposable
             {
                 if (instance is Model model) ForgetPrimary(model);
                 ForgetBackendReference(instance);
+                if (instance is Player player) ForgetCharacter(player);
                 if (identifiers.TryGetValue(instance, out var id) && captured.Remove(id))
                     pendingChanges.Add(id);
             }
@@ -85,6 +86,7 @@ internal sealed partial class WireGraph : IDisposable
                 if (affected is BasePart part && dependents.TryGetValue(part, out var models))
                     dirty.UnionWith(models);
                 if (backendDependents.TryGetValue(affected, out var holders)) dirty.UnionWith(holders);
+                if (affected is Model character && characterDependents.TryGetValue(character, out var players)) dirty.UnionWith(players);
             }
         }
         else if (property != "Descendants" && (IsVisible(instance) || identifiers.ContainsKey(instance)))

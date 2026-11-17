@@ -78,7 +78,7 @@ These links are live references. The [backend audit](backend-api-readiness.md) p
 ## Networking and lifecycle
 
 RemoteEvents, RemoteFunctions, local player identities, join/removal, Kick, and
-isolated server/client VMs are implemented as a subset. TCP protocol v6 supports
+isolated server/client VMs are implemented as a subset. TCP protocol v7 supports
 separate processes, incremental replication, dirty capture, bounded outgoing
 queues, and transport measurements. Read [client/server semantics](client-server.md)
 and [TCP transport](socket-transport.md) for behavior and limits.
@@ -89,7 +89,7 @@ No complete-engine or full-game compatibility percentage is currently establishe
 
 The [backend API milestone](backend-apis.md) adds attributes, tags, ValueObjects,
 BindableEvent, Color3/Random, JSON, Debris, Heartbeat, local stores, shutdown hooks,
-Teams, health-only Humanoid and box raycasts. These are scoped subsets.
+Teams, basic Humanoid movement and box/sphere queries. These are scoped subsets.
 
 See [runtime hardening](runtime-hardening.md) for dynamic activation, execution budgets,
 inbound limits, atomic updates and server-issued reconnect credentials.

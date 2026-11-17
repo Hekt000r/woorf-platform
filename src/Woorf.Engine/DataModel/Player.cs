@@ -1,11 +1,12 @@
 namespace Woorf.Engine.DataModel;
 
-public sealed class Player : Instance
+public sealed partial class Player : Instance
 {
     internal Player(int userId = 0, string name = "Player") : base("Player")
     {
         UserId = userId;
         Name = name;
+        GetSignal("Destroying").Connect(_ => { Character = null; CharacterAdded.Close(); CharacterRemoving.Close(); });
     }
 
     private Instance? team;
@@ -24,7 +25,7 @@ public sealed class Player : Instance
     public bool Neutral => Team is null;
     public int UserId { get; internal set; }
 
-    protected override bool HasProperty(string property) => property is "UserId" or "Team" or "Neutral" || base.HasProperty(property);
+    protected override bool HasProperty(string property) => property is "UserId" or "Team" or "Neutral" or "Character" || base.HasProperty(property);
 
     protected override void CopyPropertiesTo(Instance clone) => ((Player)clone).UserId = UserId;
 }

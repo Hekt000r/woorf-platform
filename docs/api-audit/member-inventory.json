@@ -8,9 +8,9 @@
     "Cross-platform or sustained production behavior"
   ],
   "summary": {
-    "implemented-subset": 195,
-    "legacy-unimplemented": 170,
-    "missing": 506,
+    "implemented-subset": 206,
+    "legacy-unimplemented": 169,
+    "missing": 496,
     "restricted-or-nonscriptable": 59
   },
   "members": [
@@ -3422,7 +3422,15 @@
         "properties"
       ],
       "upstreamEntries": 1,
-      "status": "missing"
+      "status": "implemented-subset",
+      "implementation": "src/Woorf.Engine/Scripting/BackendBindings.Characters.cs",
+      "testEvidence": [
+        "tests/Woorf.Cli.Tests/CharacterBindingCases.cs",
+        "tests/Woorf.Cli.Tests/CharacterLifecycleTests.cs",
+        "tests/Woorf.Cli.Tests/CharacterControllerTests.cs",
+        "tests/Woorf.Cli.Tests/CharacterNetworkTests.cs"
+      ],
+      "qualification": "Opt-in single-collider character lifecycle and world-relative movement subset; see docs/characters.md. Not a full avatar or Humanoid implementation."
     },
     {
       "category": "classes",
@@ -3508,7 +3516,15 @@
         "properties"
       ],
       "upstreamEntries": 1,
-      "status": "missing"
+      "status": "implemented-subset",
+      "implementation": "src/Woorf.Engine/Scripting/BackendBindings.Characters.cs",
+      "testEvidence": [
+        "tests/Woorf.Cli.Tests/CharacterBindingCases.cs",
+        "tests/Woorf.Cli.Tests/CharacterLifecycleTests.cs",
+        "tests/Woorf.Cli.Tests/CharacterControllerTests.cs",
+        "tests/Woorf.Cli.Tests/CharacterNetworkTests.cs"
+      ],
+      "qualification": "Opt-in single-collider character lifecycle and world-relative movement subset; see docs/characters.md. Not a full avatar or Humanoid implementation."
     },
     {
       "category": "classes",
@@ -3926,7 +3942,15 @@
         "properties"
       ],
       "upstreamEntries": 1,
-      "status": "missing"
+      "status": "implemented-subset",
+      "implementation": "src/Woorf.Engine/Scripting/BackendBindings.Characters.cs",
+      "testEvidence": [
+        "tests/Woorf.Cli.Tests/CharacterBindingCases.cs",
+        "tests/Woorf.Cli.Tests/CharacterLifecycleTests.cs",
+        "tests/Woorf.Cli.Tests/CharacterControllerTests.cs",
+        "tests/Woorf.Cli.Tests/CharacterNetworkTests.cs"
+      ],
+      "qualification": "Opt-in single-collider character lifecycle and world-relative movement subset; see docs/characters.md. Not a full avatar or Humanoid implementation."
     },
     {
       "category": "classes",
@@ -4538,7 +4562,15 @@
         "methods"
       ],
       "upstreamEntries": 1,
-      "status": "legacy-unimplemented"
+      "status": "implemented-subset",
+      "implementation": "src/Woorf.Engine/Scripting/BackendBindings.Characters.cs",
+      "testEvidence": [
+        "tests/Woorf.Cli.Tests/CharacterBindingCases.cs",
+        "tests/Woorf.Cli.Tests/CharacterLifecycleTests.cs",
+        "tests/Woorf.Cli.Tests/CharacterControllerTests.cs",
+        "tests/Woorf.Cli.Tests/CharacterNetworkTests.cs"
+      ],
+      "qualification": "Opt-in single-collider character lifecycle and world-relative movement subset; see docs/characters.md. Not a full avatar or Humanoid implementation."
     },
     {
       "category": "classes",
@@ -4808,7 +4840,15 @@
         "events"
       ],
       "upstreamEntries": 1,
-      "status": "missing"
+      "status": "implemented-subset",
+      "implementation": "src/Woorf.Engine/Scripting/BackendBindings.Characters.cs",
+      "testEvidence": [
+        "tests/Woorf.Cli.Tests/CharacterBindingCases.cs",
+        "tests/Woorf.Cli.Tests/CharacterLifecycleTests.cs",
+        "tests/Woorf.Cli.Tests/CharacterControllerTests.cs",
+        "tests/Woorf.Cli.Tests/CharacterNetworkTests.cs"
+      ],
+      "qualification": "Opt-in single-collider character lifecycle and world-relative movement subset; see docs/characters.md. Not a full avatar or Humanoid implementation."
     },
     {
       "category": "classes",
@@ -4828,7 +4868,15 @@
         "events"
       ],
       "upstreamEntries": 1,
-      "status": "missing"
+      "status": "implemented-subset",
+      "implementation": "src/Woorf.Engine/Scripting/BackendBindings.Characters.cs",
+      "testEvidence": [
+        "tests/Woorf.Cli.Tests/CharacterBindingCases.cs",
+        "tests/Woorf.Cli.Tests/CharacterLifecycleTests.cs",
+        "tests/Woorf.Cli.Tests/CharacterControllerTests.cs",
+        "tests/Woorf.Cli.Tests/CharacterNetworkTests.cs"
+      ],
+      "qualification": "Opt-in single-collider character lifecycle and world-relative movement subset; see docs/characters.md. Not a full avatar or Humanoid implementation."
     },
     {
       "category": "classes",
@@ -6472,7 +6520,15 @@
         "properties"
       ],
       "upstreamEntries": 1,
-      "status": "missing"
+      "status": "implemented-subset",
+      "implementation": "src/Woorf.Engine/Scripting/BackendBindings.Characters.cs",
+      "testEvidence": [
+        "tests/Woorf.Cli.Tests/CharacterBindingCases.cs",
+        "tests/Woorf.Cli.Tests/CharacterLifecycleTests.cs",
+        "tests/Woorf.Cli.Tests/CharacterControllerTests.cs",
+        "tests/Woorf.Cli.Tests/CharacterNetworkTests.cs"
+      ],
+      "qualification": "Opt-in single-collider character lifecycle and world-relative movement subset; see docs/characters.md. Not a full avatar or Humanoid implementation."
     },
     {
       "category": "classes",
@@ -6492,7 +6548,15 @@
         "properties"
       ],
       "upstreamEntries": 1,
-      "status": "missing"
+      "status": "implemented-subset",
+      "implementation": "src/Woorf.Engine/Scripting/BackendBindings.Characters.cs",
+      "testEvidence": [
+        "tests/Woorf.Cli.Tests/CharacterBindingCases.cs",
+        "tests/Woorf.Cli.Tests/CharacterLifecycleTests.cs",
+        "tests/Woorf.Cli.Tests/CharacterControllerTests.cs",
+        "tests/Woorf.Cli.Tests/CharacterNetworkTests.cs"
+      ],
+      "qualification": "Opt-in single-collider character lifecycle and world-relative movement subset; see docs/characters.md. Not a full avatar or Humanoid implementation."
     },
     {
       "category": "classes",
@@ -6548,7 +6612,15 @@
         "properties"
       ],
       "upstreamEntries": 1,
-      "status": "missing"
+      "status": "implemented-subset",
+      "implementation": "src/Woorf.Engine/Scripting/BackendBindings.Characters.cs",
+      "testEvidence": [
+        "tests/Woorf.Cli.Tests/CharacterBindingCases.cs",
+        "tests/Woorf.Cli.Tests/CharacterLifecycleTests.cs",
+        "tests/Woorf.Cli.Tests/CharacterControllerTests.cs",
+        "tests/Woorf.Cli.Tests/CharacterNetworkTests.cs"
+      ],
+      "qualification": "Opt-in single-collider character lifecycle and world-relative movement subset; see docs/characters.md. Not a full avatar or Humanoid implementation."
     },
     {
       "category": "classes",
@@ -6678,7 +6750,15 @@
         "properties"
       ],
       "upstreamEntries": 1,
-      "status": "missing"
+      "status": "implemented-subset",
+      "implementation": "src/Woorf.Engine/Scripting/BackendBindings.Characters.cs",
+      "testEvidence": [
+        "tests/Woorf.Cli.Tests/CharacterBindingCases.cs",
+        "tests/Woorf.Cli.Tests/CharacterLifecycleTests.cs",
+        "tests/Woorf.Cli.Tests/CharacterControllerTests.cs",
+        "tests/Woorf.Cli.Tests/CharacterNetworkTests.cs"
+      ],
+      "qualification": "Opt-in single-collider character lifecycle and world-relative movement subset; see docs/characters.md. Not a full avatar or Humanoid implementation."
     },
     {
       "category": "classes",
@@ -6948,7 +7028,15 @@
         "methods"
       ],
       "upstreamEntries": 1,
-      "status": "missing"
+      "status": "implemented-subset",
+      "implementation": "src/Woorf.Engine/Scripting/BackendBindings.Characters.cs",
+      "testEvidence": [
+        "tests/Woorf.Cli.Tests/CharacterBindingCases.cs",
+        "tests/Woorf.Cli.Tests/CharacterLifecycleTests.cs",
+        "tests/Woorf.Cli.Tests/CharacterControllerTests.cs",
+        "tests/Woorf.Cli.Tests/CharacterNetworkTests.cs"
+      ],
+      "qualification": "Opt-in single-collider character lifecycle and world-relative movement subset; see docs/characters.md. Not a full avatar or Humanoid implementation."
     },
     {
       "category": "classes",

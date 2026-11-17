@@ -53,7 +53,7 @@ internal sealed class PhysicsWorld : IDisposable
         foreach (var (part, body) in bodies)
         {
             var state = Snapshot.Capture(part);
-            if (!expectedStates.TryGetValue(part, out var expected) || state != expected) contacts.Clear();
+            if (!expectedStates.TryGetValue(part, out var expected) || state != expected) InvalidateContacts(part);
             expectedStates[part] = state;
             body.Frame = part.CFrame; body.Size = part.Size; body.IsAnchored = part.Anchored;
             body.CanCollide = part.CanCollide; body.Material = part.CustomPhysicalProperties ?? PhysicalProperties.Default;
@@ -61,6 +61,11 @@ internal sealed class PhysicsWorld : IDisposable
             body.Shape = part is Part shaped ? shaped.Shape : PartType.Block;
             body.IsRotationLocked = rotationLocked.Contains(part);
         }
+    }
+    private void InvalidateContacts(BasePart part)
+    {
+        contacts.Remove(part);
+        foreach (var found in contacts.Values) found.RemoveAll(contact => contact.Other == part);
     }
     internal void Advance(double now)
     {

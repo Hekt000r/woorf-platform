@@ -1,11 +1,23 @@
 using System.Diagnostics;
 
+if (args.Length == 1 && args[0] == "--obby") return ObbyTests.Run();
+
+if (args.Length == 1 && args[0] == "--character-controller") return CharacterControllerTests.Run();
+if (args.Length == 1 && args[0] == "--character-lifecycle") return CharacterLifecycleTests.Run();
+if (args.Length == 1 && args[0] == "--character-view") return CharacterViewTests.Run();
+if (args.Length == 1 && args[0] == "--character-input") return CharacterViewTests.RunInput();
+if (args.Length == 1 && args[0] == "--character-replication") return CharacterReplicationTests.Run();
+if (args.Length == 1 && args[0] == "--socket") return await SocketTransportTests.RunAsync(Path.Combine(AppContext.BaseDirectory, "Woorf.Cli.dll"));
+if (args.Length == 1 && args[0] == "--character-graphics") return await CharacterGraphicsTests.RunAsync(Path.Combine(AppContext.BaseDirectory, "Woorf.Cli.dll"));
+if (args.Length == 1 && args[0] == "--character-network") return await CharacterNetworkTests.RunAsync(Path.Combine(AppContext.BaseDirectory, "Woorf.Cli.dll"));
+
 if (args.Length == 1 && args[0] == "--graphics-math") return GraphicsMathTests.Run();
 if (args.Length == 1 && args[0] == "--graphics-scene") return GraphicsSceneTests.Run();
 if (args.Length == 1 && args[0] == "--physics-isolation") return PhysicsIsolationTests.Run();
 
 if (args.Length == 1 && args[0] == "--graphics")
-    return GraphicsDeviceTests.Run() + await GraphicsIntegrationTests.RunAsync(Path.Combine(AppContext.BaseDirectory, "Woorf.Cli.dll")) == 0 ? 0 : 1;
+    return GraphicsDeviceTests.Run() + await GraphicsIntegrationTests.RunAsync(Path.Combine(AppContext.BaseDirectory, "Woorf.Cli.dll"))
+        + await CharacterGraphicsTests.RunAsync(Path.Combine(AppContext.BaseDirectory, "Woorf.Cli.dll")) == 0 ? 0 : 1;
 
 if (args.Length == 2 && args[0] == "--reference-game")
     return await ReferenceGameTests.RunAsync(args[1]);
@@ -49,7 +61,7 @@ var cases = new (string Name, string? Source, int Exit, string Output, string Er
     .Concat(HierarchyCases.GetCases()).Concat(SignalCases.GetCases())
     .Concat(PartPivotCases.GetCases()).Concat(ModelPivotCases.GetCases())
     .Concat(ModelBoundsCases.GetCases())
-    .Concat(InstanceEventCases.GetCases()).Concat(SchedulerCases.GetCases()).Concat(BackendApiCases.GetCases()).Concat(RuntimeSafetyCases.GetCases()).Concat(PhysicsCases.GetCases()).Concat(PhysicsShapeCases.GetCases()).ToArray();
+    .Concat(InstanceEventCases.GetCases()).Concat(SchedulerCases.GetCases()).Concat(BackendApiCases.GetCases()).Concat(RuntimeSafetyCases.GetCases()).Concat(PhysicsCases.GetCases()).Concat(PhysicsShapeCases.GetCases()).Concat(CharacterBindingCases.GetCases()).ToArray();
 if (args.Length == 2 && args[0] == "--case")
     cases = cases.Where(test => test.Name.Contains(args[1], StringComparison.OrdinalIgnoreCase)).ToArray();
 var failedCount = 0;
@@ -98,6 +110,12 @@ failedCount += PhysicsFoundationTests.Run();
 failedCount += PhysicsIsolationTests.Run();
 failedCount += GraphicsMathTests.Run();
 failedCount += GraphicsSceneTests.Run();
+failedCount += CharacterControllerTests.Run();
+failedCount += ObbyTests.Run();
+failedCount += CharacterLifecycleTests.Run();
+failedCount += CharacterViewTests.Run();
+failedCount += CharacterViewTests.RunInput();
+failedCount += CharacterReplicationTests.Run();
 failedCount += NetworkLifecycleTests.Run();
 failedCount += await SocketTransportTests.RunAsync(cliPath);
 failedCount += await SocketBackpressureTests.RunAsync(cliPath);
@@ -109,4 +127,5 @@ failedCount += await ScriptLifecycleTests.RunAsync(cliPath);
 failedCount += await InboundLimitTests.RunAsync(cliPath);
 failedCount += await StableIdentityTests.RunAsync(cliPath);
 failedCount += await PhysicsNetworkTests.RunAsync(cliPath);
+failedCount += await CharacterNetworkTests.RunAsync(cliPath);
 return failedCount == 0 ? 0 : 1;
