@@ -32,7 +32,7 @@ public abstract partial class BasePart
         if (!float.IsFinite(value.X) || !float.IsFinite(value.Y) || !float.IsFinite(value.Z))
             throw new ArgumentException("Expected finite velocity components.");
     }
-    private static bool HasPhysicsProperty(string name) => name is "AssemblyLinearVelocity" or "AssemblyAngularVelocity" or "CanCollide" or "CustomPhysicalProperties";
+    private static bool HasPhysicsProperty(string name) => name is "AssemblyLinearVelocity" or "AssemblyAngularVelocity" or "CanCollide" or "CustomPhysicalProperties" or "Elasticity" or "Friction";
     private void CopyPhysicsTo(BasePart part)
     {
         part.linearVelocity = linearVelocity; part.angularVelocity = angularVelocity;

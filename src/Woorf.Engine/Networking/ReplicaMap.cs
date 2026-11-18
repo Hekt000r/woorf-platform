@@ -15,8 +15,9 @@ internal sealed class ReplicaMap(DataModel.DataModel server, DataModel.DataModel
     internal void Synchronize()
     {
         var visible = server.GetChildren().Where(root => root.ClassName is
-            "Workspace" or "ReplicatedStorage" or "ReplicatedFirst" or "Players" or "Teams" or "Lighting")
-            .SelectMany(root => root.GetDescendants().Prepend(root)).ToArray();
+            "Workspace" or "ReplicatedStorage" or "ReplicatedFirst" or "Players" or "Teams" or "Lighting" or "StarterPack")
+            .SelectMany(root => root.GetDescendants().Prepend(root))
+            .Where(instance => instance is not Camera && !instance.GetAncestors().Any(ancestor => ancestor is Camera)).ToArray();
         var current = visible.ToHashSet();
         visibleInstances = current;
         foreach (var source in visible) EnsureReplica(source);

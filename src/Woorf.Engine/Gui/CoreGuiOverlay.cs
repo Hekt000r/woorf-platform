@@ -12,6 +12,7 @@ public sealed class CoreGuiOverlay
     private bool isNetworkVisible;
     private bool isFrameVisible;
     private bool isConsoleVisible;
+    public bool IsTopbarEnabled { get; set; } = true;
     private GuiRect resume;
     private bool isResumePressed;
     private bool wasPointerDown;
@@ -29,6 +30,7 @@ public sealed class CoreGuiOverlay
             (value ? MenuOpened : MenuClosed).Fire();
         }
     }
+    public bool IsBackpackEnabled { get; set; } = true;
     public bool IsPlayerListEnabled { get; set; } = true;
     public bool IsConsoleVisible { get => isConsoleVisible; set => isConsoleVisible = value; }
 

@@ -10,14 +10,37 @@ internal sealed partial class BackendBindings
         result = 0;
         if(instance is UserInputService input && method=="IsKeyDown")
         { result=Push(state,input.IsKeyDown(Read(state,2) as Datatypes.GuiEnum ?? throw new InvalidOperationException("Expected Enum.KeyCode."))); return true; }
+        if (instance is ContextActionService actions && TryCallContextAction(state, actions, method, out result)) return true;
+        if (TryCallTools(state, instance, method)) return true;
         if (TryCallCoreGui(state, instance, method, out result)) return true;
+        if (TryCallTween(state, instance, method, out result)) return true;
+        if (instance is UserInputService deviceInput && method is "GetLastInputType" or "GetGamepadConnected" or "GetImageForKeyCode")
+        {
+            result = method switch
+            {
+                "GetLastInputType" => Push(state, deviceInput.LastInputType),
+                "GetGamepadConnected" => Push(state, deviceInput.GamepadEnabled && Read(state, 2) is Datatypes.GuiEnum { EnumType: "UserInputType", Name: "Gamepad1" }),
+                _ => Push(state, ""),
+            };
+            return true;
+        }
         if (TryCallGui(state, instance, method, out result)) return true;
         if (!IsMethod(instance, method) || method == "AddItem") return false;
         if (instance.ClassName == "CollectionService") { result = CallCollection(state, method); return true; }
+        if (instance.ClassName == "BadgeService") { result = CallBadgeStub(state, method); return true; }
         if (instance.ClassName == "HttpService") { result = CallJson(state, method); return true; }
         if (instance.ClassName is "DataStoreService" or "GlobalDataStore") { result = CallStore(state, instance, method); return true; }
         switch (method)
         {
+            case "UserOwnsGamePassAsync":
+                Number(state, 2);
+                Number(state, 3);
+                result = Push(state, false);
+                break;
+            case "PromptGamePassPurchase":
+                var purchaser = Require(state, 2) as Player ?? throw new ArgumentException("Expected Player.");
+                ((MarketplaceService)instance).PromptGamePassPurchase(purchaser, Number(state, 3));
+                break;
             case "GetTouchingParts": result = List(state, ((BasePart)instance).GetTouchingParts()); break;
             case "GetPlayerFromCharacter": result = Push(state, ((Players)instance).GetPlayerFromCharacter(Require(state, 2))); break;
             case "SetAttribute": instance.SetAttribute(Text(state, 2), Read(state, 3)); break;

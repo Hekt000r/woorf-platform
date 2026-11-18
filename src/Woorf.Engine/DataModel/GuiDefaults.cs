@@ -14,6 +14,7 @@ internal static class GuiDefaults
         ["UIComponent"] = "UIBase", ["UIConstraint"] = "UIComponent", ["UILayout"] = "UIComponent",
         ["UIGridStyleLayout"] = "UILayout", ["UIListLayout"] = "UIGridStyleLayout", ["UIGridLayout"] = "UIGridStyleLayout",
         ["UIPadding"] = "UIComponent", ["UICorner"] = "UIComponent", ["UIStroke"] = "UIComponent", ["UIScale"] = "UIComponent",
+        ["UIGradient"] = "UIComponent",
         ["UIAspectRatioConstraint"] = "UIConstraint", ["UISizeConstraint"] = "UIConstraint", ["UITextSizeConstraint"] = "UIConstraint",
     };
     internal static bool IsCreatable(string name) => Classes.ContainsKey(name) && name is not
@@ -23,6 +24,7 @@ internal static class GuiDefaults
     internal static Dictionary<string, object> Create(string className)
     {
         var values = new Dictionary<string, object>();
+        if (ClassCatalog.IsA(className, "GuiBase2d")) values["AutoLocalize"] = true;
         if (className == "ScreenGui") AddScreen(values);
         if (ClassCatalog.IsA(className, "GuiObject")) AddObject(values, className);
         if (className is "TextLabel" or "TextButton" or "TextBox") AddText(values, className);
@@ -37,6 +39,7 @@ internal static class GuiDefaults
     {
         p["Enabled"] = true; p["ResetOnSpawn"] = true; p["DisplayOrder"] = 0d;
         p["IgnoreGuiInset"] = false; p["ZIndexBehavior"] = E("ZIndexBehavior", "Sibling");
+        p["ScreenInsets"] = E("ScreenInsets", "CoreUISafeInsets");
         p["AbsolutePosition"] = default(Vector2); p["AbsoluteSize"] = default(Vector2); p["AbsoluteRotation"] = 0d;
     }
 
@@ -44,6 +47,9 @@ internal static class GuiDefaults
     {
         p["Position"] = default(UDim2); p["Size"] = new UDim2(0, 100, 0, 100); p["AnchorPoint"] = default(Vector2);
         p["Visible"] = true; p["Active"] = name is "TextButton" or "ImageButton" or "TextBox" or "ScrollingFrame";
+        p["Selectable"] = name is "TextButton" or "ImageButton";
+        p["SelectionGroup"] = false;
+        p["Draggable"] = false;
         p["Interactable"] = true; p["ZIndex"] = 1d; p["LayoutOrder"] = 0d; p["Rotation"] = 0d;
         p["ClipsDescendants"] = name == "ScrollingFrame";
         p["BackgroundColor3"] = new Color3(1, 1, 1); p["BackgroundTransparency"] = 0d;
@@ -60,7 +66,7 @@ internal static class GuiDefaults
         p["ContentText"] = p["Text"]; p["TextColor3"] = new Color3(0, 0, 0); p["TextTransparency"] = 0d;
         p["TextSize"] = 14d; p["TextScaled"] = false; p["TextWrapped"] = false;
         p["TextXAlignment"] = E("TextXAlignment", "Center"); p["TextYAlignment"] = E("TextYAlignment", "Center");
-        p["Font"] = E("Font", "Legacy"); p["TextBounds"] = default(Vector2); p["TextFits"] = true;
+        p["Font"] = E("Font", "Legacy"); p["FontFace"] = FontFace.FromEnum((GuiEnum)p["Font"]); p["TextBounds"] = default(Vector2); p["TextFits"] = true;
         p["RichText"] = false; p["LineHeight"] = 1d; p["MaxVisibleGraphemes"] = -1d;
         p["TextStrokeColor3"] = new Color3(0, 0, 0); p["TextStrokeTransparency"] = 1d;
         p["TextTruncate"] = E("TextTruncate", "None");
@@ -75,12 +81,20 @@ internal static class GuiDefaults
         p["Image"] = ""; p["ImageColor3"] = new Color3(1, 1, 1); p["ImageTransparency"] = 0d;
         p["ImageRectOffset"] = default(Vector2); p["ImageRectSize"] = default(Vector2);
         p["ScaleType"] = E("ScaleType", "Stretch"); p["TileSize"] = UDim2.FromScale(1, 1);
+        p["SliceCenter"] = default(Rect); p["SliceScale"] = 1d;
     }
 
     private static void AddScrolling(Dictionary<string, object> p)
     {
         p["CanvasSize"] = UDim2.FromScale(0, 2); p["CanvasPosition"] = default(Vector2);
         p["ScrollingEnabled"] = true; p["ScrollingDirection"] = E("ScrollingDirection", "XY");
+        p["HorizontalScrollBarInset"] = E("ScrollBarInset", "None");
+        p["VerticalScrollBarInset"] = E("ScrollBarInset", "None");
+        p["ElasticBehavior"] = E("ElasticBehavior", "WhenScrollable");
+        p["VerticalScrollBarPosition"] = E("VerticalScrollBarPosition", "Right");
+        p["TopImage"] = "rbxasset://textures/ui/Scroll/scroll-top.png";
+        p["MidImage"] = "rbxasset://textures/ui/Scroll/scroll-middle.png";
+        p["BottomImage"] = "rbxasset://textures/ui/Scroll/scroll-bottom.png";
         p["ScrollBarThickness"] = 12d; p["ScrollBarImageColor3"] = new Color3(0, 0, 0); p["ScrollBarImageTransparency"] = 0d;
         p["AutomaticCanvasSize"] = E("AutomaticSize", "None"); p["AbsoluteCanvasSize"] = default(Vector2); p["AbsoluteWindowSize"] = default(Vector2);
     }
@@ -92,12 +106,26 @@ internal static class GuiDefaults
             p["FillDirection"] = E("FillDirection", name == "UIGridLayout" ? "Horizontal" : "Vertical"); p["SortOrder"] = E("SortOrder", "Name");
             p["HorizontalAlignment"] = E("HorizontalAlignment", "Left"); p["VerticalAlignment"] = E("VerticalAlignment", "Top");
             p["AbsoluteContentSize"] = default(Vector2);
-            if (name == "UIListLayout") p["Padding"] = default(UDim);
+            if (name == "UIListLayout")
+            {
+                p["Padding"] = default(UDim);
+                p["HorizontalFlex"] = E("UIFlexAlignment", "None");
+                p["VerticalFlex"] = E("UIFlexAlignment", "None");
+                p["ItemLineAlignment"] = E("ItemLineAlignment", "Automatic");
+            }
             else { p["CellSize"] = UDim2.FromOffset(100, 100); p["CellPadding"] = UDim2.FromOffset(5, 5); p["FillDirectionMaxCells"] = 0d; }
         }
         if (name == "UIPadding") foreach (var side in new[] { "Top", "Bottom", "Left", "Right" }) p["Padding" + side] = default(UDim);
         if (name == "UICorner") p["CornerRadius"] = new UDim(0, 8);
         if (name == "UIScale") p["Scale"] = 1d;
+        if (name == "UIGradient")
+        {
+            p["Color"] = SequenceValue.White;
+            p["Transparency"] = SequenceValue.Opaque;
+            p["Enabled"] = true;
+            p["Offset"] = default(Vector2);
+            p["Rotation"] = 0d;
+        }
         if (name == "UIStroke")
         {
             p["Enabled"] = true; p["Color"] = new Color3(0, 0, 0); p["Thickness"] = 1d; p["Transparency"] = 0d;
@@ -114,7 +142,6 @@ internal static class GuiDefaults
     internal static object Validate(string name, object previous, object value)
     {
         if (name is "Modal" or "Selected" && value is true
-            || name == "ScaleType" && value is GuiEnum { Name: "Slice" }
             || name == "LineJoinMode" && value is GuiEnum { Name: not "Round" })
             throw new NotSupportedException($"{name} mode is not supported by this GUI renderer.");
         if (previous is double)
@@ -127,6 +154,8 @@ internal static class GuiDefaults
             return number;
         }
         if (value is null || value.GetType() != previous.GetType()) throw new InvalidOperationException($"Invalid type for {name}.");
+        if (previous is SequenceValue sequence && value is SequenceValue actualSequence && sequence.Kind != actualSequence.Kind)
+            throw new InvalidOperationException($"Invalid sequence type for {name}.");
         if (previous is GuiEnum expected && value is GuiEnum actual && expected.EnumType != actual.EnumType)
             throw new InvalidOperationException($"{name} expects Enum.{expected.EnumType}.");
         if (value is Vector2 vector && (!float.IsFinite(vector.X) || !float.IsFinite(vector.Y))) throw new InvalidOperationException($"{name} expects finite Vector2.");

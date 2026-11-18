@@ -39,6 +39,23 @@ internal sealed class RenderRuntime : IDisposable
         }
     }
 
+    internal Woorf.Engine.Gui.ToolHotbar? CreateHotbar() => Player is { } player
+        ? new(player, ToggleTool, UseTool) : null;
+
+    private void ToggleTool(Tool tool)
+    {
+        if (local is not null) local.ToggleTool(tool);
+        else if (client is not null) client.ToggleTool(tool);
+        else if (Player is { } player) PlayerInventory.Toggle(player, tool);
+    }
+
+    private void UseTool(bool isDown)
+    {
+        if (local is not null) local.UseTool(isDown);
+        else if (client is not null) client.UseTool(isDown);
+        else if (Player is { } player) PlayerInventory.Use(player, isDown);
+    }
+
     internal CharacterViewer? CreateViewer() => Player is null ? null : new(Player, client is null && local is null ? null : SendInput);
     private void SendInput(CharacterInput input)
     {

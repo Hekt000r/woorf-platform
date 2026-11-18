@@ -11,6 +11,7 @@ public sealed partial class GuiScene
         var corner = decorators.FirstOrDefault(child => child.ClassName == "UICorner");
         var radius = corner is null ? 0 : Resolve(Value(corner, "CornerRadius", new UDim(0, 8)), Math.Min(bounds.Width, bounds.Height), scale);
         var rotation = Number(item, "Rotation");
+        var firstCommand = commands.Count;
         var border = Number(item, "BorderSizePixel", 1) * scale;
         if (border > 0)
             commands.Add(new("Rectangle", new(bounds.X - border, bounds.Y - border, bounds.Width + border * 2, bounds.Height + border * 2),
@@ -20,6 +21,13 @@ public sealed partial class GuiScene
         if (item.HasGuiProperty("Image"))
             DrawImage(item, bounds, clip, opacity, radius, rotation, scale);
         if (item.HasGuiProperty("Text")) DrawText(item, bounds, clip, opacity, scale, rotation);
+        var gradient = decorators.FirstOrDefault(child => child.ClassName == "UIGradient" && Value(child, "Enabled", true));
+        if (gradient is not null && item.ClassName is not ("ScrollingFrame" or "TextBox"))
+        {
+            var fill = GuiGradient.Create(gradient, bounds);
+            for (var index = firstCommand; index < commands.Count; index++)
+                commands[index] = commands[index] with { Gradient = fill, GradientBounds = bounds };
+        }
         var stroke = decorators.FirstOrDefault(child => child.ClassName == "UIStroke" && Value(child, "Enabled", true));
         if (stroke is not null)
         {

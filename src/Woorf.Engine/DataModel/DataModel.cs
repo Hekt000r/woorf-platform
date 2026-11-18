@@ -35,6 +35,8 @@ public sealed class DataModel : Instance
         var service = FindService(className);
         if (service is not null) return service;
         Instance created = className == "Workspace" ? new Workspace() : Instance.CreateRuntime(className);
+        if (className == "TextChatService")
+            Instance.CreateRuntime("ChatInputBarConfiguration").Parent = created;
         created.Parent = this;
         return created;
     }

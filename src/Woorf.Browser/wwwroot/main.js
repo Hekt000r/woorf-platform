@@ -23,8 +23,13 @@ try {
             if (event.code === "Escape" && document.pointerLockElement === canvas) document.exitPointerLock();
             return;
         }
-        keys.add(event.code);
-        if(inputKey(event.code)) app.InputKey(inputKey(event.code),true);
+        if (!event.repeat && /^Digit[0-9]$/.test(event.code) && app.CoreKey(event.key, false)) {
+            event.preventDefault();
+            return;
+        }
+        const input = inputKey(event.code);
+        const consumed = input && app.InputKey(input,true);
+        if (!consumed) keys.add(event.code);
         const navigation = { ArrowLeft:'Left', ArrowRight:'Right', Home:'Home', End:'End', Delete:'Delete' };
         const key = (event.ctrlKey || event.metaKey) && event.code === 'KeyA' ? 'SelectAll' : navigation[event.key];
         if (key) { app.KeyInput(key,event.shiftKey); event.preventDefault(); }
@@ -36,62 +41,61 @@ try {
     window.addEventListener('keyup', event => { keys.delete(event.code); if(inputKey(event.code)) app.InputKey(inputKey(event.code),false); });
     let isPointerDown = false;
     let isRightDown = false;
-    const orbitCursor = document.createElement('span');
-    orbitCursor.hidden = true;
-    orbitCursor.setAttribute('aria-hidden', 'true');
-    orbitCursor.textContent = '↖';
-    Object.assign(orbitCursor.style, {
-        position: 'fixed', pointerEvents: 'none', zIndex: '1',
-        color: 'white', textShadow: '0 0 2px black, 0 0 3px black',
-        font: 'bold 18px/1 sans-serif'
-    });
-    document.body.append(orbitCursor);
-    const updateOrbitCursor = () => {
-        orbitCursor.hidden = !isRightDown || document.pointerLockElement !== canvas || app.CameraMotion(0,0,false);
+    canvas.style.cursor = 'none';
+    const sendPointer = (event, dx = 0, dy = 0, wheel = 0) => {
+        if (event.pointerType === "touch") app.Pointer(event.clientX,event.clientY,isPointerDown,wheel);
+        else app.GamePointer(event.clientX,event.clientY,dx,dy,isPointerDown,wheel,isRightDown);
     };
-    document.addEventListener('pointerlockchange', updateOrbitCursor);
     const captureMouse = () => {
         if (!document.pointerLockElement) canvas.requestPointerLock?.()?.catch?.(() => {});
     };
     canvas.addEventListener('contextmenu', event => event.preventDefault());
     window.addEventListener('pointermove', event => {
         app.CameraMotion(event.movementX,event.movementY,isRightDown);
-        app.Pointer(event.clientX,event.clientY,isPointerDown,0);
+        sendPointer(event,event.movementX,event.movementY);
     });
     window.addEventListener('pointerdown', event => {
-        if (event.button === 2) {
-            isRightDown = true;
-            orbitCursor.style.left = event.clientX + "px";
-            orbitCursor.style.top = event.clientY + "px";
-        }
-        if (app.CameraMotion(0,0,false) || isRightDown) captureMouse();
-        if (event.button !== 0) return;
-        isPointerDown = true;
-        app.Pointer(event.clientX,event.clientY,true,0);
+        if (event.button === 2) isRightDown = true;
+        if (app.CameraMotion(0,0,false)) captureMouse();
+        else if (event.button === 2 && event.target === canvas) canvas.setPointerCapture(event.pointerId);
+        if (event.button === 0) isPointerDown = true;
+        sendPointer(event);
     });
     window.addEventListener('pointerup', event => {
         if (event.button === 2) {
             isRightDown = false;
-            updateOrbitCursor();
             if (!app.CameraMotion(0,0,false) && document.pointerLockElement === canvas) document.exitPointerLock();
         }
         if (event.button !== 0) return;
         isPointerDown = false;
-        app.Pointer(event.clientX,event.clientY,false,0);
+        sendPointer(event);
     });
+    const endOrbit = () => {
+        isRightDown = false;
+    };
+    canvas.addEventListener('lostpointercapture', endOrbit);
+    canvas.addEventListener('pointercancel', endOrbit);
     window.addEventListener('wheel', event => {
         event.preventDefault();
         const steps = -event.deltaY / (event.deltaMode === 1 ? 3 : event.deltaMode === 2 ? 1 : 100);
-        app.Pointer(event.clientX,event.clientY,isPointerDown,steps);
+        sendPointer(event,0,0,steps);
         if (app.CameraMotion(0,0,false)) captureMouse();
-        else if (!isRightDown && document.pointerLockElement === canvas) document.exitPointerLock();
-        updateOrbitCursor();
+        else if (document.pointerLockElement === canvas) document.exitPointerLock();
     }, { passive:false });
-    window.addEventListener('blur', () => { keys.clear(); isPointerDown = false; isRightDown = false; updateOrbitCursor(); app.Blur(); app.Pointer(-1,-1,false,0); });
+    window.addEventListener('blur', () => { keys.clear(); isPointerDown = false; isRightDown = false; app.Blur(); app.Pointer(-1,-1,false,0); });
+    const gamepadButtons = ['ButtonA', 'ButtonB', 'ButtonX', 'ButtonY', 'ButtonL1', 'ButtonR1',
+        'ButtonL2', 'ButtonR2', 'ButtonSelect', 'ButtonStart', 'ButtonL3', 'ButtonR3',
+        'DPadUp', 'DPadDown', 'DPadLeft', 'DPadRight'];
+    const pollGamepad = () => {
+        const pads = document.hasFocus() ? navigator.getGamepads?.() : null;
+        const pad = pads && Array.from(pads).find(item => item?.mapping === 'standard');
+        gamepadButtons.forEach((name, index) => app.GamepadButton(name, pad?.buttons[index]?.pressed ?? false));
+    };
     let start;
     function frame(time) {
         start ??= time;
         try {
+            pollGamepad();
             canvas.width = innerWidth; canvas.height = innerHeight;
             const scene = JSON.parse(app.Frame((time-start)/1000, axis('KeyW','KeyS'), axis('KeyD','KeyA'), keys.has('Space'), keys.has('KeyR'), axis('ArrowLeft','ArrowRight'), axis('ArrowUp','ArrowDown'), canvas.width, canvas.height));
             render(scene.scene);

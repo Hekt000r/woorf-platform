@@ -115,7 +115,8 @@ Use the normal complete regression command before shipping further character wor
 ## Play camera
 
 Hold the right mouse button and drag to rotate the third-person camera. The
-cursor stays at the drag origin. Scroll
+game cursor stays at the drag origin and resumes from there when released.
+In-game buttons use its position. Scroll
 to zoom. At full zoom, the camera enters first person, follows mouse movement,
 and hides the local avatar. Scroll out to restore third person. Arrow keys still
 rotate the camera. The browser may require a click to grant pointer lock.
@@ -129,3 +130,22 @@ With `Humanoid.AutoRotate` enabled, characters gradually turn toward movement
 in third person and toward the camera heading in first person, even when standing
 still. Setting `AutoRotate` to false preserves the character’s facing.
 [Roblox Humanoid.AutoRotate](https://create.roblox.com/docs/reference/engine/classes/Humanoid#AutoRotate)
+
+## Tools and inventory
+
+Place Tool templates in StarterPack. On spawn, Woorf clones them and the
+player's StarterGear tools into a new Backpack. Use the bottom hotbar or keys
+1–9 and 0 to equip or unequip a tool. Click and release in the world to fire
+activation and deactivation. UI presses are routed separately. The hotbar
+uses tool names and exposes the first ten slots. LocalScripts can control
+its visibility with `StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, enabled)`.
+
+Luau can create Tool instances, call `Humanoid:EquipTool()`,
+`Humanoid:UnequipTools()`, `Tool:Activate()` and `Tool:Deactivate()`, and
+subscribe to equip and activation events. A required Handle must be a BasePart
+named Handle. Held parts follow the procedural right hand using Grip. Woorf
+currently supplies no Mouse argument to Equipped, no world pickup or drop
+behavior, and no full backpack browser for tools beyond the hotbar. Imported
+TextureId and ToolTip values are available to scripts.
+
+[Roblox Tool reference](https://create.roblox.com/docs/reference/engine/classes/Tool)

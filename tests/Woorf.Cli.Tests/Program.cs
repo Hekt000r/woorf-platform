@@ -1,5 +1,13 @@
 using System.Diagnostics;
 
+if (args is ["--camera"]) return CameraTests.Run();
+
+if (args is ["--context-actions"]) return ContextActionTests.Run();
+if (args is ["--shared-globals"]) return SharedGlobalsTests.Run();
+if (args is ["--bindable-function"]) return BindableFunctionTests.Run();
+if (args is ["--brickcolor"]) return BrickColorTests.Run();
+if (args is ["--roblox-import"]) return RobloxImportTests.Run();
+if (args is ["--tools"]) return ToolTests.Run();
 if (args is ["--core-gui"]) return CoreGuiTests.Run();
 if (args.Length == 1 && args[0] == "--arena") return ArenaGameTests.Run();
 if (args.Length == 1 && args[0] == "--arena-engine") return ArenaEngineTests.Run();

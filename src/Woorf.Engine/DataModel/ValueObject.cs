@@ -10,6 +10,7 @@ public sealed class ValueObject : Instance
         value = className switch
         {
             "Vector3Value" => new Vector3(), "CFrameValue" => CFrame.Identity, "Color3Value" => new Color3(),
+            "BrickColorValue" => default(BrickColor),
             "StringValue" => "", "BoolValue" => false, "ObjectValue" => null,
  _ => 0d,
         };
@@ -23,6 +24,7 @@ public sealed class ValueObject : Instance
             var isValid = ClassName switch
             {
                 "Vector3Value" => value is Vector3, "CFrameValue" => value is CFrame, "Color3Value" => value is Color3,
+                "BrickColorValue" => value is BrickColor,
                 "StringValue" => value is string, "BoolValue" => value is bool,
                 "ObjectValue" => value is null or Instance,
                     _ => value is double,

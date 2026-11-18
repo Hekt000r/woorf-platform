@@ -16,7 +16,7 @@ public sealed class LocalPlayHost : IDisposable
 
     public LocalPlayHost(LoadedProject project, IRuntimeClock clock)
     {
-        host = new(project, clock);
+        host = new(project, clock) { IsInteractivePreview = true };
         try
         {
             ((Players)project.Game.GetService("Players")).CharacterAutoLoads = true;
@@ -39,6 +39,18 @@ public sealed class LocalPlayHost : IDisposable
         humanoid.Move(direction);
         if (shouldJump) humanoid.Jump = true;
         if (shouldReset) humanoid.Health = 0;
+    }
+
+    public void ToggleTool(Tool tool)
+    {
+        if (host.GetAuthorityTool(authority, tool) is { } original) PlayerInventory.Toggle(authority, original);
+        else PlayerInventory.Toggle(Player, tool);
+    }
+
+    public void UseTool(bool isDown)
+    {
+        PlayerInventory.Use(Player, isDown);
+        PlayerInventory.Use(authority, isDown);
     }
 
     public int Finish(int status) { Dispose(); return status != 0 || HasFailed ? 1 : 0; }

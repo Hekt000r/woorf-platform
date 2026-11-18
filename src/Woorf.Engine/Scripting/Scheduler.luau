@@ -117,7 +117,7 @@ local function resumeThread(thread, arguments, context)
     currentOwner = previousOwner
     if not result[1] then
         if contexts[thread] == "Script failed: " then hasRootFailure = true end
-        report(contexts[thread] .. tostring(result[2]))
+        report(contexts[thread] .. tostring(result[2]) .. "\n" .. debug.traceback(thread))
     end
     if coroutine.status(thread) == "dead" then
         clearThreadCleanups(thread)
@@ -190,6 +190,16 @@ function tasks.wait(duration)
 end
 function tasks.cancel(thread) cancelThread(thread) end
 task = table.freeze(tasks)
+
+function spawn(callback)
+    assert(type(callback) == "function", "Expected function")
+    tasks.defer(callback)
+end
+
+function wait(duration)
+    local elapsed = tasks.wait(math.max(getDuration(duration), 1 / 30))
+    return elapsed, clock()
+end
 
 function _woorf_scheduler_failed() return hasRootFailure end
 
@@ -316,7 +326,7 @@ function require(module)
             for _, thread in waiters do resumeThread(thread, table.pack()) end
         end
         addThreadCancellation(ownerThread, cancelLoad)
-        local outcome = table.pack(pcall(function() return loadModule(module)() end))
+        local outcome = table.pack(xpcall(function() return loadModule(module)() end, debug.traceback))
         removeThreadCancellation(ownerThread, cancelLoad)
         if not outcome[1] then entry.error = tostring(outcome[2])
         elseif outcome.n ~= 2 then entry.error = "ModuleScript must return exactly one value."

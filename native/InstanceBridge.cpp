@@ -22,6 +22,14 @@ static int dispatchHost(lua_State* state)
             lua_call(state, std::string(operation) == "get" ? 1 : 2, LUA_MULTRET);
             return lua_gettop(state) - count;
         }
+        if (property == "OnInvoke")
+        {
+            const int count = lua_gettop(state);
+            lua_getglobal(state, std::string(operation) == "get" ? "_woorf_bindable_get" : "_woorf_bindable_set");
+            lua_insert(state, 1);
+            lua_call(state, count, LUA_MULTRET);
+            return lua_gettop(state);
+        }
         if (property == "OnServerInvoke" || property == "OnClientInvoke")
         {
             const int count = lua_gettop(state);
@@ -59,6 +67,23 @@ WOORF_EXPORT void woorf_push_method(lua_State* state, const char* operation)
     if (std::string(operation) == "AddItem" || std::string(operation) == "Raycast")
     {
         lua_getglobal(state, std::string(operation) == "AddItem" ? "_woorf_add_item" : "_woorf_raycast");
+        return;
+    }
+    const std::string name(operation);
+    if (name == "TweenCreate" || name == "TweenGetValue" || name == "TweenPlay" || name == "TweenPause" || name == "TweenCancel")
+    {
+        lua_getglobal(state, ("_woorf_" + name).c_str());
+        return;
+    }
+    if (name == "BindAction" || name == "BindActionAtPriority" || name == "BindActionToInputTypes" ||
+        name == "UnbindAction" || name == "UnbindAllActions")
+    {
+        lua_getglobal(state, ("_woorf_context_" + name).c_str());
+        return;
+    }
+    if (std::string(operation) == "Invoke")
+    {
+        lua_getglobal(state, "_woorf_invoke_bindable");
         return;
     }
     if (std::string(operation) == "InvokeServer" || std::string(operation) == "InvokeClient")

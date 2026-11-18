@@ -21,6 +21,29 @@ try {
     await until(()=>texts().includes('Performance'));
     key('keydown','F4','F4',true);
     await until(()=>!texts().includes('Performance'));
+    const canvas = document.getElementById('game');
+    let lockRequests = 0;
+    let capturedPointer;
+    const requestPointerLock = canvas.requestPointerLock;
+    const setPointerCapture = canvas.setPointerCapture;
+    canvas.requestPointerLock = () => { lockRequests++; };
+    canvas.setPointerCapture = pointerId => { capturedPointer = pointerId; };
+    const cursorBounds = () => globalThis.woorf.scene.gui.at(-1).Bounds;
+    const pointer = (type, init) => canvas.dispatchEvent(new PointerEvent(type, {
+        pointerId:1, clientX:400, clientY:300, bubbles:true, ...init
+    }));
+    pointer('pointermove', {});
+    await until(() => cursorBounds().X === 400 && cursorBounds().Y === 300);
+    pointer('pointerdown', {button:2, buttons:2});
+    pointer('pointermove', {buttons:2, clientX:520, movementX:120});
+    pointer('pointerup', {button:2, clientX:520});
+    await new Promise(resolve => requestAnimationFrame(resolve));
+    if (cursorBounds().X !== 400) throw new Error('Releasing orbit moved the game cursor.');
+    pointer('pointermove', {clientX:525, movementX:5});
+    await until(() => cursorBounds().X === 405);
+    canvas.requestPointerLock = requestPointerLock;
+    canvas.setPointerCapture = setPointerCapture;
+    if (lockRequests || capturedPointer !== 1) throw new Error('Third-person orbit must capture the pointer without requesting pointer lock.');
     key('keydown','KeyE','e'); key('keyup','KeyE','e');
     await until(()=>texts().some(text=>/^SHOVE\s+1\./.test(text)));
     key('keydown','KeyQ','q'); key('keyup','KeyQ','q');

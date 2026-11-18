@@ -12,6 +12,7 @@ public sealed partial class LocalNetworkHost : IDisposable, IRuntimeHost
     private bool isStarted;
     private bool isDisposed;
     internal bool HasFailed { get; private set; }
+    internal bool IsInteractivePreview { get; init; }
     private int nextPlayerId;
     private readonly Queue<Player> disconnects = [];
 

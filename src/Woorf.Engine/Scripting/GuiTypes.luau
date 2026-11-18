@@ -118,3 +118,127 @@ UDim = table.freeze({new = udim})
 UDim2 = table.freeze({new = udim2, fromScale = function(x,y) return udim2(x,0,y,0) end,
     fromOffset = function(x,y) return udim2(0,x,0,y) end})
 
+
+_woorf_gui_metatable(4, {
+    __type = "BrickColor",
+    __metatable = "The metatable is locked",
+    __index = _woorf_brickcolor_get,
+    __newindex = function() error("BrickColor is read-only", 2) end,
+    __eq = function(a, b) return equals(4, a, b) end,
+    __tostring = function(value) return value.Name end,
+})
+
+_woorf_gui_metatable(5, {
+    __type = "Font",
+    __metatable = "The metatable is locked",
+    __index = _woorf_font_get,
+    __newindex = function() error("Font is read-only", 2) end,
+    __eq = function(a, b)
+        return typeof(b) == "Font" and a.Family == b.Family and a.Weight == b.Weight and a.Style == b.Style
+    end,
+})
+
+local newSequence, getSequence = _woorf_sequence_new, _woorf_sequence_get
+_woorf_sequence_new, _woorf_sequence_get = nil, nil
+
+local names = {"ColorSequenceKeypoint", "NumberSequenceKeypoint", "ColorSequence", "NumberSequence"}
+local function makeKeypoint(kind, time, value, envelope)
+    assert(type(time) == "number" and time >= 0 and time <= 1, "Keypoint time must be between 0 and 1")
+    if kind == 0 then
+        assert(typeof(value) == "Color3", "Expected Color3")
+        return newSequence(kind, time, value.R, value.G, value.B)
+    end
+    envelope = if envelope == nil then 0 else envelope
+    local maxFloat = 3.4028234663852886e38
+    assert(type(value) == "number" and math.abs(value) <= maxFloat, "Expected finite number")
+    assert(type(envelope) == "number" and envelope >= 0 and envelope <= maxFloat, "Expected nonnegative envelope")
+    return newSequence(kind, time, value, envelope)
+end
+
+local function makeSequence(kind, first, last)
+    local keyKind = kind - 2
+    local points = first
+    if type(first) ~= "table" then
+        points = {makeKeypoint(keyKind, 0, first), makeKeypoint(keyKind, 1, if last == nil then first else last)}
+    end
+    assert(#points >= 2 and #points <= 20, "Expected between 2 and 20 keypoints")
+    local flat = {}
+    local previous = 0
+    for i = 1, #points do
+        local point = points[i]
+        assert(typeof(point) == names[keyKind + 1], "Invalid keypoint type")
+        local parts = getSequence(point, keyKind)
+        local time = parts[1]
+        assert(time >= previous and (i ~= 1 or time == 0) and (i ~= #points or time == 1),
+            "Keypoints must be ordered and span 0 to 1")
+        previous = time
+        for _, component in ipairs(parts) do table.insert(flat, component) end
+    end
+    return newSequence(kind, table.unpack(flat))
+end
+
+local function getProperty(value, kind, key)
+    local parts = getSequence(value, kind)
+    if kind < 2 then
+        if key == "Time" then return parts[1] end
+        if key == "Value" then
+            return if kind == 0 then Color3.new(parts[2], parts[3], parts[4]) else parts[2]
+        end
+        if kind == 1 and key == "Envelope" then return parts[3] end
+    elseif key == "Keypoints" then
+        local points = {}
+        local stride = if kind == 2 then 4 else 3
+        for i = 1, #parts, stride do
+            table.insert(points, newSequence(kind - 2, table.unpack(parts, i, i + stride - 1)))
+        end
+        return points
+    end
+    error("Unknown sequence member " .. tostring(key), 2)
+end
+
+for index, name in ipairs(names) do
+    local kind = index - 1
+    _woorf_gui_metatable(6 + kind, {
+        __type = name,
+        __metatable = "The metatable is locked",
+        __index = function(value, key) return getProperty(value, kind, key) end,
+        __newindex = function() error(name .. " is read-only", 2) end,
+        __eq = function(a, b)
+            if typeof(b) ~= name then return false end
+            local left, right = getSequence(a, kind), getSequence(b, kind)
+            if #left ~= #right then return false end
+            for i, value in ipairs(left) do
+                if value ~= right[i] then return false end
+            end
+            return true
+        end,
+    })
+end
+
+ColorSequenceKeypoint = table.freeze({new = function(t, c) return makeKeypoint(0, t, c) end})
+NumberSequenceKeypoint = table.freeze({new = function(t, v, e) return makeKeypoint(1, t, v, e) end})
+ColorSequence = table.freeze({new = function(a, b) return makeSequence(2, a, b) end})
+NumberSequence = table.freeze({new = function(a, b) return makeSequence(3, a, b) end})
+
+local function rectangle(a, b, c, d)
+    if typeof(a) == "Vector2" then
+        assert(typeof(b) == "Vector2", "Expected two Vector2 values")
+        a, b, c, d = a.X, a.Y, b.X, b.Y
+    end
+    a, b, c, d = a or 0, b or 0, c or 0, d or 0
+    return construct(10, math.min(a, c), math.min(b, d), math.max(a, c), math.max(b, d))
+end
+
+_woorf_gui_metatable(10, {
+    __type = "Rect", __metatable = "The metatable is locked",
+    __eq = function(a, b) return equals(10, a, b) end,
+    __index = function(value, key)
+        local x0, y0, x1, y1 = values(value, 10)
+        if key == "Min" then return vector2(x0, y0) end
+        if key == "Max" then return vector2(x1, y1) end
+        if key == "Width" then return x1 - x0 end
+        if key == "Height" then return y1 - y0 end
+        error("Unknown Rect member " .. tostring(key), 2)
+    end,
+})
+Rect = table.freeze({new = rectangle})

@@ -8,6 +8,9 @@ public sealed partial class GuiScene
     private GuiInstance? hovered, pressed, focused, inputPressed;
     private bool wasPointerDown;
     private float previousPointerX, previousPointerY;
+    private GuiInstance? dragged;
+    private Vector2 dragOrigin;
+    private UDim2 dragPosition;
 
     public bool Pointer(float x, float y, bool isDown, float wheel = 0)
     {
@@ -31,13 +34,26 @@ public sealed partial class GuiScene
         {
             pressed = current;
             inputPressed = hoverTarget;
+            if (current is not null && Value(current, "Draggable", false))
+            {
+                dragged = current;
+                dragOrigin = new(x, y);
+                dragPosition = current.Get<UDim2>("Position");
+                current.FireGuiSignal("DragBegin", dragPosition);
+            }
             FireInput(inputPressed, "InputBegan", new(new(x, y, 0), default, "MouseButton1", "Begin"));
             if (focused != current) ReleaseFocus(false);
             if (current?.ClassName == "TextBox" && Value(current, "TextEditable", true)) Focus(current);
             if (current?.IsA("GuiButton") == true && Value(current, "Active", true)) current.FireGuiSignal("MouseButton1Down", (double)x, (double)y);
         }
+        if (isDown && dragged is { IsDestroyed: false } drag && Value(drag, "Draggable", false))
+            drag.SetGuiProperty("Position", new UDim2(dragPosition.X.Scale, dragPosition.X.Offset + (int)(x - dragOrigin.X),
+                dragPosition.Y.Scale, dragPosition.Y.Offset + (int)(y - dragOrigin.Y)));
         if (!isDown && wasPointerDown)
         {
+            var previousDrag = dragged;
+            dragged = null;
+            previousDrag?.FireGuiSignal("DragStopped", (double)x, (double)y);
             ReleasePointer(current, x, y);
         }
         wasPointerDown = isDown;

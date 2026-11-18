@@ -40,7 +40,7 @@ internal sealed class ScriptLifecycle : IDisposable
             return script.RunContext == 2 && script.GetAncestors().Any(parent => parent.ClassName is "Workspace" or "ReplicatedStorage" or "ReplicatedFirst");
         }
         if (isClient) return false;
-        return script.GetAncestors().Any(parent => parent.ClassName is "Workspace" or "ServerScriptService"
+        return script.GetAncestors().Any(parent => parent.ClassName is "Workspace" or "ServerScriptService" or "Backpack"
             || script.RunContext == 1 && parent.ClassName == "ReplicatedStorage");
     }
 

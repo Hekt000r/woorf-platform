@@ -14,7 +14,7 @@ if (-not (Test-Path -LiteralPath $sourcePath -PathType Container)) { throw 'Proj
 $files = [ordered]@{ 'woorf.project.json' = [IO.File]::ReadAllText($manifestPath) }
 foreach ($entry in Get-ChildItem -LiteralPath $sourcePath -Recurse -Force) {
     if ($entry.Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'Linked source paths are unsupported.' }
-    if ($entry.PSIsContainer -or ($entry.Extension -ne '.luau' -and $entry.Name -ne 'init.meta.json')) { continue }
+    if ($entry.PSIsContainer -or ($entry.Extension -ne '.luau' -and $entry.Name -ne 'init.meta.json' -and $entry.Name -ne 'instances.json')) { continue }
     $path = [IO.Path]::GetRelativePath($projectPath, $entry.FullName).Replace('\', '/')
     $files[$path] = [IO.File]::ReadAllText($entry.FullName)
 }

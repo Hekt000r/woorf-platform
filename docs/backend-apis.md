@@ -95,3 +95,43 @@ Older explicit protocol versions are rejected. Use matching server/client builds
 
 The [round game](../examples/round-game/README.md) also combines these APIs in a
 separate-process acceptance test with leave/shutdown saves and a server restart.
+
+## BadgeService stubs
+
+BadgeService exposes the Roblox method names so imported scripts can start.
+Award and ownership checks return false. Batch lookups return empty tables.
+GetBadgeInfoAsync returns an empty name and description, icon ID 0, and
+IsEnabled=false. IsDisabled returns true and IsLegal returns false. Calls
+complete synchronously and have no persistent effects.
+
+## BrickColor
+
+Woorf implements the documented 208 named colors and 128 palette indices,
+constructor overloads, named constructors, and random palette selection.
+BrickColor values are immutable. BrickColorValue stores and replicates the
+typed value and passes it to Changed. BasePart.BrickColor and BasePart.Color
+share the part appearance. Team.TeamColor and Player.TeamColor use BrickColor.
+Roblox place imports preserve supported BrickColor properties and values.
+
+[Roblox BrickColor reference and palette](https://create.roblox.com/docs/reference/engine/datatypes/BrickColor)
+
+## BindableFunction
+
+BindableFunction.OnInvoke is a write-only callback. Invoke waits for a
+callback, forwards the arguments, and returns the callback's results, including
+nil positions in a return tuple. Callbacks can yield. Argument and return tables
+are copied without metatables. Callback errors propagate to the invoker. Callback
+registrations stay in the VM that assigned them.
+
+[Roblox BindableFunction reference](https://create.roblox.com/docs/reference/engine/classes/BindableFunction)
+
+## MarketplaceService game-pass stubs
+
+UserOwnsGamePassAsync always returns false. PromptGamePassPurchase immediately
+fires PromptGamePassPurchaseFinished with wasPurchased=false in the calling
+runtime. No purchase UI, transactions, or entitlements are involved.
+
+DataStore operations accept string keys and finite numeric keys from Luau.
+Numeric keys use invariant round-trip formatting before lookup, so the numeric
+user ID 123 and string "123" address the same local entry. Store names and
+scopes still require strings.

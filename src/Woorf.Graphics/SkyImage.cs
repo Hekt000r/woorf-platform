@@ -5,6 +5,15 @@ namespace Woorf.Graphics;
 
 public sealed record SkyImage(int Width, int Height, byte[] Pixels)
 {
+    internal static SkyImage? TryLoad(string content)
+    {
+        try { return Load(content); }
+        catch (Exception error) when (error is IOException or InvalidDataException or UnauthorizedAccessException)
+        {
+            return null;
+        }
+    }
+
     public static SkyImage Load(string content)
     {
         using var stream = Open(content);

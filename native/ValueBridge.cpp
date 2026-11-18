@@ -22,7 +22,7 @@ WOORF_EXPORT int woorf_value_kind(lua_State* state, int index)
     if (lua_touserdatatagged(state, index, 4)) return 11;
     if (lua_touserdatatagged(state, index, 5)) return 12;
     if (lua_touserdatatagged(state, index, 6)) return 13;
-    for (int kind = 0; kind < 4; ++kind)
+    for (int kind = 0; kind < 11; ++kind)
         if (lua_touserdatatagged(state, index, 7 + kind)) return 14 + kind;
     return 4;
 }

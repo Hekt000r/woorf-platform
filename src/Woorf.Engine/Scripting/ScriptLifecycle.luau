@@ -60,7 +60,7 @@ function _woorf_shape_get(part)
     for item, shape in partByItem do if shape == value then return item end end
 end
 function _woorf_shape_set(part, item)
-    local value = partByItem[item]
+    local value = if type(item) == "number" then item else partByItem[item]
     assert(value ~= nil and value <= 1, "Expected supported Enum.PartType item (Ball or Block)")
     part._Shape = value
 end

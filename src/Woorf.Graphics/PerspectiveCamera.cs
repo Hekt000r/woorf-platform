@@ -6,6 +6,7 @@ public sealed class PerspectiveCamera
 {
     public Vector3 Position { get; set; } = new(18, 14, 22);
     public Vector3 Target { get; set; } = new(0, 2, 0);
+    public Vector3? Up { get; set; }
     public float FieldOfView { get; set; } = MathF.PI / 3;
     public float NearPlane { get; set; } = 0.1f;
     public float FarPlane { get; set; } = 2000;
@@ -13,7 +14,7 @@ public sealed class PerspectiveCamera
     public Matrix4x4 GetSkyInverseViewProjection(float aspect)
     {
         var centered = new PerspectiveCamera { Position = Vector3.Zero, Target = Target - Position,
-            FieldOfView = FieldOfView, NearPlane = NearPlane, FarPlane = FarPlane };
+            FieldOfView = FieldOfView, NearPlane = NearPlane, FarPlane = FarPlane, Up = Up };
         if (!Matrix4x4.Invert(centered.GetViewProjection(aspect), out var inverse))
             throw new InvalidOperationException("Sky camera must be invertible.");
         return inverse;
@@ -27,7 +28,7 @@ public sealed class PerspectiveCamera
         if (!IsFinite(Position) || !IsFinite(Target) || Vector3.DistanceSquared(Position, Target) < 1e-10f)
             throw new InvalidOperationException("Camera position and target must be finite and distinct.");
         var direction = Vector3.Normalize(Target - Position);
-        var up = MathF.Abs(Vector3.Dot(direction, Vector3.UnitY)) > 0.999f ? Vector3.UnitZ : Vector3.UnitY;
+        var up = Up ?? (MathF.Abs(Vector3.Dot(direction, Vector3.UnitY)) > 0.999f ? Vector3.UnitZ : Vector3.UnitY);
         var scale = 1 / MathF.Tan(FieldOfView / 2);
         // System.Numerics uses row vectors; transpose on upload is implicit in the column-major GL interpretation.
         var projection = new Matrix4x4(scale / aspect, 0, 0, 0, 0, scale, 0, 0,

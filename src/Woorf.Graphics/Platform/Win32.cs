@@ -58,8 +58,18 @@ internal static class Win32
     [DllImport("user32")] internal static extern short GetAsyncKeyState(int key);
     [StructLayout(LayoutKind.Sequential)]
     internal record struct Point(int X, int Y);
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct GamepadState
+    {
+        internal uint Packet;
+        internal ushort Buttons;
+        internal byte LeftTrigger, RightTrigger;
+        internal short LeftX, LeftY, RightX, RightY;
+    }
+    [DllImport("xinput1_4.dll")] internal static extern uint XInputGetState(uint index, out GamepadState state);
     [DllImport("user32")] internal static extern bool GetCursorPos(out Point point);
     [DllImport("user32")] internal static extern bool ClientToScreen(nint window, ref Point point);
+    [DllImport("user32")] internal static extern nint SetCursor(nint cursor);
     [DllImport("user32")] internal static extern bool SetCursorPos(int x, int y);
     [DllImport("user32")] internal static extern nint GetForegroundWindow();
     [DllImport("user32")] internal static extern bool SetWindowPos(nint window, nint insertAfter, int x, int y, int width, int height, uint flags);

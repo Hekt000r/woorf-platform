@@ -27,9 +27,41 @@ internal sealed partial class BackendBindings : IDisposable
     internal bool TryRead(nint state, Instance instance, string property, out int result)
     {
         result = 1;
+        if (instance.ClassName == "GamepadService" && property == "GamepadCursorEnabled")
+        {
+            Push(state, false);
+            return true;
+        }
+        if (property == "VREnabled" && instance.ClassName is "VRService" or "UserInputService")
+        {
+            Push(state, false);
+            return true;
+        }
+        if (instance.ClassName == "ChatInputBarConfiguration" && property == "IsFocused")
+        {
+            Push(state, false);
+            return true;
+        }
+        if (instance is MarketplaceService marketplace && property == "PromptGamePassPurchaseFinished")
+        {
+            signals.PushSignal(state, marketplace.PromptGamePassPurchaseFinished);
+            return true;
+        }
+        if (instance == game)
+        {
+            if (property is "PrivateServerId" or "VIPServerId") { Push(state, ""); return true; }
+            if (property is "PrivateServerOwnerId" or "VIPServerOwnerId") { Push(state, 0d); return true; }
+        }
+        if (instance is ContextActionService actions && TryReadContextAction(state, actions, property)) return true;
         if(instance is UserInputService input)
         {
             if(!((RunService)game.GetService("RunService")).IsClient()) throw new InvalidOperationException("UserInputService is client-only.");
+            if (property is "TouchEnabled" or "KeyboardEnabled" or "MouseEnabled")
+            { Push(state, property != "TouchEnabled"); return true; }
+            if (property == "GamepadEnabled") { Push(state, input.GamepadEnabled); return true; }
+            if (input.HasInputSignal(property)) { signals.PushSignal(state, input.GetSignal(property)); return true; }
+            if (property is "GetLastInputType" or "GetGamepadConnected" or "GetImageForKeyCode")
+            { woorf_push_method(state, property); return true; }
             if(property is "InputBegan" or "InputEnded")
             { signals.PushSignal(state,property=="InputBegan"?input.InputBegan:input.InputEnded); return true; }
             if(property=="IsKeyDown") { woorf_push_method(state,property); return true; }
@@ -37,7 +69,12 @@ internal sealed partial class BackendBindings : IDisposable
         if (TryReadCoreGui(state, instance, property, out result)) return true;
         result = 1;
         if (TryReadGui(state, instance, property)) return true;
+        if (TryReadCamera(state, instance, property)) return true;
+        if (TryReadTween(state, instance, property)) return true;
         if (TryReadSky(state, instance, property)) return true;
+        if (property == "TeamColor" && instance is Team team) { Push(state, team.TeamColor); return true; }
+        if (property == "TeamColor" && instance is Player playerWithColor) { Push(state, playerWithColor.TeamColor); return true; }
+        if (TryReadTools(state, instance, property)) return true;
         if (TryReadCharacter(state, instance, property)) return true;
         if (TryReadTouch(state, instance, property)) return true;
         if (PhysicsBindings.TryRead(state, instance, property, codec)) return true;
@@ -47,6 +84,8 @@ internal sealed partial class BackendBindings : IDisposable
             return true;
         }
         if (property == "AttributeChanged") { signals.PushSignal(state, instance.AttributeChanged); return true; }
+        if (instance is ValueObject { ClassName: "BrickColorValue" } && property == "changed")
+        { signals.PushSignal(state, instance.GetSignal("Changed")); return true; }
         if (instance is ValueObject value && property == "Value") { Push(state, value.Value); return true; }
         if (instance is BindableEvent bindable && property == "Event") { signals.PushSignal(state, bindable.Event); return true; }
         if (instance is Humanoid humanoid)
@@ -62,6 +101,7 @@ internal sealed partial class BackendBindings : IDisposable
 
     private bool IsMethod(Instance instance, string name) => name is "SetAttribute" or "GetAttribute" or "GetAttributes" or "GetAttributeChangedSignal" or "AddTag" or "RemoveTag" or "HasTag" or "GetTags"
         || instance is BindableEvent && name == "Fire"
+        || instance.ClassName == "BindableFunction" && name == "Invoke"
         || instance is Humanoid && name is "TakeDamage" or "Move"
         || instance is Player && name == "LoadCharacter"
         || instance is BasePart && name == "GetTouchingParts"
@@ -73,13 +113,34 @@ internal sealed partial class BackendBindings : IDisposable
         || instance.ClassName == "Teams" && name == "GetTeams"
         || instance.ClassName == "Team" && name == "GetPlayers"
         || instance == game.Workspace && name is "Raycast" or "_Raycast" or "Spherecast" or "_Spherecast"
+        || instance.ClassName == "MarketplaceService" && name is "UserOwnsGamePassAsync" or "PromptGamePassPurchase"
+        || instance.ClassName == "BadgeService" && IsBadgeMethod(name)
         || instance.ClassName == "DataStoreService" && name == "GetDataStore"
         || instance.ClassName == "GlobalDataStore" && name is "GetAsync" or "SetAsync" or "RemoveAsync" or "IncrementAsync" or "UpdateAsync";
 
     internal bool TryWrite(nint state, Instance instance, string property)
     {
+        if (instance is GuiService guiService && property == "SelectedObject")
+        {
+            guiService.SelectedObject = Read(state, 3) switch
+            {
+                null => null,
+                GuiInstance gui when gui.IsA("GuiObject") => gui,
+                _ => throw new ArgumentException("Expected GuiObject or nil."),
+            };
+            return true;
+        }
         if (TryWriteGui(state, instance, property)) return true;
+        if (TryWriteCamera(state, instance, property)) return true;
         if (TryWriteSky(state, instance, property)) return true;
+        if (property == "TeamColor" && instance is Team or Player)
+        {
+            var color = Read(state, 3) is Datatypes.BrickColor brick ? brick : throw new ArgumentException("Expected BrickColor.");
+            if (instance is Team team) team.TeamColor = color;
+            else ((Player)instance).TeamColor = color;
+            return true;
+        }
+        if (TryWriteTool(state, instance, property)) return true;
         if (TryWriteCharacter(state, instance, property)) return true;
         if (TryWriteTouch(state, instance, property)) return true;
         if (PhysicsBindings.TryWrite(state, instance, property, codec)) return true;

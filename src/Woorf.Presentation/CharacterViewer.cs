@@ -3,11 +3,13 @@ namespace Woorf.Presentation;
 using System.Numerics;
 using Woorf.Engine.DataModel;
 using Woorf.Graphics;
+using Frame = Woorf.Engine.Datatypes.CFrame;
+using WorldVector = Woorf.Engine.Datatypes.Vector3;
 
 internal sealed class CharacterViewer(Player player, Action<CharacterInput>? sendInput = null)
 {
     private readonly CharacterControls controls = new();
-    private Part? followedRoot;
+    private BasePart? followedRoot;
     private Model? inputCharacter;
     private Humanoid? inputHumanoid;
     private float yaw, pitch = ReadSetting(player,"ViewPitch",.4f,.15f,1.15f);
@@ -35,6 +37,8 @@ internal sealed class CharacterViewer(Player player, Action<CharacterInput>? sen
     }
 
     internal Part? Root => player.Character?.PrimaryPart as Part;
+    private Camera? CurrentCamera => (player.Parent?.Parent as DataModel)?.Workspace is Workspace workspace
+        ? workspace.CurrentCamera : null;
 
     internal void ApplyInput(PerspectiveCamera camera, float forward, float right, bool isJumpPressed, bool isResetPressed,
         float yawAxis, float pitchAxis, float elapsed)
@@ -59,7 +63,25 @@ internal sealed class CharacterViewer(Player player, Action<CharacterInput>? sen
 
     internal void Follow(PerspectiveCamera camera, float elapsed)
     {
-        var root = Root;
+        var current = CurrentCamera;
+        if (current is not null)
+        {
+            camera.FieldOfView = (float)current.FieldOfView * (MathF.PI / 180);
+            if (current.CameraType.Name == "Scriptable")
+            {
+                camera.Position = ToRender(current.CFrame.Position);
+                camera.Target = camera.Position + ToRender(current.CFrame.LookVector);
+                camera.Up = ToRender(current.CFrame.UpVector);
+                return;
+            }
+        }
+        camera.Up = null;
+        var root = current?.CameraSubject switch
+        {
+            Humanoid { Parent: Model character } => character.PrimaryPart as BasePart,
+            BasePart part => part,
+            _ => Root,
+        };
         if (root is null || root.IsDestroyed) { followedRoot = null; return; }
         var target = new Vector3(root.Position.X, root.Position.Y + 0.4f, root.Position.Z);
         var shouldSnap = followedRoot != root || Vector3.DistanceSquared(orbitTarget, target) > 225;
@@ -77,7 +99,24 @@ internal sealed class CharacterViewer(Player player, Action<CharacterInput>? sen
             camera.Position = orbitTarget + back * Distance;
         }
         followedRoot = root;
+        if (current is not null)
+        {
+            var backward = Vector3.Normalize(camera.Position - camera.Target);
+            var right = Vector3.Normalize(Vector3.Cross(Vector3.UnitY, backward));
+            current.CFrame = new Frame(ToWorld(camera.Position), ToWorld(right),
+                ToWorld(Vector3.Cross(backward, right)), ToWorld(backward));
+            current.Focus = new Frame(ToWorld(orbitTarget));
+        }
     }
+
+    internal void ResizeCamera(int width, int height)
+    {
+        CurrentCamera?.Resize(width, height);
+        if (player.Parent?.Parent is DataModel game)
+            ((GuiService)game.GetService("GuiService")).ResizeTopbar(width);
+    }
+    private static Vector3 ToRender(WorldVector value) => new(value.X, value.Y, value.Z);
+    private static WorldVector ToWorld(Vector3 value) => new(value.X, value.Y, value.Z);
 
     private static float ReadSetting(Player player,string name,float fallback,float minimum,float maximum) =>
         player.GetAttribute(name) is double value && double.IsFinite(value)?Math.Clamp((float)value,minimum,maximum):fallback;

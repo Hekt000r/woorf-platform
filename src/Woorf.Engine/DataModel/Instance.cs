@@ -63,13 +63,20 @@ public partial class Instance
             "Script" or "LocalScript" => new ScriptInstance(className),
             "Part" => new Part(),
             "Model" => new Model(),
+            "Camera" => new Camera(),
+            "Weld" or "Snap" => new RigidJoint(className),
+            "Tool" => new Tool(),
+            "Team" => new Team(),
             "Player" => new Player(),
             "Players" => new Players(),
             "RunService" => new RunService(),
+            "GuiService" => new GuiService(),
+            "MarketplaceService" => new MarketplaceService(),
             "UserInputService" => new UserInputService(),
+            "ContextActionService" => new ContextActionService(),
             "RemoteEvent" => new RemoteEvent(),
             "RemoteFunction" => new RemoteFunction(),
-            "IntValue" or "NumberValue" or "BoolValue" or "StringValue" or "ObjectValue" or "Vector3Value" or "CFrameValue" or "Color3Value" => new ValueObject(className),
+            "IntValue" or "NumberValue" or "BoolValue" or "StringValue" or "ObjectValue" or "Vector3Value" or "CFrameValue" or "Color3Value" or "BrickColorValue" => new ValueObject(className),
             "BindableEvent" => new BindableEvent(),
             "Humanoid" => new Humanoid(),
             "Sky" => new Sky(),
@@ -162,7 +169,7 @@ public partial class Instance
 
     public ScriptSignal GetSignal(string name)
     {
-        if (!IsSignalName(name)) throw new InvalidOperationException($"Unsupported signal '{name}'.");
+        if (!IsSignalName(name) && !(this is UserInputService input && input.HasInputSignal(name))) throw new InvalidOperationException($"Unsupported signal '{name}'.");
         return GetOrCreateSignal(signals, name);
     }
 
@@ -174,6 +181,7 @@ public partial class Instance
 
     protected virtual bool HasProperty(string property) =>
         property is "Name" or "Parent" or "Archivable" or "ClassName"
+        || ClassName == "GamepadService" && property == "GamepadCursorEnabled"
         || ClassName == "DataModel" && property == "Workspace";
 
     protected virtual void CopyPropertiesTo(Instance clone) { }

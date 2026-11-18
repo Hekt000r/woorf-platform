@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using Woorf.Engine.DataModel;
 using Woorf.Engine.Persistence;
@@ -30,7 +31,13 @@ internal sealed partial class BackendBindings
             }
             return Push(state, handle);
         }
-        var key = Text(state, 2);
+        var key = Read(state, 2) switch
+        {
+            string text => text,
+            double number when number == 0 => "0",
+            double number when double.IsFinite(number) => number.ToString("R", CultureInfo.InvariantCulture),
+            _ => throw new InvalidOperationException("Expected a string or finite number data store key.")
+        };
         if (key.Length is < 1 or > 50) throw new InvalidOperationException("Invalid data store key.");
         var store = stores[instance];
         switch (method)

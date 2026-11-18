@@ -56,7 +56,10 @@ internal sealed class LuaValueCodec(Func<Instance?, int> getInstanceId, Func<int
             11 => CFrameBindings.Read(state, index),
             12 => ReadColor(state, index),
             13 => PhysicsBindings.ReadMaterial(state, index),
-            >= 14 and <= 17 => GuiValueCodec.Read(state, index, woorf_value_kind(state, index) - 14),
+            19 => FontValueCodec.Read(state, index),
+            24 => GuiValueCodec.Read(state, index, 10),
+            >= 20 and <= 23 => ReadSequence(state, index, woorf_value_kind(state, index) - 20),
+            >= 14 and <= 18 => GuiValueCodec.Read(state, index, woorf_value_kind(state, index) - 14),
             _ => throw new InvalidOperationException("Unsupported remote argument type."),
         };
     }
@@ -118,8 +121,10 @@ internal sealed class LuaValueCodec(Func<Instance?, int> getInstanceId, Func<int
             case Vector3 vector: Vector3Bindings.Push(state, vector); break;
             case CFrame frame: CFrameBindings.Push(state, frame); break;
             case PhysicalProperties material: woorf_push_physical_properties(state, material.GetComponents()); break;
+            case FontFace font: FontValueCodec.Push(state, font); break;
+            case SequenceValue sequence: woorf_push_sequence(state, sequence.Kind, sequence.Components, sequence.Components.Length); break;
             case Color3 color: woorf_push_color3(state, color.R, color.G, color.B); break;
-            case Vector2 or UDim or UDim2 or GuiEnum: GuiValueCodec.Push(state, value); break;
+            case Rect or Vector2 or UDim or UDim2 or GuiEnum or BrickColor: GuiValueCodec.Push(state, value); break;
             case GuiInputObject input: PushInput(state, input, depth); break;
             case LuaTableValue table: PushTable(state, table, depth); break;
             default: throw new InvalidOperationException("Unsupported callback argument type.");

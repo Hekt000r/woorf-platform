@@ -1,7 +1,81 @@
 #include "LuauBridge.h"
+#include <cstring>
 
 static constexpr int FirstGuiTag = 7;
 static char guiEnumCacheKey;
+
+struct SequenceValue
+{
+    int count;
+};
+
+WOORF_EXPORT void woorf_push_sequence(lua_State* state, int kind, const float* components, int count)
+{
+    auto* value = static_cast<SequenceValue*>(lua_newuserdatataggedwithmetatable(
+        state, sizeof(SequenceValue) + sizeof(float) * count, 13 + kind));
+    value->count = count;
+    std::memcpy(reinterpret_cast<char*>(value) + sizeof(SequenceValue), components, sizeof(float) * count);
+}
+
+WOORF_EXPORT const float* woorf_get_sequence(lua_State* state, int index, int kind, int* count)
+{
+    auto* value = static_cast<SequenceValue*>(lua_touserdatatagged(state, index, 13 + kind));
+    if (!value) return nullptr;
+    *count = value->count;
+    return reinterpret_cast<const float*>(value + 1);
+}
+
+static int constructSequence(lua_State* state)
+{
+    const int kind = luaL_checkinteger(state, 1);
+    const int count = lua_gettop(state) - 1;
+    if (kind < 0 || kind > 3 || count < 1 || count > 80) luaL_error(state, "Invalid sequence");
+    std::vector<float> components;
+    components.reserve(count);
+    for (int i = 0; i < count; ++i) components.push_back(static_cast<float>(lua_tonumber(state, i + 2)));
+    woorf_push_sequence(state, kind, components.data(), count);
+    return 1;
+}
+
+static int readSequence(lua_State* state)
+{
+    const int kind = luaL_checkinteger(state, 2);
+    if (kind < 0 || kind > 3) luaL_error(state, "Invalid sequence kind");
+    int count = 0;
+    const float* components = woorf_get_sequence(state, 1, kind, &count);
+    if (!components) luaL_error(state, "Expected sequence");
+    lua_createtable(state, count, 0);
+    for (int i = 0; i < count; ++i)
+    {
+        lua_pushnumber(state, components[i]);
+        lua_rawseti(state, -2, i + 1);
+    }
+    return 1;
+}
+
+struct FontValue
+{
+    size_t length;
+    int weight;
+    int style;
+};
+
+WOORF_EXPORT void woorf_push_font(lua_State* state, const char* family, size_t length, int weight, int style)
+{
+    auto* value = static_cast<FontValue*>(lua_newuserdatataggedwithmetatable(state, sizeof(FontValue) + length, FirstGuiTag + 5));
+    *value = {length, weight, style};
+    if (length > 0) std::memcpy(value + 1, family, length);
+}
+
+WOORF_EXPORT const char* woorf_get_font(lua_State* state, int index, size_t* length, int* weight, int* style)
+{
+    auto* value = static_cast<FontValue*>(lua_touserdatatagged(state, index, FirstGuiTag + 5));
+    if (!value) return nullptr;
+    *length = value->length;
+    *weight = value->weight;
+    *style = value->style;
+    return reinterpret_cast<const char*>(value + 1);
+}
 
 WOORF_EXPORT void woorf_push_gui_value(lua_State* state, int kind, double a, double b, double c, double d)
 {
@@ -37,7 +111,7 @@ WOORF_EXPORT int woorf_get_gui_value(lua_State* state, int index, int kind, doub
 static int constructGuiValue(lua_State* state)
 {
     const int kind = luaL_checkinteger(state, 1);
-    if (kind < 0 || kind > 3) luaL_error(state, "Invalid GUI datatype");
+    if (kind < 0 || (kind > 4 && kind != 10)) luaL_error(state, "Invalid GUI datatype");
     woorf_push_gui_value(state, kind, luaL_optnumber(state, 2, 0), luaL_optnumber(state, 3, 0),
         luaL_optnumber(state, 4, 0), luaL_optnumber(state, 5, 0));
     return 1;
@@ -46,7 +120,7 @@ static int constructGuiValue(lua_State* state)
 static int readGuiValue(lua_State* state)
 {
     const int kind = luaL_checkinteger(state, 2);
-    if (kind < 0 || kind > 3) luaL_error(state, "Invalid GUI datatype");
+    if (kind < 0 || (kind > 4 && kind != 10)) luaL_error(state, "Invalid GUI datatype");
     auto* value = static_cast<double*>(lua_touserdatatagged(state, 1, FirstGuiTag + kind));
     if (!value) luaL_error(state, "Expected GUI datatype");
     for (int index = 0; index < 4; ++index) lua_pushnumber(state, value[index]);
@@ -56,7 +130,7 @@ static int readGuiValue(lua_State* state)
 static int setGuiMetatable(lua_State* state)
 {
     const int kind = luaL_checkinteger(state, 1);
-    if (kind < 0 || kind > 3) luaL_error(state, "Invalid GUI datatype");
+    if (kind < 0 || kind > 10) luaL_error(state, "Invalid GUI datatype");
     luaL_checktype(state, 2, LUA_TTABLE);
     lua_pushvalue(state, 2);
     lua_setreadonly(state, -1, 1);
@@ -66,7 +140,31 @@ static int setGuiMetatable(lua_State* state)
 
 void initializeGuiValues(lua_State* state)
 {
+    lua_pushcfunction(state, constructSequence, "sequence constructor"); lua_setglobal(state, "_woorf_sequence_new");
+    lua_pushcfunction(state, readSequence, "sequence components"); lua_setglobal(state, "_woorf_sequence_get");
     lua_newtable(state); lua_rawsetp(state, LUA_REGISTRYINDEX, &guiEnumCacheKey);
+    lua_newtable(state);
+    const char* methods[] = {"new", "palette", "random", "White", "Gray", "DarkGray", "Black", "Red", "Yellow", "Green", "Blue"};
+    for (const char* method : methods)
+    {
+        const std::string operation = std::string("brickcolor_") + method;
+        woorf_push_method(state, operation.c_str());
+        lua_setfield(state, -2, method);
+    }
+    lua_getfield(state, -1, "random"); lua_setfield(state, -2, "Random");
+    lua_setreadonly(state, -1, 1);
+    lua_setglobal(state, "BrickColor");
+    woorf_push_method(state, "brickcolor_get"); lua_setglobal(state, "_woorf_brickcolor_get");
+    lua_newtable(state);
+    for (const char* method : {"new", "fromName", "fromId", "fromEnum"})
+    {
+        const std::string operation = std::string("font_") + method;
+        woorf_push_method(state, operation.c_str());
+        lua_setfield(state, -2, method);
+    }
+    lua_setreadonly(state, -1, 1);
+    lua_setglobal(state, "Font");
+    woorf_push_method(state, "font_get"); lua_setglobal(state, "_woorf_font_get");
     lua_pushcfunction(state, constructGuiValue, "GUI datatype"); lua_setglobal(state, "_woorf_gui_new");
     lua_pushcfunction(state, readGuiValue, "GUI components"); lua_setglobal(state, "_woorf_gui_get");
     lua_pushcfunction(state, setGuiMetatable, "GUI metatable"); lua_setglobal(state, "_woorf_gui_metatable");

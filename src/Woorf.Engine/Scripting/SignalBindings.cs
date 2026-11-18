@@ -43,9 +43,9 @@ internal sealed class SignalBindings(LuaValueCodec codec) : IDisposable
             case "signal_get":
                 ReadSignal(state);
                 var property = ReadString(state, 2);
-                if (property is not ("Connect" or "Once" or "Wait"))
+                if (property is not ("Connect" or "Once" or "Wait" or "connect" or "wait"))
                     throw new InvalidOperationException($"Unsupported RBXScriptSignal member '{property}'.");
-                woorf_push_method(state, property);
+                woorf_push_method(state, property switch { "connect" => "Connect", "wait" => "Wait", _ => property });
                 return 1;
             case "connection_get":
                 var connection = ReadConnection(state);
@@ -55,7 +55,7 @@ internal sealed class SignalBindings(LuaValueCodec codec) : IDisposable
                     woorf_push_bool(state, connection.Connected ? 1 : 0);
                     return 1;
                 }
-                if (member != "Disconnect")
+                if (member is not ("Disconnect" or "disconnect"))
                     throw new InvalidOperationException($"Unsupported RBXScriptConnection member '{member}'.");
                 woorf_push_method(state, "Disconnect");
                 return 1;

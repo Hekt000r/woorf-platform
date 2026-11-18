@@ -13,25 +13,43 @@ public sealed partial class GuiRenderer : IDisposable
     private readonly Dictionary<string, GuiTexture> textures = [];
     private readonly record struct GuiTexture(uint Handle, int Width, int Height);
     private uint vao, buffer, white;
-    private readonly float[] vertices = new float[48];
+    private const int VertexSize = 9;
+    private readonly float[] vertices = new float[6 * VertexSize];
     private const string Vertex = """
         #version 330 core
         layout(location=0) in vec2 position;
         layout(location=1) in vec2 uv;
         layout(location=2) in vec4 color;
-        out vec2 texcoord; out vec4 tint;
-        void main(){gl_Position=vec4(position,0,1); texcoord=uv; tint=color;}
+        layout(location=3) in float gradientTime;
+        out vec2 texcoord; out vec4 tint; out float alongGradient;
+        void main(){gl_Position=vec4(position,0,1); texcoord=uv; tint=color; alongGradient=gradientTime;}
         """;
     private const string Fragment = """
         #version 330 core
-        in vec2 texcoord; in vec4 tint;
+        in vec2 texcoord; in vec4 tint; in float alongGradient;
         uniform sampler2D image; uniform vec3 shape;
+        uniform vec3 gradientInfo;
+        uniform vec3 gradientColors[40];
+        uniform vec3 gradientStops[40];
         out vec4 result;
+        vec4 sampleGradient(){
+          int count=int(gradientInfo.x);
+          if(count==0) return vec4(1);
+          vec4 previous=vec4(gradientColors[0],gradientStops[0].y);
+          if(alongGradient<gradientStops[0].x) return previous;
+          for(int i=1;i<count;i++){
+            vec4 next=vec4(gradientColors[i],gradientStops[i].y);
+            if(alongGradient<gradientStops[i].x)
+              return mix(previous,next,(alongGradient-gradientStops[i-1].x)/(gradientStops[i].x-gradientStops[i-1].x));
+            previous=next;
+          }
+          return previous;
+        }
         void main(){
           vec2 p=abs((texcoord-0.5)*shape.xy)-(shape.xy*0.5-vec2(shape.z));
           float d=length(max(p,vec2(0)))+min(max(p.x,p.y),0.0)-shape.z;
           float coverage=shape.z>0.0 ? 1.0-smoothstep(-0.5,0.5,d):1.0;
-          result=texture(image,texcoord)*tint; result.a*=coverage;
+          result=texture(image,texcoord)*tint*sampleGradient(); result.a*=coverage;
         }
         """;
 
@@ -41,9 +59,10 @@ public sealed partial class GuiRenderer : IDisposable
         gl.GenVertexArrays(1, out vao); gl.BindVertexArray(vao);
         gl.GenBuffers(1, out buffer); gl.BindBuffer(0x8892, buffer);
         gl.BufferData(0x8892, vertices.Length * sizeof(float), 0, 0x88E8);
-        gl.EnableVertexAttribArray(0); gl.VertexAttribPointer(0, 2, 0x1406, 0, 32, 0);
-        gl.EnableVertexAttribArray(1); gl.VertexAttribPointer(1, 2, 0x1406, 0, 32, 8);
-        gl.EnableVertexAttribArray(2); gl.VertexAttribPointer(2, 4, 0x1406, 0, 32, 16);
+        gl.EnableVertexAttribArray(0); gl.VertexAttribPointer(0, 2, 0x1406, 0, VertexSize * sizeof(float), 0);
+        gl.EnableVertexAttribArray(1); gl.VertexAttribPointer(1, 2, 0x1406, 0, VertexSize * sizeof(float), 8);
+        gl.EnableVertexAttribArray(2); gl.VertexAttribPointer(2, 4, 0x1406, 0, VertexSize * sizeof(float), 16);
+        gl.EnableVertexAttribArray(3); gl.VertexAttribPointer(3, 1, 0x1406, 0, VertexSize * sizeof(float), 32);
         white = Upload(new(1, 1, [255, 255, 255, 255])).Handle;
     }
 
@@ -59,6 +78,7 @@ public sealed partial class GuiRenderer : IDisposable
                 if (item.Color.W <= 0 || item.Bounds.Width <= 0 || item.Bounds.Height <= 0 || item.Clip.Width <= 0 || item.Clip.Height <= 0) continue;
                 if (item.Kind is "Text" or "Image" && item.Content.Length == 0) continue;
                 var texture = item.Kind == "Rectangle" ? new GuiTexture(white, 1, 1) : GetTexture(item);
+                if (texture.Handle == 0) continue;
                 Gl.glBindTexture(0x0DE1, texture.Handle);
                 Gl.glTexParameteri(0x0DE1, 0x2802, item.ScaleType == "Tile" ? 0x2901 : 0x812F);
                 Gl.glTexParameteri(0x0DE1, 0x2803, item.ScaleType == "Tile" ? 0x2901 : 0x812F);
@@ -67,6 +87,7 @@ public sealed partial class GuiRenderer : IDisposable
                 var bottom = Math.Clamp((int)MathF.Ceiling(item.Clip.Y + item.Clip.Height), top, height);
                 Gl.glScissor(left, height - bottom, right - left, bottom - top);
                 var drawing = FitImage(item, texture);
+                SetGradient(item.Gradient);
                 FillVertices(drawing, texture, width, height); program.SetVector("shape", new(drawing.Bounds.Width, drawing.Bounds.Height, Math.Min(item.Radius, Math.Min(drawing.Bounds.Width, drawing.Bounds.Height) / 2)));
                 var pinned = GCHandle.Alloc(vertices, GCHandleType.Pinned);
                 try { gl.BufferSubData(0x8892, 0, vertices.Length * sizeof(float), pinned.AddrOfPinnedObject()); }
@@ -86,12 +107,34 @@ public sealed partial class GuiRenderer : IDisposable
             var uv = corners[index]; var x = (uv.X - 0.5f) * item.Bounds.Width; var y = (uv.Y - 0.5f) * item.Bounds.Height;
             var px = item.Bounds.X + item.Bounds.Width / 2 + x * cosine - y * sine;
             var py = item.Bounds.Y + item.Bounds.Height / 2 + x * sine + y * cosine;
-            var offset = index * 8;
+            var offset = index * VertexSize;
             vertices[offset] = px / width * 2 - 1; vertices[offset + 1] = 1 - py / height * 2;
             var sample = ImageUv(item, texture, uv);
             vertices[offset + 2] = sample.X; vertices[offset + 3] = sample.Y;
             vertices[offset + 4] = item.Color.X; vertices[offset + 5] = item.Color.Y; vertices[offset + 6] = item.Color.Z; vertices[offset + 7] = item.Color.W;
+            vertices[offset + 8] = GradientTime(item.Gradient, new(item.Bounds.X + uv.X * item.Bounds.Width,
+                item.Bounds.Y + uv.Y * item.Bounds.Height));
         }
+    }
+
+    private void SetGradient(GuiGradientFill? gradient)
+    {
+        program.SetVector("gradientInfo", new(gradient?.Stops.Length ?? 0, 0, 0));
+        if (gradient is null) return;
+        for (var index = 0; index < gradient.Stops.Length; index++)
+        {
+            var stop = gradient.Stops[index];
+            program.SetVector($"gradientColors[{index}]", new(stop.Color.X, stop.Color.Y, stop.Color.Z));
+            program.SetVector($"gradientStops[{index}]", new(stop.Time, stop.Color.W, 0));
+        }
+    }
+
+    private static float GradientTime(GuiGradientFill? gradient, Vector2 position)
+    {
+        if (gradient is null) return 0;
+        var direction = gradient.End - gradient.Start;
+        var local = position - new Vector2(gradient.Bounds.X, gradient.Bounds.Y) - gradient.Start;
+        return direction == Vector2.Zero ? 0 : Vector2.Dot(direction, local) / direction.LengthSquared();
     }
 
     private GuiTexture GetTexture(GuiDrawItem item)
@@ -100,8 +143,10 @@ public sealed partial class GuiRenderer : IDisposable
             : $"Text:{item.Bounds.Width}:{item.Bounds.Height}:{item.TextSize}:{item.XAlignment}:{item.YAlignment}:{item.Wrapped}:{item.Font}:{item.Bold}:{item.Italic}:{item.Underline}:{item.Strikethrough}:{item.Content}";
         if (textures.TryGetValue(key, out var texture)) return texture;
         if (textures.Count >= 128) { foreach (var old in textures.Values) DeleteTexture(old.Handle); textures.Clear(); }
-        var image = item.Kind == "Image" ? SkyImage.Load(item.Content) : GuiTextImage.Create(item);
-        texture = Upload(image); textures.Add(key, texture); return texture;
+        var image = item.Kind == "Image" ? SkyImage.TryLoad(item.Content) : GuiTextImage.Create(item);
+        texture = image is null ? default : Upload(image);
+        textures.Add(key, texture);
+        return texture;
     }
 
     private static GuiTexture Upload(SkyImage image)

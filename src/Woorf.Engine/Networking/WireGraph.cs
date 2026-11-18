@@ -30,9 +30,13 @@ internal sealed partial class WireGraph
 
     private bool IsVisible(Instance instance)
     {
-        var root = instance.GetAncestors().Prepend(instance).FirstOrDefault(item => item.Parent == game);
-        return root?.ClassName is "Workspace" or "ReplicatedStorage" or "ReplicatedFirst"
-            or "Players" or "StarterPlayer" or "StarterGui" or "Teams" or "Lighting";
+        for (var node = instance; node is not null; node = node.Parent)
+        {
+            if (node is Camera) return false;
+            if (node.Parent == game) return node.ClassName is "Workspace" or "ReplicatedStorage" or "ReplicatedFirst"
+                or "Players" or "StarterPlayer" or "StarterGui" or "Teams" or "Lighting" or "StarterPack";
+        }
+        return false;
     }
 
     private WireNode CaptureNode(Instance instance)

@@ -64,7 +64,21 @@ WOORF_EXPORT int woorf_initialize_scheduler(void* handle, const char* source, si
         lua_pop(runtime->state, 1);
         return 1;
     }
+    const char* sharedGlobals[] = {"_G", "shared"};
+    for (const char* name : sharedGlobals)
+    {
+        lua_newtable(runtime->state);
+        lua_setglobal(runtime->state, name);
+    }
+
     luaL_sandbox(runtime->state);
+    // Luau freezes global tables as libraries. Only these two hold script-owned data.
+    for (const char* name : sharedGlobals)
+    {
+        lua_getglobal(runtime->state, name);
+        lua_setreadonly(runtime->state, -1, false);
+        lua_pop(runtime->state, 1);
+    }
     return 0;
 }
 

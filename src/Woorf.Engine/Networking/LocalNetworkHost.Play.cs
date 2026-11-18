@@ -7,6 +7,9 @@ public sealed partial class LocalNetworkHost
     internal DataModel.DataModel GetClientGame(Player player) =>
         endpoints.First(endpoint => endpoint.ServerPlayer == player && endpoint.IsConnected).Game;
 
+    internal Tool? GetAuthorityTool(Player player, Tool tool) =>
+        endpoints.FirstOrDefault(endpoint => endpoint.ServerPlayer == player && endpoint.IsConnected)?.Replicas?.ToServer(tool) as Tool;
+
     public int Pump()
     {
         EnsureStarted();

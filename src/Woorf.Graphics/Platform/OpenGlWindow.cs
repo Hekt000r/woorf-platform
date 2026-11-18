@@ -123,6 +123,12 @@ public sealed class OpenGlWindow : IDisposable
         return motion;
     }
 
+    public (ushort Buttons, byte LeftTrigger, byte RightTrigger) ReadGamepad()
+    {
+        if (Win32.GetForegroundWindow() != window || Win32.XInputGetState(0, out var state) != 0) return default;
+        return (state.Buttons, state.LeftTrigger, state.RightTrigger);
+    }
+
     public WindowKeyInput[] ReadKeyInput()
     {
         AssertThread(); var result = keyInput.ToArray(); keyInput.Clear(); return result;
@@ -138,8 +144,15 @@ public sealed class OpenGlWindow : IDisposable
         if (!Win32.wglMakeCurrent(dc, context)) throw new InvalidOperationException("Could not activate OpenGL context.");
     }
     public void Present() { AssertThread(); if (!Win32.SwapBuffers(dc)) throw new Win32Exception(); }
+    public bool UseGameCursor { get; set; }
+
     private nint ProcessMessage(nint handle, uint message, nuint wparam, nint lparam)
     {
+        if (message == 0x20 && UseGameCursor && (lparam & 0xFFFF) == 1)
+        {
+            Win32.SetCursor(0);
+            return 1;
+        }
         if (message == 0x10) { shouldClose = true; return 0; }
         if (message is 0x200 or 0x201 or 0x202)
         {
@@ -151,9 +164,9 @@ public sealed class OpenGlWindow : IDisposable
         if (message == 0x102) textInput.Append((char)wparam);
         if (message == 0x100)
         {
-            var key = (int)wparam switch { 0x25 => "Left", 0x27 => "Right", 0x24 => "Home", 0x23 => "End", 0x2E => "Delete", 0x1B => "Escape", 0x09 => "Tab", 0x72 => "F3", 0x73 => "F4", 0x78 => "F9", _ => "" };
+            var key = (int)wparam switch { 0x25 => "Left", 0x27 => "Right", 0x24 => "Home", 0x23 => "End", 0x2E => "Delete", 0x1B => "Escape", 0x09 => "Tab", 0x72 => "F3", 0x73 => "F4", 0x78 => "F9", >= 0x30 and <= 0x39 => ((char)wparam).ToString(), _ => "" };
             if (wparam == 'A' && (Win32.GetAsyncKeyState(0x11) & 0x8000) != 0) key = "SelectAll";
-            if (((long)lparam & (1L << 30)) != 0 && key is ("Escape" or "Tab" or "F3" or "F4" or "F9")) return 0;
+            if (((long)lparam & (1L << 30)) != 0 && (key.Length == 1 || key is "Escape" or "Tab" or "F3" or "F4" or "F9")) return 0;
             if (key.Length > 0) keyInput.Add(new(key, (Win32.GetAsyncKeyState(0x10) & 0x8000) != 0));
         }
         if (message == 0x8) { isPointerDown = false; textInput.Clear(); }

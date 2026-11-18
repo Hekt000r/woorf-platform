@@ -55,12 +55,12 @@ Try `dotnet run --project src/Woorf.Cli -- examples/signals.luau` for a complete
 ## Limits and deliberate initial conventions
 
 - This is a structural foundation, not a complete Roblox compatibility layer or measured 99% coverage.
-- `task.spawn`, `task.defer`, `task.wait`, `task.delay`, `task.cancel`, signal `Wait`, yielding callbacks, and `WaitForChild` are supported; see [scheduler semantics](scheduler.md). Destroying a Script cancels its suspended work. `ConnectParallel`, deferred Instance event delivery, deprecated aliases remain unsupported. Attributes and tags are implemented; see [backend APIs](backend-apis.md).
+- `task.spawn`, `task.defer`, `task.wait`, `task.delay`, `task.cancel`, signal `Wait`, yielding callbacks, and `WaitForChild` are supported; see [scheduler semantics](scheduler.md). Destroying a Script cancels its suspended work. `ConnectParallel`, and deferred Instance event delivery remain unsupported. Legacy signal aliases `connect`, `wait`, and `disconnect` map to `Connect`, `Wait`, and `Disconnect`. Attributes and tags are implemented; see [backend APIs](backend-apis.md).
 - Supported service roots are locked to their DataModel after creation and cannot be destroyed or reparented. This preserves singleton identity; exact class-specific Roblox lifecycle rules remain to be expanded. Workspace starts without Terrain or Camera. Other containers are lazy-created rather than matching Studio's complete default tree.
 - Project scripts begin in deterministic source-path order and may yield while later scripts start. Headless Heartbeat and dynamic Enabled/Disabled/RunContext lifecycle are supported as documented subsets; Roblox simulation phases remain incomplete.
 - LocalScripts execute in isolated client runtimes from supported StarterPlayerScripts/StarterGui templates. Source editing remains unsupported. Clones with loaded source start when enabled in a supported execution location; see [dynamic script lifecycle](runtime-hardening.md#script-lifecycle).
 - The filesystem loader rejects duplicate sibling names to keep file mapping unambiguous; runtime-created instances may share names.
-- Hierarchy changes stay in memory. There is no place-file import, hierarchy saving, rendering, or Roblox-hosted service access. Physics supports documented oriented-box rigid bodies; see [physics](physics.md). Server-only local DataStores persist JSON-compatible data independently of the hierarchy; see [persistence contract](backend-apis.md#local-persistence-contract). Shared state replicates over the local host and TCP transport.
+- Hierarchy changes stay in memory. The CLI supports place-file conversion. Runtime hierarchy saving and Roblox-hosted service access remain unavailable. Physics supports documented oriented-box rigid bodies; see [physics](physics.md). Server-only local DataStores persist JSON-compatible data independently of the hierarchy; see [persistence contract](backend-apis.md#local-persistence-contract). Shared state replicates over the local host and TCP transport.
 - Errors describe woorf validation failures; exact Roblox error wording and coercion rules are not promised.
 
 ## References
@@ -93,3 +93,11 @@ Teams, basic Humanoid movement and box/sphere queries. These are scoped subsets.
 
 See [runtime hardening](runtime-hardening.md) for dynamic activation, execution budgets,
 inbound limits, atomic updates and server-issued reconnect credentials.
+
+### Shared globals
+
+Scripts in one Luau runtime share writable `_G` and `shared` tables. The server
+and each client have their own tables. Ordinary script globals remain local to
+each script environment, and built-in library tables remain read-only.
+
+[Roblox Luau globals](https://create.roblox.com/docs/reference/engine/globals/LuaGlobals#_G)

@@ -42,7 +42,8 @@ internal static class RenderCli
     {
         using var pacer = new FramePacer();
         var viewer = runtime.CreateViewer();
-        using var gui = new GuiViewer(window, runtime.Player,runtime.Game);
+        window.UseGameCursor = viewer is not null;
+        using var gui = new GuiViewer(window, runtime.Player, runtime.Game, runtime.CreateHotbar());
         var camera = new PerspectiveCamera();
         using var world = new WorldView(runtime.Game, runtime.Player);
         using var profile = options.Profile is null ? null : new FrameProfile(options.Profile);
@@ -54,8 +55,10 @@ internal static class RenderCli
             var allocated = GC.GetAllocatedBytesForCurrentThread();
             var now = clock.ElapsedSeconds;
             var elapsed = (float)Math.Clamp(now - previous, 0, 0.1);
-            var wheel = gui.UpdateInput();
-            if (viewer is null) ViewerCamera.Update(camera, window, elapsed); else viewer.Update(camera, window, elapsed, gui.IsTextFocused, wheel);
+            var (width, height) = window.GetSize();
+            viewer?.ResizeCamera(width, height);
+            var wheel = gui.UpdateInput(viewer?.IsFirstPerson == true);
+            if (viewer is null) ViewerCamera.Update(camera, window, elapsed); else viewer.Update(camera, window, elapsed, gui.Keyboard, gui.IsTextFocused, wheel);
             var frameTime = now - previous;
             previous = now;
             runtime.Step(now);

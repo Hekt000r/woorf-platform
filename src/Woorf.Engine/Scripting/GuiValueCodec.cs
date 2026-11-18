@@ -15,6 +15,8 @@ internal static class GuiValueCodec
             1 => new UDim((float)components[0], checked((int)components[1])),
             2 => new UDim2((float)components[0], checked((int)components[1]), (float)components[2], checked((int)components[3])),
             3 => ReadEnum(checked((int)components[0]) - 1, checked((int)components[1])),
+            10 => new Rect(new((float)components[0], (float)components[1]), new((float)components[2], (float)components[3])),
+            4 => new BrickColor(checked((int)components[0])),
             _ => throw new InvalidOperationException("Invalid GUI datatype."),
         };
     }
@@ -32,9 +34,11 @@ internal static class GuiValueCodec
     {
         switch (value)
         {
+            case Rect rect: woorf_push_gui_value(state, 10, rect.Min.X, rect.Min.Y, rect.Max.X, rect.Max.Y); break;
             case Vector2 vector: woorf_push_gui_value(state, 0, vector.X, vector.Y, 0, 0); break;
             case UDim dimension: woorf_push_gui_value(state, 1, dimension.Scale, dimension.Offset, 0, 0); break;
             case UDim2 dimensions: woorf_push_gui_value(state, 2, dimensions.X.Scale, dimensions.X.Offset, dimensions.Y.Scale, dimensions.Y.Offset); break;
+            case BrickColor color: woorf_push_gui_value(state, 4, color.Number, 0, 0, 0); break;
             case GuiEnum item: woorf_push_gui_value(state, 3, Array.IndexOf(GuiEnums.Types, item.EnumType) + 1,
                 Array.IndexOf(GuiEnums.Definitions[item.EnumType], item.Name), 0, 0); break;
         }

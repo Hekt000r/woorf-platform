@@ -1,6 +1,8 @@
 export function createGuiRenderer(canvas) {
     const context = canvas.getContext('2d');
     const images = new Map();
+    const imageMask = document.createElement('canvas');
+    const imageFill = document.createElement('canvas');
     return (commands, width, height) => {
         canvas.width = width; canvas.height = height;
         for (const command of commands) {
@@ -9,6 +11,9 @@ export function createGuiRenderer(canvas) {
             context.beginPath(); context.rect(clip.X,clip.Y,clip.Width,clip.Height); context.clip();
             context.globalAlpha = command.Opacity;
             context.fillStyle = `rgb(${color.R*255},${color.G*255},${color.B*255})`;
+            if (command.Gradient && command.Kind !== 'Image') {
+                context.fillStyle = gradientStyle(context, command, color, true);
+            }
             if (command.Rotation) {
                 context.translate(bounds.X+bounds.Width/2,bounds.Y+bounds.Height/2);
                 context.rotate(command.Rotation*Math.PI/180);
@@ -22,11 +27,48 @@ export function createGuiRenderer(canvas) {
                     const image = new Image(); image.src = new URL(command.Content,location.href).href; images.set(command.Content,image);
                 }
                 const image = images.get(command.Content);
-                if (image.complete && image.naturalWidth) drawImage(context,command,image);
+                if (image.complete && image.naturalWidth) {
+                    if (command.Gradient) drawGradientImage(context, command, image, imageMask, imageFill);
+                    else drawImage(context,command,image);
+                }
             }
             context.restore();
         }
     };
+}
+
+function gradientStyle(context, command, color, includeOpacity, opacityOnly = false) {
+    const { Start, End, Stops } = command.Gradient;
+    const bounds = command.GradientBounds;
+    const gradient = context.createLinearGradient(bounds.X+Start.X,bounds.Y+Start.Y,bounds.X+End.X,bounds.Y+End.Y);
+    for (const stop of Stops) {
+        const sample = stop.Color;
+        const rgb = opacityOnly ? '0,0,0' : `${sample.R*color.R*255},${sample.G*color.G*255},${sample.B*color.B*255}`;
+        gradient.addColorStop(stop.Time,`rgba(${rgb},${includeOpacity ? stop.Opacity : 1})`);
+    }
+    return gradient;
+}
+
+function drawGradientImage(context, command, image, maskCanvas, fillCanvas) {
+    const bounds = command.Bounds;
+    if (bounds.Width <= 0 || bounds.Height <= 0) return;
+    maskCanvas.width = fillCanvas.width = Math.ceil(bounds.Width);
+    maskCanvas.height = fillCanvas.height = Math.ceil(bounds.Height);
+    const mask = maskCanvas.getContext('2d');
+    const fill = fillCanvas.getContext('2d');
+    const local = { ...command, Bounds: { ...bounds, X: 0, Y: 0 }, GradientBounds: {
+        ...command.GradientBounds, X: command.GradientBounds.X-bounds.X, Y: command.GradientBounds.Y-bounds.Y
+    } };
+    drawImage(mask,local,image);
+    fill.drawImage(maskCanvas,0,0);
+    fill.globalCompositeOperation = 'multiply';
+    fill.fillStyle = gradientStyle(fill,local,command.Color,false);
+    fill.fillRect(0,0,fillCanvas.width,fillCanvas.height);
+    fill.globalCompositeOperation = 'destination-in';
+    fill.drawImage(maskCanvas,0,0);
+    fill.fillStyle = gradientStyle(fill,local,command.Color,true,true);
+    fill.fillRect(0,0,fillCanvas.width,fillCanvas.height);
+    context.drawImage(fillCanvas,bounds.X,bounds.Y);
 }
 
 function drawImage(context,command,image) {

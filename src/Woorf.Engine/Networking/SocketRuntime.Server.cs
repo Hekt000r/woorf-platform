@@ -57,6 +57,7 @@ internal sealed partial class SocketRuntime
                 }
                 else if (packet.Kind == "leave") { RemovePeer(peer); return; }
                 else if (packet.Kind == "input") ReceivePlayInput(packet, peer.Player);
+                else if (packet.Kind == "tool") ReceiveToolInput(packet, peer.Player);
                 else Deliver(packet, peer.Player);
             }
             if (peer.IsClosed || peer.Player is null && DateTime.UtcNow - peer.ConnectedAt > TimeSpan.FromSeconds(5))

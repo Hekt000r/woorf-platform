@@ -24,7 +24,7 @@ internal sealed class WorkspaceScene : IDisposable
     private void OnMutation(Instance instance, string property)
     {
         if (property == "Parent") isHierarchyDirty = true;
-        else if (instance is BasePart part && part != hiddenPart && property is "CFrame" or "Size" or "Anchored" or "Shape" or "Attributes") dirty.Add(part);
+        else if (instance is BasePart part && part != hiddenPart && property is "CFrame" or "Size" or "Anchored" or "Shape" or "Color" or "Attributes") dirty.Add(part);
     }
 
     internal void SetHiddenPart(BasePart? part)
@@ -89,9 +89,12 @@ internal sealed class WorkspaceScene : IDisposable
         if (!IsFinite(transform) || scale.X <= 0 || scale.Y <= 0 || scale.Z <= 0) return null;
         var color = part.Anchored ? new Vector3(0.25f, 0.32f, 0.42f)
             : isSphere ? new Vector3(0.95f, 0.36f, 0.09f) : new Vector3(0.05f, 0.58f, 0.65f);
-        if (part.GetAttribute("RenderColor") is Woorf.Engine.Datatypes.Color3 custom
-            && float.IsFinite(custom.R) && float.IsFinite(custom.G) && float.IsFinite(custom.B))
-            color = Vector3.Clamp(new(custom.R, custom.G, custom.B), Vector3.Zero, Vector3.One);
+        if (part.ColorOverride is not null || part.GetAttribute("RenderColor") is Woorf.Engine.Datatypes.Color3)
+        {
+            var custom = part.Color;
+            if (float.IsFinite(custom.R) && float.IsFinite(custom.G) && float.IsFinite(custom.B))
+                color = Vector3.Clamp(new(custom.R, custom.G, custom.B), Vector3.Zero, Vector3.One);
+        }
         return new(isSphere ? MeshShape.Sphere : MeshShape.Box, transform, color);
     }
 

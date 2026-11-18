@@ -1,6 +1,8 @@
 using Woorf.Engine.DataModel;
 using Woorf.Engine.Datatypes;
 using Woorf.Engine.Gui;
+using Woorf.Engine.Scheduling;
+using Woorf.Engine.Scripting;
 
 static class GuiTextTests
 {
@@ -11,10 +13,48 @@ static class GuiTextTests
             CheckRichText();
             CheckTruncation();
             CheckGraphemes();
+            CheckGradient();
             Console.WriteLine("PASS GUI text formats rich spans truncates overflow and preserves graphemes");
             return 0;
         }
         catch (Exception error) { Console.Error.WriteLine("FAIL GUI text: " + error.Message); return 1; }
+    }
+
+    private static void CheckGradient()
+    {
+        var game = new DataModel();
+        using var session = new LuauSession(game, new MonotonicClock());
+        var status = session.Execute("""
+            local screen = Instance.new("ScreenGui", game:GetService("ReplicatedStorage"))
+            local frame = Instance.new("Frame", screen)
+            frame.BorderSizePixel = 0
+            local child = Instance.new("Frame", frame)
+            child.BorderSizePixel = 0
+            local gradient = Instance.new("UIGradient", frame)
+            local red, blue = Color3.new(1, 0, 0), Color3.new(0, 0, 1)
+            gradient.Color = ColorSequence.new(red, blue)
+            gradient.Transparency = NumberSequence.new({
+                NumberSequenceKeypoint.new(0, 0),
+                NumberSequenceKeypoint.new(0.5, 0.5, 0.25),
+                NumberSequenceKeypoint.new(1, 1),
+            })
+            gradient.Offset = Vector2.new(0.25, 0)
+            assert(typeof(gradient.Color) == "ColorSequence")
+            assert(gradient.Color.Keypoints[2].Value == blue)
+            assert(gradient:Clone().Transparency.Keypoints[2].Envelope == 0.25)
+            assert(not pcall(function() gradient.Color = NumberSequence.new(0) end))
+            assert(not pcall(function()
+                ColorSequence.new({ColorSequenceKeypoint.new(0.5, red), ColorSequenceKeypoint.new(1, blue)})
+            end))
+            """, "gui-gradient");
+        if (status != 0) throw new Exception("Lua gradient fixture failed.");
+        var commands = new GuiScene().Capture(game.GetService("ReplicatedStorage"), 200, 100)
+            .Where(item => item.Kind == "Rectangle").ToArray();
+        if (commands.Length != 2 || commands[0].Gradient is not { } gradient || commands[1].Gradient is not null)
+            throw new Exception("A gradient must affect only its immediate parent.");
+        if (gradient.Start.X != 25 || gradient.End.X != 125 ||
+            gradient.Stops[1] != new GuiGradientStop(0.5f, new Color3(0.5f, 0, 0.5f), 0.5f))
+            throw new Exception("Gradient rendering must combine color and opacity stops and apply the offset.");
     }
 
     private static (Instance Root, GuiInstance Label) CreateLabel()

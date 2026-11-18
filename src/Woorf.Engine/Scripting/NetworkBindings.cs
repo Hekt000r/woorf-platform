@@ -34,14 +34,14 @@ internal sealed class NetworkBindings(RuntimeEndpoint? endpoint, LuaValueCodec c
                 signals.PushSignal(state, players.PlayerAdded); return true;
             case (Players players, "LocalPlayer"):
                 codec.Push(state, players.LocalPlayer); return true;
-            case (Player player, "UserId"):
+            case (Player player, "UserId" or "userId"):
                 codec.Push(state, player.UserId); return true;
             case (RemoteFunction, "InvokeServer" or "InvokeClient"):
                 woorf_push_method(state, property); return true;
             case (RemoteEvent, "FireServer" or "FireClient" or "FireAllClients"):
             case (Player, "Kick"):
             case (Players, "GetPlayers"):
-            case (RunService, "IsServer" or "IsClient"):
+            case (RunService, "IsServer" or "IsClient" or "IsStudio"):
                 woorf_push_method(state, property); return true;
             default: return false;
         }
@@ -59,8 +59,8 @@ internal sealed class NetworkBindings(RuntimeEndpoint? endpoint, LuaValueCodec c
                     throw new InvalidOperationException("Clients can only kick their local Player.");
                 if (target is not null) runtimeEndpoint.Host.RequestDisconnect(target);
                 return true;
-            case (RunService service, "IsServer" or "IsClient"):
-                codec.Push(state, method == "IsClient" ? service.IsClientRuntime : !service.IsClientRuntime);
+            case (RunService service, "IsServer" or "IsClient" or "IsStudio"):
+                codec.Push(state, method switch { "IsClient" => service.IsClientRuntime, "IsServer" => !service.IsClientRuntime, _ => false });
                 result = 1; return true;
             case (Players players, "GetPlayers"):
                 codec.Push(state, new LuaTableValue(players.GetPlayers().Select((player, index) =>

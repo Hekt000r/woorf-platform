@@ -22,6 +22,7 @@ internal sealed class LuauSession : IDisposable
     private readonly IRuntimeClock clock;
     private double lastHeartbeat;
     private readonly ScriptLifecycle lifecycle;
+    private readonly bool shouldKeepPreviewRunning;
     private bool hasLifecycleFailure;
     private bool hasFinishedFailure;
     private readonly PhysicsWorld? physics;
@@ -31,6 +32,7 @@ internal sealed class LuauSession : IDisposable
     internal LuauSession(DataModel.DataModel game, IRuntimeClock clock, RuntimeEndpoint? endpoint = null)
     {
         this.game = game; this.clock = clock; lastHeartbeat = clock.ElapsedSeconds;
+        shouldKeepPreviewRunning = endpoint is { IsClient: true, Host: LocalNetworkHost { IsInteractivePreview: true } };
         bindings = new InstanceBindings(game, endpoint);
         write = Write;
         host = bindings.Dispatch;
@@ -62,14 +64,20 @@ internal sealed class LuauSession : IDisposable
         using var reader = new StreamReader(stream, Encoding.UTF8);
         using var remoteStream = typeof(LuauSession).Assembly.GetManifestResourceStream("Woorf.Engine.Scripting.RemoteFunctions.luau")!;
         using var remoteReader = new StreamReader(remoteStream, Encoding.UTF8);
+        using var bindableStream = typeof(LuauSession).Assembly.GetManifestResourceStream("Woorf.Engine.Scripting.BindableFunctions.luau")!;
+        using var bindableReader = new StreamReader(bindableStream, Encoding.UTF8);
+        using var actionsStream = typeof(LuauSession).Assembly.GetManifestResourceStream("Woorf.Engine.Scripting.ContextActions.luau")!;
+        using var actionsReader = new StreamReader(actionsStream, Encoding.UTF8);
         using var backendStream = typeof(LuauSession).Assembly.GetManifestResourceStream("Woorf.Engine.Scripting.BackendTypes.luau")!;
         using var backendReader = new StreamReader(backendStream, Encoding.UTF8);
         using var lifecycleStream = typeof(LuauSession).Assembly.GetManifestResourceStream("Woorf.Engine.Scripting.ScriptLifecycle.luau")!;
         using var lifecycleReader = new StreamReader(lifecycleStream, Encoding.UTF8);
         using var guiStream = typeof(LuauSession).Assembly.GetManifestResourceStream("Woorf.Engine.Scripting.GuiTypes.luau")!;
         using var guiReader = new StreamReader(guiStream, Encoding.UTF8);
-        var bytes = Encoding.UTF8.GetBytes(reader.ReadToEnd() + "\n" + lifecycleReader.ReadToEnd() + "\n" + remoteReader.ReadToEnd() + "\n" + backendReader.ReadToEnd()
-            + "\n" + Datatypes.GuiEnums.GetInitializationSource() + "\n" + guiReader.ReadToEnd());
+        using var tweenStream = typeof(LuauSession).Assembly.GetManifestResourceStream("Woorf.Engine.Scripting.Tweens.luau")!;
+        using var tweenReader = new StreamReader(tweenStream, Encoding.UTF8);
+        var bytes = Encoding.UTF8.GetBytes(reader.ReadToEnd() + "\n" + lifecycleReader.ReadToEnd() + "\n" + remoteReader.ReadToEnd() + "\n" + bindableReader.ReadToEnd() + "\n" + actionsReader.ReadToEnd() + "\n" + backendReader.ReadToEnd()
+            + "\n" + Datatypes.GuiEnums.GetInitializationSource() + "\n" + guiReader.ReadToEnd() + "\n" + tweenReader.ReadToEnd());
         if (woorf_initialize_scheduler(handle, bytes, (nuint)bytes.Length) != 0)
             throw new InvalidOperationException("Could not initialize scheduler.");
     }
@@ -100,6 +108,7 @@ internal sealed class LuauSession : IDisposable
     {
         if (lifecycle.Synchronize() != 0) { hasLifecycleFailure = true; return -1; }
         if (physics is not null && game.FindService("Players") is not null) GetCharacters().Synchronize(now);
+        if (lifecycle.HasPending && lifecycle.Synchronize() != 0) { hasLifecycleFailure = true; return -1; }
         npcs?.Synchronize();
         physics?.Advance(now);
         var run = (RunService)game.GetService("RunService");
@@ -114,7 +123,8 @@ internal sealed class LuauSession : IDisposable
         if (next >= 0 && physics?.HasDynamicBodies == true) next = Math.Min(next, now + PhysicsWorld.FixedStep);
         return next < 0 && run.Heartbeat.HasConnections ? now + 1d / 60 : next;
     }
-    internal bool HasFailed => isDisposed ? hasFinishedFailure : hasLifecycleFailure || woorf_scheduler_failed(handle) != 0;
+    internal bool HasFailed => isDisposed ? hasFinishedFailure : hasLifecycleFailure
+        || (shouldKeepPreviewRunning ? woorf_execution_failed(handle) : woorf_scheduler_failed(handle)) != 0;
     private CharacterWorld GetCharacters() => characters ??= new CharacterWorld(game, physics!, clock.ElapsedSeconds);
     internal int Finish(int status) { Dispose(); return status != 0 || HasFailed ? 1 : 0; }
 

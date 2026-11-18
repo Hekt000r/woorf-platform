@@ -24,6 +24,7 @@ internal sealed class WorkspaceSky : IDisposable
         var sky = game.FindService("Lighting")?.GetChildren().OfType<Sky>().FirstOrDefault();
         captured = sky is null ? null : new Skybox(Sky.FaceProperties.Select(sky.GetTexture),
             new(sky.SkyboxOrientation.X, sky.SkyboxOrientation.Y, sky.SkyboxOrientation.Z));
+        if (captured?.TryLoadImages() == false) captured = null;
         return captured;
     }
     public void Dispose() => game.DescendantMutated -= OnMutation;

@@ -27,7 +27,7 @@ internal sealed class PhysicsWorld : IDisposable
             ? found.Where(contact => IsContactCurrent(contact.Other)).ToArray() : [];
     private bool IsContactCurrent(BasePart part) => !part.IsDestroyed && part.CanCollide && part.IsDescendantOf(workspace)
         && expectedStates.TryGetValue(part, out var expected) && Snapshot.Capture(part) == expected;
-    internal bool HasDynamicBodies => bodies.Keys.Any(part => !part.Anchored);
+    internal bool HasDynamicBodies => bodies.Values.Any(body => !body.IsAnchored);
     internal PhysicsWorld(Workspace workspace, double now)
     {
         this.workspace = workspace; touches = new(workspace); previousTime = now;
@@ -42,7 +42,7 @@ internal sealed class PhysicsWorld : IDisposable
         var changedTouchGeometry = new HashSet<BasePart>();
         if (isHierarchyDirty)
         {
-            var current = workspace.GetDescendants().OfType<BasePart>().Where(part => !part.IsDestroyed).ToArray();
+            var current = workspace.GetDescendants().OfType<BasePart>().Where(part => !part.IsDestroyed && !part.GetAncestors().OfType<Tool>().Any(tool => tool.IsHeld)).ToArray();
             var membership = current.ToHashSet();
             foreach (var removed in bodies.Keys.Where(part => !membership.Contains(part)).ToArray())
             {
@@ -52,6 +52,7 @@ internal sealed class PhysicsWorld : IDisposable
                 if (!bodies.ContainsKey(added)) bodies.Add(added, new(++nextId));
             isHierarchyDirty = false;
         }
+        var fixedParts = FindFixedParts();
         foreach (var (part, body) in bodies)
         {
             var state = Snapshot.Capture(part);
@@ -60,7 +61,7 @@ internal sealed class PhysicsWorld : IDisposable
                 || state.Anchored != expected.Anchored || state.CanTouch != expected.CanTouch || state.Shape != expected.Shape)
                 changedTouchGeometry.Add(part);
             expectedStates[part] = state;
-            body.Frame = part.CFrame; body.Size = part.Size; body.IsAnchored = part.Anchored;
+            body.Frame = part.CFrame; body.Size = part.Size; body.IsAnchored = fixedParts.Contains(part);
             body.CanCollide = part.CanCollide; body.Material = part.CustomPhysicalProperties ?? PhysicalProperties.Default;
             body.CanTouch = part.CanTouch;
             body.LinearVelocity = part.AssemblyLinearVelocity; body.AngularVelocity = part.AssemblyAngularVelocity;
@@ -75,6 +76,29 @@ internal sealed class PhysicsWorld : IDisposable
             body.UpdateBounds();
         }
         touches.Synchronize(bodies, changedTouchGeometry);
+    }
+
+    private HashSet<BasePart> FindFixedParts()
+    {
+        var fixedParts = bodies.Keys.Where(part => part.Anchored).ToHashSet();
+        var adjacent = new Dictionary<BasePart, List<BasePart>>();
+        foreach (var joint in workspace.GetDescendants().OfType<RigidJoint>())
+        {
+            if (!joint.IsActive || joint.Part0 is not { } a || joint.Part1 is not { } b ||
+                !bodies.ContainsKey(a) || !bodies.ContainsKey(b)) continue;
+            if (!adjacent.TryGetValue(a, out var fromA)) adjacent[a] = fromA = [];
+            if (!adjacent.TryGetValue(b, out var fromB)) adjacent[b] = fromB = [];
+            fromA.Add(b);
+            fromB.Add(a);
+        }
+        var pending = new Queue<BasePart>(fixedParts);
+        while (pending.TryDequeue(out var part))
+        {
+            if (!adjacent.TryGetValue(part, out var links)) continue;
+            foreach (var other in links)
+                if (fixedParts.Add(other)) pending.Enqueue(other);
+        }
+        return fixedParts;
     }
     private void InvalidateContacts(BasePart part)
     {
@@ -98,7 +122,7 @@ internal sealed class PhysicsWorld : IDisposable
         }
         foreach (var (part, body) in bodies.ToArray())
         {
-            if (part.IsDestroyed || part.Anchored || !part.IsDescendantOf(workspace) || !IsFinite(body.Frame)) continue;
+            if (part.IsDestroyed || body.IsAnchored || !part.IsDescendantOf(workspace) || !IsFinite(body.Frame)) continue;
             if (Snapshot.Capture(part) != originals[part]) continue;
             var frame = body.IsRotationLocked ? body.CharacterRotation.WithPosition(body.Frame.Position) : body.Frame;
             expectedStates[part] = originals[part] with { Frame = frame, Linear = body.LinearVelocity, Angular = body.AngularVelocity };

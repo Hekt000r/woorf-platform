@@ -16,6 +16,15 @@ public sealed class Skybox
             throw new InvalidDataException("Skybox images must be square and have equal dimensions.");
         return images = loaded;
     }
+
+    public bool TryLoadImages()
+    {
+        try { LoadImages(); return true; }
+        catch (Exception error) when (error is IOException or InvalidDataException or UnauthorizedAccessException)
+        {
+            return false;
+        }
+    }
     public Skybox(IEnumerable<string> faces, Vector3 orientation)
     {
         var values = faces.ToArray();

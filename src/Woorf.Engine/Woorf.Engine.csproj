@@ -13,8 +13,11 @@
     <EmbeddedResource Include="Scripting/ScriptLifecycle.luau" />
     <EmbeddedResource Include="Scripting/Scheduler.luau" />
     <EmbeddedResource Include="Scripting/RemoteFunctions.luau" />
+    <EmbeddedResource Include="Scripting/BindableFunctions.luau" />
+    <EmbeddedResource Include="Scripting/ContextActions.luau" />
     <EmbeddedResource Include="Scripting/BackendTypes.luau" />
     <EmbeddedResource Include="Scripting/GuiTypes.luau" />
+    <EmbeddedResource Include="Scripting/Tweens.luau" />
     <Content Include="../../artifacts/native/*" Link="%(Filename)%(Extension)"
              CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>

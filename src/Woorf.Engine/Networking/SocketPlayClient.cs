@@ -29,6 +29,13 @@ internal sealed class SocketPlayClient : IDisposable
     }
 
     internal void Pump() => runtime.PumpPlay();
+    internal void ToggleTool(Tool tool) => runtime.SendToolInput(tool, false);
+    internal void UseTool(bool isDown)
+    {
+        if (LocalPlayer is { } player) PlayerInventory.Use(player, isDown);
+        runtime.SendToolInput(null, isDown);
+    }
+
     internal void SendInput(Vector3 direction, bool shouldJump, bool shouldReset, Vector3 cameraHeading = default) =>
         runtime.SendPlayInput(direction, shouldJump, shouldReset, cameraHeading);
     public void Dispose() => runtime.Dispose();

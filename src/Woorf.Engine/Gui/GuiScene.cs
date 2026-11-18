@@ -21,9 +21,11 @@ public sealed partial class GuiScene
         foreach (var screen in screens)
         {
             if (!Value(screen, "Enabled", true)) continue;
-            screen.SetComputedProperty("AbsoluteSize", new Vector2(width, height));
+            var bounds = EnumName(screen, "ScreenInsets", "CoreUISafeInsets") == "TopbarSafeInsets"
+                ? new GuiRect(0, 0, width, Math.Min(height, GuiService.TopbarHeight)) : viewport;
+            screen.SetComputedProperty("AbsoluteSize", new Vector2(bounds.Width, bounds.Height));
             var commandStart = commands.Count; var targetStart = targets.Count;
-            CaptureChildren(screen, viewport, viewport, 1, 1);
+            CaptureChildren(screen, bounds, viewport, 1, 1);
             if (EnumName(screen, "ZIndexBehavior", "Sibling") == "Global") SortGlobal(commandStart, targetStart);
         }
         if (focused is not null && !targets.Any(target => target.Instance == focused)) ReleaseFocus(false);

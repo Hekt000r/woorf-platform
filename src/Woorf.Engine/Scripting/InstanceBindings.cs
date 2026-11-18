@@ -51,6 +51,10 @@ internal sealed class InstanceBindings : IDisposable
         signalBindings.EnterDispatch();
         try
         {
+            if (operation.StartsWith("font_", StringComparison.Ordinal))
+                return backendBindings.CallFont(state, operation);
+            if (operation.StartsWith("brickcolor_", StringComparison.Ordinal))
+                return backendBindings.CallBrickColor(state, operation);
             if (operation.StartsWith("cframe_", StringComparison.Ordinal))
                 return CFrameBindings.Dispatch(state, operation);
             if (operation.StartsWith("vector3_", StringComparison.Ordinal))
@@ -112,7 +116,7 @@ internal sealed class InstanceBindings : IDisposable
             woorf_push_method(state, property);
             return 1;
         }
-        if (Methods.Contains(property) || instance == game && property is "GetService" or "FindService" or "IsLoaded")
+        if (Methods.Contains(property) || instance == game && property is "GetService" or "getService" or "service" or "FindService" or "IsLoaded")
         {
             woorf_push_method(state, property);
             return 1;
@@ -195,7 +199,7 @@ internal sealed class InstanceBindings : IDisposable
             case "Clone": return PushInstance(state, instance.Clone());
             case "Destroy": instance.Destroy(); return 0;
             case "ClearAllChildren": instance.ClearAllChildren(); return 0;
-            case "GetService" when instance == game: return PushInstance(state, game.GetService(ReadString(state, 2)));
+            case "GetService" or "getService" or "service" when instance == game: return PushInstance(state, game.GetService(ReadString(state, 2)));
             case "FindService" when instance == game: return PushInstance(state, game.FindService(ReadString(state, 2)));
             case "IsLoaded" when instance == game: return PushBoolean(state, true);
             default: throw new InvalidOperationException($"Unsupported method '{method}'.");

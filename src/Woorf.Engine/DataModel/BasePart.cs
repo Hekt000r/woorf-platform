@@ -9,6 +9,33 @@ public abstract partial class BasePart : Instance
     private CFrame pivotOffset = CFrame.Identity;
     private Vector3 size = new(4, 1.2f, 2);
     private bool isAnchored;
+    private bool locked;
+    private double reflectance;
+    public double Reflectance
+    {
+        get => reflectance;
+        set
+        {
+            if (!double.IsFinite(value)) throw new ArgumentException("Expected finite reflectance.");
+            var next = Math.Clamp(value, 0, 1);
+            if (reflectance == next) return;
+            reflectance = next;
+            FirePropertyChanged(nameof(Reflectance));
+        }
+    }
+    private readonly Dictionary<string, GuiEnum> surfaces = [];
+
+    internal static bool IsSurfaceProperty(string property) =>
+        property is "TopSurface" or "BottomSurface" or "LeftSurface" or "RightSurface" or "FrontSurface" or "BackSurface";
+
+    internal GuiEnum GetSurface(string property) => surfaces.GetValueOrDefault(property) ?? GuiEnum.From("SurfaceType", "Smooth");
+    internal void SetSurface(string property, GuiEnum value)
+    {
+        if (value.EnumType != "SurfaceType") throw new ArgumentException("Expected Enum.SurfaceType.");
+        if (GetSurface(property) == value) return;
+        surfaces[property] = value;
+        FirePropertyChanged(property);
+    }
 
     internal BasePart(string className) : base(className)
     {
@@ -82,17 +109,32 @@ public abstract partial class BasePart : Instance
         }
     }
 
+    public bool Locked
+    {
+        get => locked;
+        set
+        {
+            if (locked == value) return;
+            locked = value;
+            FirePropertyChanged(nameof(Locked));
+        }
+    }
+
     protected override bool HasProperty(string property) =>
-        property is "Position" or "CFrame" or "PivotOffset" or "Size" or "Anchored" or "CanTouch" || HasPhysicsProperty(property) || base.HasProperty(property);
+        property is "Position" or "CFrame" or "PivotOffset" or "Size" or "Anchored" or "Locked" or "CanTouch" or "Color" or "BrickColor" or "Reflectance" || IsSurfaceProperty(property) || HasPhysicsProperty(property) || base.HasProperty(property);
 
     protected override void CopyPropertiesTo(Instance clone)
     {
         var part = (BasePart)clone;
+        part.ColorOverride = ColorOverride;
         part.cframe = cframe;
         part.pivotOffset = pivotOffset;
         part.size = size;
         part.isAnchored = isAnchored;
         part.canTouch = canTouch;
+        part.locked = locked;
+        part.reflectance = reflectance;
+        foreach (var (name, value) in surfaces) part.surfaces.Add(name, value);
         CopyPhysicsTo(part);
     }
 }

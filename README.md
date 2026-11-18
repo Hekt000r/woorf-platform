@@ -31,7 +31,7 @@ To load a complete project and run its server scripts:
 dotnet run --project src/Woorf.Cli --no-restore -- examples/basic-project
 ```
 
-See [filesystem project format](docs/project-format.md) for directory conventions and [runtime compatibility](docs/runtime-compatibility.md) for the implemented API surface. [examples/signals.luau](examples/signals.luau) demonstrates hierarchy events and property-change listeners.
+See [Roblox place import](docs/project-format.md#importing-a-roblox-place) for .rbxl and .rbxlx conversion. See [filesystem project format](docs/project-format.md) for directory conventions and [runtime compatibility](docs/runtime-compatibility.md) for the implemented API surface. [examples/signals.luau](examples/signals.luau) demonstrates hierarchy events and property-change listeners.
 
 With MinGW, add `-DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++` to the configure command. Native libraries are written to `artifacts/native` and copied beside the managed binaries. Rebuild C# after rebuilding the native bridge. Use a separate build directory for each target architecture or compiler.
 

@@ -37,3 +37,9 @@ References: Roblox's [task library](https://create.roblox.com/docs/reference/eng
 Server-side [physics](physics.md) advances in fixed steps before Heartbeat and
 scheduled continuations. Dynamic bodies request fixed-step wakeups while timers
 are pending; physics alone does not keep a finite CLI run alive.
+
+The legacy global wait uses the same scheduler with a minimum delay of 1/30
+second. It returns the elapsed wait and the runtime clock at resumption.
+New scripts should use task.wait.
+
+The legacy global spawn schedules a function with task.defer and returns no values.

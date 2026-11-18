@@ -22,10 +22,15 @@ public sealed partial class GuiScene
         item.SetGuiProperty("CanvasPosition", offset);
         item.SetComputedProperty("AbsoluteCanvasSize", new Vector2(width, height));
         var gutter = Number(item, "ScrollBarThickness", 12) * scale;
-        item.SetComputedProperty("AbsoluteWindowSize", new Vector2(Math.Max(0, bounds.Width - (height > bounds.Height ? gutter : 0)),
-            Math.Max(0, bounds.Height - (width > bounds.Width ? gutter : 0))));
+        var verticalInset = EnumName(item, "VerticalScrollBarInset", "None");
+        var horizontalInset = EnumName(item, "HorizontalScrollBarInset", "None");
+        item.SetComputedProperty("AbsoluteWindowSize", new Vector2(
+            Math.Max(0, bounds.Width - (HasScrollBarInset(verticalInset, height > bounds.Height) ? gutter : 0)),
+            Math.Max(0, bounds.Height - (HasScrollBarInset(horizontalInset, width > bounds.Width) ? gutter : 0))));
         return new(bounds.X - offset.X, bounds.Y - offset.Y, width, height);
     }
+
+    private static bool HasScrollBarInset(string mode, bool isVisible) => mode == "Always" || mode == "ScrollBar" && isVisible;
 
     private void DrawScrollBars(GuiInstance item, GuiRect bounds, GuiRect clip, float opacity)
     {
@@ -40,7 +45,9 @@ public sealed partial class GuiScene
         {
             var height = Math.Max(thickness, bounds.Height * bounds.Height / canvas.Y);
             var y = bounds.Y + offset.Y / (canvas.Y - bounds.Height) * (bounds.Height - height);
-            commands.Add(new("Rectangle", new(bounds.X + bounds.Width - thickness, y, thickness, height), clip.Intersect(bounds), color, alpha));
+            var x = EnumName(item, "VerticalScrollBarPosition", "Right") == "Left"
+                ? bounds.X : bounds.X + bounds.Width - thickness;
+            commands.Add(new("Rectangle", new(x, y, thickness, height), clip.Intersect(bounds), color, alpha));
         }
         if (canvas.X > bounds.Width && direction != "Y")
         {

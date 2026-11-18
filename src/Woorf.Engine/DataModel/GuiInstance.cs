@@ -8,6 +8,17 @@ public sealed partial class GuiInstance : Instance
     private readonly Dictionary<string, object> properties;
     private readonly Dictionary<string, ScriptSignal> guiSignals = [];
     private bool isFocused;
+    private GuiInstance? selectionImage;
+    internal GuiInstance? SelectionImage
+    {
+        get => selectionImage;
+        set
+        {
+            if (selectionImage == value) return;
+            selectionImage = value;
+            FirePropertyChanged("SelectionImageObject");
+        }
+    }
     private static readonly HashSet<string> Computed = ["AbsolutePosition", "AbsoluteSize", "AbsoluteRotation", "AbsoluteContentSize", "AbsoluteCanvasSize", "AbsoluteWindowSize", "TextBounds", "TextFits", "ContentText"];
 
     internal GuiInstance(string className) : base(className)
@@ -16,20 +27,27 @@ public sealed partial class GuiInstance : Instance
         GetSignal("Destroying").Connect(_ => { foreach (var signal in guiSignals.Values) signal.Close(); });
     }
 
-    public bool HasGuiProperty(string property) => properties.ContainsKey(property);
-    public object GetGuiProperty(string property) => properties.TryGetValue(property, out var value)
+    public bool HasGuiProperty(string property) => properties.ContainsKey(CanonicalProperty(property));
+    public object GetGuiProperty(string property) => properties.TryGetValue(CanonicalProperty(property), out var value)
         ? value : throw new InvalidOperationException($"Unknown {ClassName} property '{property}'.");
     public T Get<T>(string property) => (T)GetGuiProperty(property);
     public IReadOnlyDictionary<string, object> GetGuiProperties() => new Dictionary<string, object>(properties);
 
     public void SetGuiProperty(string property, object value)
     {
+        property = CanonicalProperty(property);
         if (Computed.Contains(property)) throw new InvalidOperationException($"{property} is read-only.");
         var previous = GetGuiProperty(property);
         var next = GuiDefaults.Validate(property, previous, value);
         Assign(property, next);
+        if (property == "Font" && next is GuiEnum { Name: not "Unknown" } font)
+            Assign("FontFace", FontFace.FromEnum(font));
+        if (property == "FontFace" && next is FontFace face)
+            Assign("Font", face.ToEnum());
         if (property == "Text") Assign("ContentText", next);
     }
+
+    private static string CanonicalProperty(string property) => property == "TextWrap" ? "TextWrapped" : property;
 
     public void SetComputedProperty(string property, object value)
     {
@@ -45,7 +63,7 @@ public sealed partial class GuiInstance : Instance
         FirePropertyChanged(property);
     }
 
-    public bool HasGuiSignal(string name) => IsA("GuiObject") && name is "MouseEnter" or "MouseLeave" or "MouseMoved" or "InputBegan" or "InputChanged" or "InputEnded"
+    public bool HasGuiSignal(string name) => IsA("GuiObject") && name is "MouseEnter" or "MouseLeave" or "MouseMoved" or "InputBegan" or "InputChanged" or "InputEnded" or "TouchTap" or "SelectionGained" or "SelectionLost" or "DragBegin" or "DragStopped"
         || IsA("GuiButton") && name is "Activated" or "MouseButton1Click" or "MouseButton1Down" or "MouseButton1Up" or "MouseButton2Click" or "MouseButton2Down" or "MouseButton2Up"
         || ClassName == "TextBox" && name is "Focused" or "FocusLost";
 
@@ -75,7 +93,8 @@ public sealed partial class GuiInstance : Instance
         if (value) FireGuiSignal("Focused"); else FireGuiSignal("FocusLost", submitted, null);
     }
 
-    protected override bool HasProperty(string property) => HasGuiProperty(property) || base.HasProperty(property);
+    protected override bool HasProperty(string property) => HasGuiProperty(property)
+        || property == "SelectionImageObject" && IsA("GuiObject") || base.HasProperty(property);
     protected override void CopyPropertiesTo(Instance clone)
     {
         var target = (GuiInstance)clone;

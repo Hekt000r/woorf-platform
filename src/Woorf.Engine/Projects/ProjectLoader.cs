@@ -32,6 +32,12 @@ public static class ProjectLoader
                 throw new InvalidDataException($"Unsupported service directory: {serviceName}");
             LoadChildren(servicePath, game.GetService(serviceName), scripts);
         }
+        var instancesPath = Path.Combine(sourcePath, "instances.json");
+        if (File.Exists(instancesPath))
+        {
+            RejectLink(instancesPath);
+            ProjectInstances.Load(instancesPath, game, scripts);
+        }
         return new LoadedProject(game, scripts.OrderBy(script => script.FilePath, StringComparer.Ordinal).ToArray());
     }
 
@@ -71,7 +77,7 @@ public static class ProjectLoader
             using var metadata = ReadJson(metadataPath, "Invalid instance metadata");
             className = ReadString(metadata.RootElement, "className", "Folder");
         }
-        if (className is not ("Folder" or "Model" or "Configuration"))
+        if (className is not ("Folder" or "Model" or "Configuration" or "Tool"))
             throw new InvalidDataException($"Unsupported directory class: {className}");
         var instance = Instance.Create(className);
         instance.Name = Path.GetFileName(directory);

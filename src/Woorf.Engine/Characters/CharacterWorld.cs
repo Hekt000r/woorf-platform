@@ -49,7 +49,12 @@ internal sealed class CharacterWorld : IDisposable
             var isDead = entry.Model.IsDestroyed || !entry.Model.IsDescendantOf(game.Workspace)
                 || entry.Root is null || !entry.Root.IsDescendantOf(entry.Model)
                 || entry.Humanoid is null or { IsDestroyed: true } or { Health: <= 0 } || !entry.Humanoid.IsDescendantOf(entry.Model);
-            if (!isDead) { entry.RespawnAt = null; continue; }
+            if (!isDead)
+            {
+                entry.RespawnAt = null;
+                foreach (var tool in entry.Model.GetChildren().OfType<Tool>()) tool.UpdateHeldParts(entry.Root!);
+                continue;
+            }
             entry.RespawnAt ??= now + players.RespawnTime;
             if (players.CharacterAutoLoads && now >= entry.RespawnAt) LoadCharacter(player);
         }
@@ -83,6 +88,7 @@ internal sealed class CharacterWorld : IDisposable
         try
         {
             RemoveCharacter(player, entry);
+            PlayerInventory.Reset(game, player);
             CreateCharacter(player, entry);
         }
         finally { entry.IsLoading = false; }

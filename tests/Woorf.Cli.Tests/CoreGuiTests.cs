@@ -7,6 +7,16 @@ internal static class CoreGuiTests
 {
     internal static int Run()
     {
+        var cursor = new GameCursor();
+        cursor.Resize(800, 600);
+        cursor.Move(25, 10, false);
+        var origin = cursor.Position;
+        cursor.Move(150, -90, true);
+        cursor.Move(0, 0, false);
+        if (cursor.Position != origin) throw new Exception("Releasing orbit moved the game cursor.");
+        cursor.Move(3, -2, false);
+        if (cursor.Position.X != origin.X + 3 || cursor.Position.Y != origin.Y - 2)
+            throw new Exception("The virtual cursor must resume from its drag origin.");
         var core = new CoreGuiOverlay();
         var player = new Player(1, "Runner");
         player.Name = "Runner";
@@ -48,6 +58,12 @@ internal static class CoreGuiTests
         script.ScriptSource = """
             local starter = game:GetService("StarterGui")
             local gui = game:GetService("GuiService")
+            assert(gui.PreferredTransparency == 1)
+            assert(not pcall(function() gui.PreferredTransparency = 0 end))
+            gui:GetPropertyChangedSignal("PreferredTransparency"):Connect(function()
+                assert(gui.PreferredTransparency == 0.5)
+                print("preferred transparency changed")
+            end)
             assert(starter:GetCoreGuiEnabled(Enum.CoreGuiType.PlayerList))
             starter:SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList, false)
             assert(not starter:GetCoreGuiEnabled(Enum.CoreGuiType.PlayerList))
@@ -72,8 +88,11 @@ internal static class CoreGuiTests
         var players = ((Players)client.GetService("Players")).GetPlayers();
         if (!client.CoreOverlay.Capture(players, 800, 600).Any(item => item.Content == "41"))
             throw new Exception("Replicated leaderboard score did not appear.");
+        ((GuiService)client.GetService("GuiService")).PreferredTransparency = 0.5;
         client.CoreOverlay.KeyDown("Escape", false);
-        if (host.Pump() != 0 || !client.ScriptOutput.Contains("core menu opened"))
+        if (host.Pump() != 0 || !client.ScriptOutput.Contains("preferred transparency changed"))
+            throw new Exception("PreferredTransparency changes did not reach the LocalScript.");
+        if (!client.ScriptOutput.Contains("core menu opened"))
             throw new Exception("GuiService.MenuOpened did not reach the LocalScript.");
     }
 }

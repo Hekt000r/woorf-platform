@@ -5,6 +5,18 @@ using Woorf.Engine.Projects;
 Console.OutputEncoding = new UTF8Encoding(false);
 try
 {
+    if (args.FirstOrDefault() == "import-roblox")
+    {
+        if (args.Length != 3)
+        {
+            Console.Error.WriteLine("Usage: woorf import-roblox <place.rbxl | place.rbxlx> <new-project-directory>");
+            return 2;
+        }
+        var report = RobloxPlaceImporter.Import(args[1], args[2]);
+        Console.WriteLine($"Imported {report.Instances} instances and {report.Scripts} scripts.");
+        Console.WriteLine($"Compatibility report: {Path.Combine(args[2], "import-report.json")}");
+        return 0;
+    }
     var renderStatus = RenderCli.Run(args);
     if (renderStatus is int rendered) return rendered;
     var socketStatus = SocketCli.Run(args);
@@ -12,7 +24,7 @@ try
 }
 catch (Exception error) when (error is IOException or InvalidDataException or System.Net.Sockets.SocketException or ArgumentException
     or System.Text.Json.JsonException or FormatException or InvalidOperationException or OperationCanceledException
-    or NotSupportedException or System.ComponentModel.Win32Exception or DllNotFoundException or EntryPointNotFoundException)
+    or System.Xml.XmlException or UnauthorizedAccessException or OverflowException or NotSupportedException or System.ComponentModel.Win32Exception or DllNotFoundException or EntryPointNotFoundException)
 {
     Console.Error.WriteLine(error.Message);
     return 1;

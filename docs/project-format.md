@@ -52,5 +52,33 @@ The loader reads the complete hierarchy and script sources before execution. The
 
 Unknown service directories, unsupported directory classes, invalid JSON, duplicate sibling names, and linked source paths produce load errors. Other file types are ignored. Runtime hierarchy edits remain in memory; this milestone does not save them to disk.
 
-The format is specific to woorf. It follows Roblox's [DataModel hierarchy](https://create.roblox.com/docs/reference/engine/classes/DataModel) and [container organization](https://create.roblox.com/docs/projects/data-model), but does not read Roblox place/model files or Rojo project files.
+The format is specific to woorf. It follows Roblox's [DataModel hierarchy](https://create.roblox.com/docs/reference/engine/classes/DataModel) and [container organization](https://create.roblox.com/docs/projects/data-model), and the CLI can convert Roblox places into this format. Rojo projects are outside the importer scope.
 
+
+## Importing a Roblox place
+
+From the repository root:
+
+```powershell
+dotnet run --project src/Woorf.Cli -- import-roblox ./MyPlace.rbxl ./ImportedPlace
+dotnet run --project src/Woorf.Cli -- ./ImportedPlace --play
+```
+
+Use a new output directory. The importer accepts XML `.rbxlx` and version-0
+binary `.rbxl` with uncompressed or LZ4-compressed chunks. Zstandard-compressed
+places need to be saved as `.rbxlx` in Roblox Studio first. Decoding runs in
+Woorf without an external tool.
+
+The generated project stores the hierarchy, embedded Luau sources, supported
+properties, and references in `src/instances.json`. The standard project loader
+and browser exporter read this file. Source names and duplicate Roblox siblings
+are preserved. The import validates the generated project without running scripts.
+
+Read `import-report.json` for skipped services, unsupported properties, and class
+substitutions. Meshes, wedges, and unions become box proxies. Other unsupported
+nested classes become folders so their children remain accessible. The first enabled
+SpawnLocation in Workspace provides the initial spawn point. Terrain voxel data,
+Roblox-hosted assets and services, and unimplemented script APIs require adaptation.
+The importer preserves source for that adaptation.
+
+[Roblox binary format reference](https://dom.rojo.space/binary.html)

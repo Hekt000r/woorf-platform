@@ -18,6 +18,7 @@ public sealed record GuiDrawCommand(string Kind, GuiRect Bounds, GuiRect Clip, C
     string Content = "", float TextSize = 14, string XAlignment = "Center", string YAlignment = "Center",
     bool Wrapped = false, float Radius = 0, float Rotation = 0, string Font = "Arial",
     bool Bold = false, bool Italic = false, bool Underline = false, bool Strikethrough = false,
-    Vector2 ImageOffset = default, Vector2 ImageSize = default, string ScaleType = "Stretch", Vector2 TileSize = default);
+    Vector2 ImageOffset = default, Vector2 ImageSize = default, string ScaleType = "Stretch", Vector2 TileSize = default,
+    GuiGradient? Gradient = null, GuiRect GradientBounds = default);
 
 internal sealed record GuiHitTarget(GuiInstance Instance, GuiRect Bounds, GuiRect Clip);

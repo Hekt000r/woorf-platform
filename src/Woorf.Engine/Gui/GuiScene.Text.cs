@@ -11,7 +11,8 @@ public sealed partial class GuiScene
         var text = Value(item, "Text", "");
         var color = Value(item, "TextColor3", new Color3());
         var font = EnumName(item, "Font", "Legacy");
-        var style = new GuiTextStyle(color, font, font.Contains("Bold") || font.Contains("Black"), font.Contains("Italic"));
+        var face = Value(item, "FontFace", new FontFace(""));
+        var style = new GuiTextStyle(color, font == "Unknown" ? "Arial" : font, face.Bold, face.Style == 1);
         var glyphs = GuiRichText.Parse(text, Value(item, "RichText", false), style);
         item.SetComputedProperty("ContentText", string.Concat(glyphs.Select(glyph => glyph.Text)));
         if (item.ClassName == "TextBox" && glyphs.Count == 0 && focused != item)

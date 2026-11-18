@@ -57,6 +57,29 @@ internal sealed partial class SocketRuntime
         playInputTimes[player] = clock.ElapsedSeconds;
     }
 
+    internal void SendToolInput(Tool? tool, bool isDown)
+    {
+        if (endpoint is null) return;
+        var id = tool is null ? 0 : graph.Identify(tool);
+        if (tool is not null && id == 0)
+        {
+            if (PlayPlayer is { } player) PlayerInventory.Toggle(player, tool);
+            return;
+        }
+        peers[0].Send(new("tool", Remote: id, Arguments: [WireValue.Encode(isDown, _ => 0)]));
+        peers[0].Writes.Pump();
+    }
+
+    private void ReceiveToolInput(WirePacket packet, Player player)
+    {
+        if (packet.Player != 0 || packet.Nodes is not null || packet.Updates is not null ||
+            packet.Removed is not null || packet.Credential is not null ||
+            packet.Arguments is not [{ Kind: "bool" } value])
+            throw new InvalidDataException("Invalid tool input packet.");
+        if (packet.Remote == 0) PlayerInventory.Use(player, value.Boolean);
+        else if (graph.Find(packet.Remote) is Tool tool) PlayerInventory.Toggle(player, tool);
+    }
+
     private void ExpirePlayInput()
     {
         foreach (var (player, lastInput) in playInputTimes.ToArray())

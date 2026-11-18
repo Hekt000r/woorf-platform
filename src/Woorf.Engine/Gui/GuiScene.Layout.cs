@@ -5,6 +5,31 @@ namespace Woorf.Engine.Gui;
 
 public sealed partial class GuiScene
 {
+    internal static Vector2 MeasureAbsoluteSize(GuiInstance item, Vector2 viewport)
+    {
+        var bounds = new GuiRect(0, 0, viewport.X, viewport.Y);
+        var scale = 1f;
+        foreach (var gui in item.GetAncestors().Prepend(item).OfType<GuiInstance>().Reverse())
+        {
+            if (gui.ClassName == "ScreenGui")
+            {
+                if (EnumName(gui, "ScreenInsets", "CoreUISafeInsets") == "TopbarSafeInsets")
+                    bounds = bounds with { Height = Math.Min(bounds.Height, GuiService.TopbarHeight) };
+            }
+            else if (gui.IsA("GuiObject"))
+            {
+                bounds = Measure(gui, bounds, scale);
+            }
+            var children = gui.GetChildren().OfType<GuiInstance>().ToArray();
+            if (gui != item)
+            {
+                scale *= GetOwnScale(gui);
+                bounds = ApplyPadding(children, bounds, scale);
+            }
+        }
+        return new(bounds.Width, bounds.Height);
+    }
+
     private static GuiRect ApplyPadding(GuiInstance[] children, GuiRect bounds, float scale)
     {
         var padding = children.FirstOrDefault(item => item.ClassName == "UIPadding");
