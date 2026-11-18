@@ -12,7 +12,7 @@ public sealed class OpenGlRenderer : IDisposable
     private GpuMesh? box, sphere;
     private SkyboxRenderer? skyRenderer;
     private bool isDisposed;
-    private readonly InstanceBatch boxes = new(), spheres = new();
+    private readonly SceneDrawState state = new();
     public int LastFrameDrawCalls { get; private set; }
     public string DriverDescription { get; }
 
@@ -37,23 +37,19 @@ public sealed class OpenGlRenderer : IDisposable
     {
         ObjectDisposedException.ThrowIf(isDisposed, this);
         LastFrameDrawCalls = 0;
-        boxes.Begin(); spheres.Begin();
-        for (var index = 0; index < items.Count; index++)
-        {
-            var item = items[index];
-            (item.Shape == MeshShape.Sphere ? spheres : boxes).Append(item);
-        }
         window.MakeCurrent();
         var (width, height) = window.GetSize();
         if (width == 0 || height == 0) return;
         Gl.glViewport(0, 0, width, height);
-        Gl.glClearColor(0.055f, 0.075f, 0.11f, 1);
+        var clear = SceneDrawState.ClearColor;
+        Gl.glClearColor(clear.X, clear.Y, clear.Z, 1);
         Gl.glClear(0x4000 | 0x0100);
         if (sky is not null) { skyRenderer!.Draw(sky, camera, (float)width / height); LastFrameDrawCalls++; }
-        shader!.Use(); shader.SetMatrix("viewProjection", camera.GetViewProjection((float)width / height));
-        shader.SetVector("eye", camera.Position);
-        if (boxes.Count > 0) { box!.Draw(boxes); LastFrameDrawCalls++; }
-        if (spheres.Count > 0) { sphere!.Draw(spheres); LastFrameDrawCalls++; }
+        state.Prepare(items, camera, (float)width / height);
+        shader!.Use(); shader.SetMatrix("viewProjection", state.ViewProjection);
+        shader.SetVector("eye", state.Eye);
+        if (state.Boxes.Count > 0) { box!.Draw(state.Boxes); LastFrameDrawCalls++; }
+        if (state.Spheres.Count > 0) { sphere!.Draw(state.Spheres); LastFrameDrawCalls++; }
         gl.BindVertexArray(0);
         CheckErrors();
     }

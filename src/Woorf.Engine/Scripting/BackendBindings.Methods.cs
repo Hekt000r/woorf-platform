@@ -8,6 +8,9 @@ internal sealed partial class BackendBindings
     internal bool TryCall(nint state, Instance instance, string method, out int result)
     {
         result = 0;
+        if(instance is UserInputService input && method=="IsKeyDown")
+        { result=Push(state,input.IsKeyDown(Read(state,2) as Datatypes.GuiEnum ?? throw new InvalidOperationException("Expected Enum.KeyCode."))); return true; }
+        if (TryCallGui(state, instance, method, out result)) return true;
         if (!IsMethod(instance, method) || method == "AddItem") return false;
         if (instance.ClassName == "CollectionService") { result = CallCollection(state, method); return true; }
         if (instance.ClassName == "HttpService") { result = CallJson(state, method); return true; }

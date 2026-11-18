@@ -27,6 +27,14 @@ internal sealed partial class BackendBindings : IDisposable
     internal bool TryRead(nint state, Instance instance, string property, out int result)
     {
         result = 1;
+        if(instance is UserInputService input)
+        {
+            if(!((RunService)game.GetService("RunService")).IsClient()) throw new InvalidOperationException("UserInputService is client-only.");
+            if(property is "InputBegan" or "InputEnded")
+            { signals.PushSignal(state,property=="InputBegan"?input.InputBegan:input.InputEnded); return true; }
+            if(property=="IsKeyDown") { woorf_push_method(state,property); return true; }
+        }
+        if (TryReadGui(state, instance, property)) return true;
         if (TryReadSky(state, instance, property)) return true;
         if (TryReadCharacter(state, instance, property)) return true;
         if (TryReadTouch(state, instance, property)) return true;
@@ -68,6 +76,7 @@ internal sealed partial class BackendBindings : IDisposable
 
     internal bool TryWrite(nint state, Instance instance, string property)
     {
+        if (TryWriteGui(state, instance, property)) return true;
         if (TryWriteSky(state, instance, property)) return true;
         if (TryWriteCharacter(state, instance, property)) return true;
         if (TryWriteTouch(state, instance, property)) return true;

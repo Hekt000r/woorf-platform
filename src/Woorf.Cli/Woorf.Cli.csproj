@@ -9,5 +9,6 @@
     <InternalsVisibleTo Include="Woorf.Cli.Tests" />
     <ProjectReference Include="../Woorf.Engine/Woorf.Engine.csproj" />
     <ProjectReference Include="../Woorf.Graphics/Woorf.Graphics.csproj" />
+    <ProjectReference Include="../Woorf.Presentation/Woorf.Presentation.csproj" />
   </ItemGroup>
 </Project>

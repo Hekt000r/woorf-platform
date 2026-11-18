@@ -2,6 +2,10 @@ namespace Woorf.Engine.DataModel;
 
 public static class ClassCatalog
 {
+    static ClassCatalog()
+    {
+        foreach (var (name, ancestor) in GuiDefaults.Classes) Bases[name] = ancestor;
+    }
     private static readonly Dictionary<string, string?> Bases = new(StringComparer.Ordinal)
     {
         ["ValueBase"] = "Instance", ["IntValue"] = "ValueBase", ["NumberValue"] = "ValueBase",
@@ -9,6 +13,7 @@ public static class ClassCatalog
         ["Vector3Value"] = "ValueBase", ["CFrameValue"] = "ValueBase", ["Color3Value"] = "ValueBase",
         ["BindableEvent"] = "Instance", ["Humanoid"] = "Instance", ["Team"] = "Instance",
         ["Lighting"] = "Instance", ["Sky"] = "Instance",
+        ["UserInputService"] = "Instance",
         ["CollectionService"] = "Instance", ["HttpService"] = "Instance", ["Debris"] = "Instance",
         ["DataStoreService"] = "Instance", ["GlobalDataStore"] = "Instance", ["Teams"] = "Instance",
         ["Object"] = null, ["Instance"] = "Object", ["ServiceProvider"] = "Instance",
@@ -29,9 +34,9 @@ public static class ClassCatalog
     public static bool IsService(string className) => className is "Workspace" or "ReplicatedStorage"
         or "ReplicatedFirst" or "ServerStorage" or "ServerScriptService" or "StarterGui"
         or "StarterPack" or "StarterPlayer" or "Players" or "RunService"
-        or "CollectionService" or "HttpService" or "Debris" or "DataStoreService" or "Teams" or "Lighting";
+        or "CollectionService" or "HttpService" or "Debris" or "DataStoreService" or "Teams" or "Lighting" or "UserInputService";
 
-    public static bool IsCreatable(string className) => className is "Folder" or "Model"
+    public static bool IsCreatable(string className) => GuiDefaults.IsCreatable(className) || className is "Folder" or "Model"
         or "Configuration" or "Script" or "LocalScript" or "ModuleScript" or "Part" or "RemoteEvent" or "RemoteFunction" or "Player"
         or "BindableEvent" or "Humanoid" or "Team" or "Sky"
         or "IntValue" or "NumberValue" or "BoolValue" or "StringValue" or "ObjectValue"

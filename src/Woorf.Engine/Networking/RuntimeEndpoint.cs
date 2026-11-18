@@ -23,5 +23,6 @@ internal sealed class RuntimeEndpoint : IDisposable
     internal bool IsClient => ServerPlayer is not null;
     internal LuauSession Session { get; }
     internal ReplicaMap? Replicas { get; set; }
-    public void Dispose() => Session.Dispose();
+    internal GuiStartupLifecycle? GuiStartup { get; set; }
+    public void Dispose() { GuiStartup?.Dispose(); Session.Dispose(); }
 }

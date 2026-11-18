@@ -10,6 +10,15 @@ public sealed class PerspectiveCamera
     public float NearPlane { get; set; } = 0.1f;
     public float FarPlane { get; set; } = 2000;
 
+    public Matrix4x4 GetSkyInverseViewProjection(float aspect)
+    {
+        var centered = new PerspectiveCamera { Position = Vector3.Zero, Target = Target - Position,
+            FieldOfView = FieldOfView, NearPlane = NearPlane, FarPlane = FarPlane };
+        if (!Matrix4x4.Invert(centered.GetViewProjection(aspect), out var inverse))
+            throw new InvalidOperationException("Sky camera must be invertible.");
+        return inverse;
+    }
+
     public Matrix4x4 GetViewProjection(float aspect)
     {
         if (!float.IsFinite(aspect) || aspect <= 0 || !float.IsFinite(FieldOfView) || FieldOfView <= 0 || FieldOfView >= MathF.PI

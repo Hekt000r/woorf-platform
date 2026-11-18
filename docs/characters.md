@@ -1,5 +1,11 @@
 # Characters and graphical play mode
 
+Non-player Humanoid Models now use shared managed movement, jumping and procedural
+posing too. See [the arena demo](../examples/last-platform/README.md) and
+[input/NPC boundaries](input.md). AI stays in server Luau. Player `ViewDistance`
+and initial `ViewPitch` attributes are optional Woorf viewer conventions, not
+implementations of Roblox Camera properties.
+
 The first character milestone joins the custom physics system to the OpenGL viewer.
 It supplies player character lifecycle, an upright collider, walking/jumping and a
 centrally posed humanoid appearance. It remains an explicit initial subset.

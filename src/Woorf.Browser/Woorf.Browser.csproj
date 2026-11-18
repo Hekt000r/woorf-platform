@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk.WebAssembly">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <RuntimeIdentifier>browser-wasm</RuntimeIdentifier>
+    <OutputType>Exe</OutputType>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <WasmMainJSPath>wwwroot/main.js</WasmMainJSPath>
+    <WasmBuildNative>true</WasmBuildNative>
+    <WasmEnableExceptionHandling>true</WasmEnableExceptionHandling>
+    <WasmEmitSymbolMap>true</WasmEmitSymbolMap>
+    <PublishTrimmed>false</PublishTrimmed>
+    <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Woorf.Engine/Woorf.Engine.csproj" />
+    <ProjectReference Include="../Woorf.Graphics/Woorf.Graphics.csproj" />
+    <ProjectReference Include="../Woorf.Presentation/Woorf.Presentation.csproj" />
+    <NativeFileReference Include="../../artifacts/browser-native/woorf_luau.a" />
+    <NativeFileReference Include="../../build/browser-native/luau/libLuau.Compiler.a" />
+    <NativeFileReference Include="../../build/browser-native/luau/libLuau.Ast.a" />
+    <NativeFileReference Include="../../build/browser-native/luau/libLuau.VM.a" />
+    <NativeFileReference Include="../../build/browser-native/luau/libLuau.Common.a" />
+    <NativeFileReference Include="../../build/browser-native/luau/libLuau.Bytecode.a" />
+  </ItemGroup>
+</Project>

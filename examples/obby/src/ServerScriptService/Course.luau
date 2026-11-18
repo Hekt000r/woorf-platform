@@ -102,7 +102,12 @@ end
 function Course:addPlayer(player)
     player:SetAttribute("ObbyStage", 1)
     player:SetAttribute("ObbyFinished", false)
+    player:SetAttribute("ObbyDeaths", 0)
+    player:SetAttribute("ObbyElapsed", 0)
     player.CharacterAdded:Connect(function(character)
+        character.Humanoid.Died:Connect(function()
+            player:SetAttribute("ObbyDeaths", player:GetAttribute("ObbyDeaths") + 1)
+        end)
         if player:GetAttribute("ObbyStage") == 2 then
             character.PrimaryPart.Position = self.checkpoint.Position + Vector3.new(0, 3, 0)
         else
@@ -111,6 +116,15 @@ function Course:addPlayer(player)
         end
         character.PrimaryPart.AssemblyLinearVelocity = Vector3.zero
     end)
+end
+
+function Course:restartPlayer(player)
+    if player.Parent ~= self.players then return end
+    player:SetAttribute("ObbyStage", 1)
+    player:SetAttribute("ObbyFinished", false)
+    player:SetAttribute("ObbyDeaths", 0)
+    player:SetAttribute("ObbyElapsed", 0)
+    player:LoadCharacter()
 end
 
 function Course:checkFall(player)
@@ -127,7 +141,12 @@ function Course:update(delta)
         local speed = index == 1 and 1.5 or -2
         arm.CFrame = CFrame.new(arm.Position) * CFrame.Angles(0, self.time * speed, 0)
     end
-    for _, player in self.players:GetPlayers() do self:checkFall(player) end
+    for _, player in self.players:GetPlayers() do
+        if not player:GetAttribute("ObbyFinished") then
+            player:SetAttribute("ObbyElapsed", (player:GetAttribute("ObbyElapsed") or 0) + delta)
+        end
+        self:checkFall(player)
+    end
 end
 
 return Course

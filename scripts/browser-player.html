@@ -1,0 +1,55 @@
+<!doctype html><html><head><style>
+html,body{margin:0;overflow:hidden}canvas{position:absolute;inset:0;width:100%;height:100%}#gui{pointer-events:none}#status{position:absolute;bottom:0}#result{display:none}
+</style></head><body><canvas id="game"></canvas><canvas id="gui"></canvas><div id="status">Loading</div><pre id="result">RUNNING</pre>
+<script type="module" src="./main.js"></script>
+<script type="module">
+const output = document.getElementById('result');
+const key = (type,code,value) => window.dispatchEvent(new KeyboardEvent(type,{code,key:value,bubbles:true}));
+async function until(check) {
+    for (let index=0;index<600;index++) {
+        if (check()) return;
+        if (document.getElementById('status').textContent.includes('failed')) throw new Error(document.getElementById('status').textContent);
+        await new Promise(resolve => requestAnimationFrame(resolve));
+    }
+    throw new Error('Browser player did not reach its expected state.');
+}
+try {
+    await until(() => globalThis.woorf?.frames>3);
+    const app = woorf.app;
+    const game = await (await fetch('./game.json')).text();
+    app.Start(JSON.stringify({files:{
+        'woorf.project.json':'{}',
+        'src/ServerScriptService/Main.server.luau':`local p=Instance.new('Part',workspace); p.Anchored=true; p.Size=Vector3.new(200,1,200); p.CustomPhysicalProperties=PhysicalProperties.new(.7,.5,0); workspace.Gravity=80; workspace:SetAttribute('CharacterSpawn',Vector3.new(0,4,0))`,
+    }}));
+    await until(() => woorf.scene.scene.itemCount===9);
+    await until(() => Number(woorf.scene.position.split(',')[1])<2.6);
+    const start = Number(woorf.scene.position.split(',')[0]), first = woorf.frames;
+    key('keydown','KeyD','d'); await until(() => woorf.frames>first+30); key('keyup','KeyD','d');
+    const torso = woorf.scene.scene.batches[0].data.slice(28,44);
+    if (Number(woorf.scene.position.split(',')[0]) <= start+1 || torso[2]<1)
+        throw new Error('Browser key events must move and turn the displayed character.');
+    const ground = 2.5;
+    key('keydown','KeyW','w'); key('keydown','Space',' ');
+    await until(() => Number(woorf.scene.position.split(',')[1])>ground+2);
+    key('keyup','Space',' ');
+    await until(() => Number(woorf.scene.position.split(',')[1])<=ground+.1);
+    let walkingFrames = 0; const dropped = [];
+    for (let index=0;index<45;index++) {
+        const previous = woorf.frames; await until(() => woorf.frames>previous);
+        const data = woorf.scene.scene.batches[0].data;
+        if (Math.abs(data[4*28+6])>.005 && data[4*28+6]*data[5*28+6]<0) walkingFrames++;
+        else dropped.push({ position:woorf.scene.position, left:data[4*28+6],right:data[5*28+6] });
+    }
+    key('keyup','KeyW','w');
+    if (walkingFrames<40) throw new Error(`Post-landing walking animation dropped out: ${walkingFrames}/45 frames: ${JSON.stringify(dropped.slice(0,6))}`);
+    const before = woorf.scene.scene.camera[0], turnStart = woorf.frames;
+    key('keydown','ArrowLeft','ArrowLeft'); await until(() => woorf.frames>turnStart+30); key('keyup','ArrowLeft','ArrowLeft');
+    if (Math.abs(woorf.scene.scene.camera[0]-before)<.01) throw new Error('Browser arrow input must orbit the shared camera.');
+    app.Start(game);
+    await until(() => woorf.scene.scene.itemCount>20 && woorf.scene.scene.sky && woorf.scene.gui.some(item => item.Content==='SPINNER OBBY'));
+    output.textContent = JSON.stringify({passed:true,results:[
+        {name:'WASM player keyboard movement, character turning, camera orbit, sky and HUD',passed:true},
+        {name:'WASM player jump, landing and continued walking animation',passed:true},
+    ]});
+} catch (error) { output.textContent = JSON.stringify({passed:false,error:error.stack}); }
+</script></body></html>

@@ -68,6 +68,8 @@ internal sealed class Gl
     }
 
     [DllImport("opengl32")] internal static extern void glViewport(int x, int y, int width, int height);
+    [DllImport("opengl32")] internal static extern void glBlendFunc(uint source, uint destination);
+    [DllImport("opengl32")] internal static extern void glScissor(int x, int y, int width, int height);
     [DllImport("opengl32")] internal static extern void glDisable(uint capability);
     [DllImport("opengl32")] internal static extern void glDrawArrays(uint mode, int first, int count);
     [DllImport("opengl32")] internal static extern void glGenTextures(int count, out uint texture);

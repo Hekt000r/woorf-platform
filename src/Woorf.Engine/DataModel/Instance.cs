@@ -57,6 +57,7 @@ public partial class Instance
 
     internal static Instance CreateRuntime(string className)
     {
+        if (GuiDefaults.IsCreatable(className)) return new GuiInstance(className);
         return className switch
         {
             "Script" or "LocalScript" => new ScriptInstance(className),
@@ -65,6 +66,7 @@ public partial class Instance
             "Player" => new Player(),
             "Players" => new Players(),
             "RunService" => new RunService(),
+            "UserInputService" => new UserInputService(),
             "RemoteEvent" => new RemoteEvent(),
             "RemoteFunction" => new RemoteFunction(),
             "IntValue" or "NumberValue" or "BoolValue" or "StringValue" or "ObjectValue" or "Vector3Value" or "CFrameValue" or "Color3Value" => new ValueObject(className),

@@ -12,7 +12,7 @@ internal static class ClientStartup
         var gui = Instance.CreateRuntime("PlayerGui");
         gui.Parent = player;
         CopyTemplates(server.FindService("StarterPlayer")?.FindFirstChild("StarterPlayerScripts"), scripts);
-        CopyTemplates(server.FindService("StarterGui"), gui);
+        endpoint.GuiStartup = new GuiStartupLifecycle(player, gui, server.FindService("StarterGui"));
         return endpoint.Session.StartClientScripts();
     }
 

@@ -34,7 +34,8 @@ internal sealed class LuaValueCodec(Func<Instance?, int> getInstanceId, Func<int
                 return -1;
             }
         };
-        var result = woorf_invoke_values(handle, reference, push);
+        var result = OperatingSystem.IsBrowser() ? NativeCallbackLease.InvokeValues(handle, reference, push)
+            : woorf_invoke_values(handle, reference, push);
         GC.KeepAlive(push);
         return result;
     }
@@ -55,6 +56,7 @@ internal sealed class LuaValueCodec(Func<Instance?, int> getInstanceId, Func<int
             11 => CFrameBindings.Read(state, index),
             12 => ReadColor(state, index),
             13 => PhysicsBindings.ReadMaterial(state, index),
+            >= 14 and <= 17 => GuiValueCodec.Read(state, index, woorf_value_kind(state, index) - 14),
             _ => throw new InvalidOperationException("Unsupported remote argument type."),
         };
     }
@@ -117,6 +119,8 @@ internal sealed class LuaValueCodec(Func<Instance?, int> getInstanceId, Func<int
             case CFrame frame: CFrameBindings.Push(state, frame); break;
             case PhysicalProperties material: woorf_push_physical_properties(state, material.GetComponents()); break;
             case Color3 color: woorf_push_color3(state, color.R, color.G, color.B); break;
+            case Vector2 or UDim or UDim2 or GuiEnum: GuiValueCodec.Push(state, value); break;
+            case GuiInputObject input: PushInput(state, input, depth); break;
             case LuaTableValue table: PushTable(state, table, depth); break;
             default: throw new InvalidOperationException("Unsupported callback argument type.");
         }
@@ -132,6 +136,19 @@ internal sealed class LuaValueCodec(Func<Instance?, int> getInstanceId, Func<int
             Push(state, entry.Value, depth + 1);
             woorf_raw_set(state, index);
         }
+    }
+
+    private void PushInput(nint state, GuiInputObject input, int depth)
+    {
+        var properties = new Dictionary<string, object>
+        {
+            ["Position"] = input.Position, ["Delta"] = input.Delta,
+            ["UserInputType"] = GuiEnum.From("UserInputType", input.InputType),
+            ["UserInputState"] = GuiEnum.From("UserInputState", input.InputState),
+            ["KeyCode"] = GuiEnum.From("KeyCode", input.KeyCode),
+        };
+        PushTable(state, new(properties.Select(entry => new KeyValuePair<object, object?>(entry.Key, entry.Value)).ToArray()), depth);
+        woorf_wrap_input_object(state);
     }
 
     private static double ReadNumber(nint state, int index)

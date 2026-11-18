@@ -3,14 +3,18 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Woorf.Cli.Tests" />
     <InternalsVisibleTo Include="Woorf.Cli" />
+    <InternalsVisibleTo Include="Woorf.Browser" />
+    <InternalsVisibleTo Include="Woorf.Presentation" />
     <EmbeddedResource Include="Scripting/ScriptLifecycle.luau" />
     <EmbeddedResource Include="Scripting/Scheduler.luau" />
     <EmbeddedResource Include="Scripting/RemoteFunctions.luau" />
     <EmbeddedResource Include="Scripting/BackendTypes.luau" />
+    <EmbeddedResource Include="Scripting/GuiTypes.luau" />
     <Content Include="../../artifacts/native/*" Link="%(Filename)%(Extension)"
              CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>

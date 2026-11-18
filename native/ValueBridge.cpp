@@ -22,6 +22,8 @@ WOORF_EXPORT int woorf_value_kind(lua_State* state, int index)
     if (lua_touserdatatagged(state, index, 4)) return 11;
     if (lua_touserdatatagged(state, index, 5)) return 12;
     if (lua_touserdatatagged(state, index, 6)) return 13;
+    for (int kind = 0; kind < 4; ++kind)
+        if (lua_touserdatatagged(state, index, 7 + kind)) return 14 + kind;
     return 4;
 }
 
@@ -43,7 +45,7 @@ static int reportValueFailure(Runtime* runtime, lua_State* thread)
     return 1;
 }
 
-WOORF_EXPORT int woorf_invoke_values(void* handle, int reference, PushArguments push)
+static int invokeValues(void* handle, int reference, const std::function<int(lua_State*)>& push)
 {
     auto* runtime = static_cast<Runtime*>(handle);
     if (runtime->executionFailed) return 1;
@@ -67,6 +69,16 @@ WOORF_EXPORT int woorf_invoke_values(void* handle, int reference, PushArguments 
         lua_settop(runtime->state, savedTop);
         return 1;
     }
+}
+WOORF_EXPORT int woorf_invoke_values(void* handle, int reference, PushArguments push)
+{
+    return invokeValues(handle, reference, push);
+}
+
+WOORF_EXPORT int woorf_invoke_values_browser(void* handle, int reference,
+    int (*push)(void*, lua_State*), void* context)
+{
+    return invokeValues(handle, reference, [push, context](lua_State* state) { return push(context, state); });
 }
 WOORF_EXPORT int woorf_initialize_remote(void* handle, int id)
 {

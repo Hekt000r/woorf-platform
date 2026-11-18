@@ -1,0 +1,27 @@
+<!doctype html><html><body><canvas id="game" width="160" height="120"></canvas><pre id="result">RUNNING</pre>
+<script type="module">
+import { createRenderer } from './renderer.js';
+const output = document.getElementById('result');
+try {
+    const fixture = await (await fetch('./fixtures.json')).json();
+    const canvas = document.getElementById('game');
+    const render = createRenderer(canvas,fixture.meshes,fixture.shaders);
+    const gl = canvas.getContext('webgl2');
+    const results = [];
+    for (const frame of fixture.frames) {
+        render(frame.packet);
+        const actual = new Uint8Array(fixture.width*fixture.height*4);
+        gl.readPixels(0,0,fixture.width,fixture.height,gl.RGBA,gl.UNSIGNED_BYTE,actual);
+        const reference = Uint8Array.from(atob(frame.reference),character => character.charCodeAt(0));
+        let different = 0, maxError = 0;
+        for (let index=0;index<actual.length;index+=4) {
+            const error = Math.max(...[0,1,2].map(channel => Math.abs(actual[index+channel]-reference[index+channel])));
+            if (error>3) different++;
+            maxError = Math.max(maxError,error);
+        }
+        const mismatch = different/(fixture.width*fixture.height);
+        results.push({ name:frame.name, mismatch, maxError, passed:mismatch<.01 });
+    }
+    output.textContent = JSON.stringify({ passed:results.every(result => result.passed), results });
+} catch (error) { output.textContent = JSON.stringify({ passed:false, error:error.stack }); }
+</script></body></html>

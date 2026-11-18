@@ -1,5 +1,22 @@
 using System.Diagnostics;
 
+if (args.Length == 1 && args[0] == "--arena") return ArenaGameTests.Run();
+if (args.Length == 1 && args[0] == "--arena-engine") return ArenaEngineTests.Run();
+if (args.Length == 1 && args[0] == "--character-animation") return CharacterAnimationTests.Run();
+if (args.Length == 2 && args[0] == "--renderer-parity") return RendererParityFixture.Export(args[1]);
+if (args.Length == 1 && args[0] == "--presentation") return PresentationTests.Run();
+if (args.Length == 1 && args[0] == "--gui-editing") return GuiEditingTests.Run();
+if (args.Length == 1 && args[0] == "--obby-hud") return ObbyHudTests.Run();
+if (args.Length == 1 && args[0] == "--gui-layout") return GuiLayoutTests.Run();
+if (args.Length == 1 && args[0] == "--browser-callbacks") return BrowserCallbackTests.Run();
+if (args.Length == 1 && args[0] == "--gui-startup") return GuiStartupTests.Run();
+if (args.Length == 1 && args[0] == "--gui-replication") return GuiReplicationTests.Run();
+if (args.Length == 1 && args[0] == "--gui-text") return GuiTextTests.Run();
+if (args.Length == 1 && args[0] == "--gui-input-payload") return GuiInputPayloadTests.Run();
+if (args.Length == 1 && args[0] == "--gui-sizing") return GuiSizingTests.Run();
+if (args.Length == 1 && args[0] == "--browser-export") return BrowserExportTests.Run();
+if (args.Length == 1 && args[0] == "--gui-graphics") return GuiGraphicsTests.Run();
+
 if (args.Length == 1 && args[0] == "--multiplayer-visible")
     return await MultiplayerGraphicsTests.RunAsync(Path.Combine(AppContext.BaseDirectory, "Woorf.Cli.dll"), true);
 
@@ -28,7 +45,8 @@ if (args.Length == 1 && args[0] == "--graphics-scene") return GraphicsSceneTests
 if (args.Length == 1 && args[0] == "--physics-isolation") return PhysicsIsolationTests.Run();
 
 if (args.Length == 1 && args[0] == "--graphics")
-    return GraphicsDeviceTests.Run() + await GraphicsIntegrationTests.RunAsync(Path.Combine(AppContext.BaseDirectory, "Woorf.Cli.dll"))
+    return GraphicsDeviceTests.Run() + GuiGraphicsTests.Run()
+        + await GraphicsIntegrationTests.RunAsync(Path.Combine(AppContext.BaseDirectory, "Woorf.Cli.dll"))
         + await CharacterGraphicsTests.RunAsync(Path.Combine(AppContext.BaseDirectory, "Woorf.Cli.dll"))
         + SkyGraphicsTests.Run()
         + await MultiplayerGraphicsTests.RunAsync(Path.Combine(AppContext.BaseDirectory, "Woorf.Cli.dll"))
@@ -76,7 +94,8 @@ var cases = new (string Name, string? Source, int Exit, string Output, string Er
     .Concat(HierarchyCases.GetCases()).Concat(SignalCases.GetCases()).Concat(SkyCases.GetCases()).Concat(PhysicsTouchCases.GetCases())
     .Concat(PartPivotCases.GetCases()).Concat(ModelPivotCases.GetCases())
     .Concat(ModelBoundsCases.GetCases())
-    .Concat(InstanceEventCases.GetCases()).Concat(SchedulerCases.GetCases()).Concat(BackendApiCases.GetCases()).Concat(RuntimeSafetyCases.GetCases()).Concat(PhysicsCases.GetCases()).Concat(PhysicsShapeCases.GetCases()).Concat(CharacterBindingCases.GetCases()).ToArray();
+    .Concat(InstanceEventCases.GetCases()).Concat(SchedulerCases.GetCases()).Concat(BackendApiCases.GetCases()).Concat(RuntimeSafetyCases.GetCases()).Concat(PhysicsCases.GetCases()).Concat(PhysicsShapeCases.GetCases()).Concat(CharacterBindingCases.GetCases())
+    .Concat(GuiApiCases.GetCases()).ToArray();
 if (args.Length == 2 && args[0] == "--case")
     cases = cases.Where(test => test.Name.Contains(args[1], StringComparison.OrdinalIgnoreCase)).ToArray();
 var failedCount = 0;
@@ -124,14 +143,28 @@ failedCount += PhysicsClockTests.Run();
 failedCount += PhysicsFoundationTests.Run();
 failedCount += PhysicsIsolationTests.Run();
 failedCount += GraphicsMathTests.Run();
+failedCount += PresentationTests.Run();
 failedCount += GraphicsSceneTests.Run();
 failedCount += MultiplayerPlayTests.Run();
 failedCount += SkyTests.Run();
 failedCount += PhysicsTouchReplicationTests.Run();
 failedCount += CharacterControllerTests.Run();
 failedCount += ObbyTests.Run();
+failedCount += ObbyHudTests.Run();
+failedCount += GuiLayoutTests.Run();
+failedCount += BrowserCallbackTests.Run();
+failedCount += GuiStartupTests.Run();
+failedCount += GuiReplicationTests.Run();
+failedCount += GuiTextTests.Run();
+failedCount += GuiEditingTests.Run();
+failedCount += GuiInputPayloadTests.Run();
+failedCount += GuiSizingTests.Run();
+failedCount += BrowserExportTests.Run();
 failedCount += CharacterLifecycleTests.Run();
 failedCount += CharacterViewTests.Run();
+failedCount += CharacterAnimationTests.Run();
+failedCount += ArenaEngineTests.Run();
+failedCount += ArenaGameTests.Run();
 failedCount += CharacterViewTests.RunInput();
 failedCount += CharacterReplicationTests.Run();
 failedCount += NetworkLifecycleTests.Run();

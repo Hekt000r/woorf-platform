@@ -1,5 +1,11 @@
 # woorf
 
+Play [Last Platform Standing](examples/last-platform/README.md), a sky-island knockout
+arena with solo bots, shoves, charged jumps, collapsing tiles and automatic rounds:
+`dotnet run --project src/Woorf.Cli --no-restore -- examples/last-platform --play`.
+Add `--clients 2` for desktop multiplayer. Browser solo instructions and
+[keyboard API boundaries](docs/input.md) are documented too.
+
 woorf embeds the official Luau compiler and VM in a C# engine library, invoked by a CLI with headless and OpenGL viewer modes. It can run a standalone script or load a filesystem project into a C# DataModel with Roblox-style hierarchy APIs.
 
 ## Build and run
@@ -69,6 +75,26 @@ Focus either window to control that player. See [graphical multiplayer](docs/mul
 for separate TCP clients and captures. The obby uses engine [touch events](docs/physics.md#touch-events)
 for hazards and checkpoints, and a six-face [Sky under Lighting](docs/skybox.md).
 
+The obby includes a scripted [GUI HUD](docs/gui.md) with stage, time, deaths and a
+restart button. ScreenGui, frames, text, images, buttons, text boxes, scrolling,
+common layouts and modifiers are supported as documented subsets.
+
+## Browser build
+
+The browser host runs the C# engine and official Luau compiled to WebAssembly,
+with WebGL2 geometry and a Canvas GUI overlay. Install the .NET 9 `wasm-tools`
+workload, then build a project:
+
+```powershell
+dotnet workload install wasm-tools
+./scripts/build-browser.ps1 -Project examples/obby -Output .local/browser-obby
+python -m http.server 8000 --directory .local/browser-obby/wwwroot --bind 127.0.0.1
+```
+
+Open `http://127.0.0.1:8000`. See [browser support](docs/browser.md) for prerequisites,
+verification and boundaries. This first browser host provides local single-player
+play; it does not connect to the native raw-TCP multiplayer server.
+
 ## Tests
 
 Module example: `dotnet run --project src/Woorf.Cli -- examples/modules` loads a shared configuration with `require()`. See [module semantics](docs/runtime-compatibility.md#modules). [examples/scheduler.luau](examples/scheduler.luau) demonstrates tasks and child waits; see [scheduler behavior](docs/scheduler.md).
@@ -83,7 +109,7 @@ CLI exit codes: `0` success, `1` file/compilation/execution/native-loading failu
 
 ## Scope
 
-The native bridge uses portable CMake and the managed engine uses C#/.NET. Windows x64 is currently verified; Linux, macOS, mobile, and WASM have not been verified. Browser support will require a separate .NET/WASM and native interoperability build path. The current runtime includes a structural subset of Roblox APIs with signals, property-change events, yielding ModuleScript `require`, and cooperative task scheduling. Local headless client/server execution, RemoteEvents and yielding RemoteFunctions are supported through --clients N; see [client/server runtime](docs/client-server.md). TCP transport supports separate server/client processes. The [OpenGL viewer](docs/graphics.md) provides the first Windows graphical output; an editor remains future work. A custom managed box-and-sphere physics subset runs headlessly and in the viewer; see [physics](docs/physics.md). VM execution budgets and inbound limits are implemented; memory quotas remain absent. See [runtime hardening](docs/runtime-hardening.md).
+The native bridge uses portable CMake and the managed engine uses C#/.NET. Windows x64 and local single-player browser/WASM have bounded runtime and graphics verification. Linux, macOS and mobile hosts remain unverified. The current runtime includes a structural subset of Roblox APIs with signals, property-change events, yielding ModuleScript `require`, and cooperative task scheduling. Local headless client/server execution, RemoteEvents and yielding RemoteFunctions are supported through --clients N; see [client/server runtime](docs/client-server.md). TCP transport supports separate server/client processes. The [OpenGL viewer](docs/graphics.md) provides the first Windows graphical output; an editor remains future work. A custom managed box-and-sphere physics subset runs headlessly and in the viewer; see [physics](docs/physics.md). VM execution budgets and inbound limits are implemented; memory quotas remain absent. See [runtime hardening](docs/runtime-hardening.md).
 
 See [project.md](project.md) for the broader goals and [vendor/LUAU.md](vendor/LUAU.md) for upstream provenance and licenses.
 

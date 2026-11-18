@@ -17,7 +17,7 @@ public partial class Instance
     {
         if (!Regex.IsMatch(name, "^[A-Za-z0-9_]+$") || name.Length > 100 || name.StartsWith("RBX", StringComparison.Ordinal))
             throw new InvalidOperationException("Invalid attribute name.");
-        if (value is not null && value is not (string or bool or double or Vector3 or CFrame or Color3))
+        if (value is not null && value is not (string or bool or double or Vector3 or CFrame or Color3 or Vector2 or UDim or UDim2))
             throw new InvalidOperationException("Unsupported attribute value.");
         if (Equals(GetAttribute(name), value)) return;
         if (value is null) attributes.Remove(name); else attributes[name] = value;

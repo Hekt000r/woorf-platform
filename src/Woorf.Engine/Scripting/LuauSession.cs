@@ -16,6 +16,7 @@ internal sealed class LuauSession : IDisposable
     private readonly HostCall host;
     private readonly ReadClock readClock;
     private readonly nint handle;
+    private readonly NativeCallbackLease? callbacks;
     private bool isDisposed;
     private readonly DataModel.DataModel game;
     private readonly IRuntimeClock clock;
@@ -25,6 +26,7 @@ internal sealed class LuauSession : IDisposable
     private bool hasFinishedFailure;
     private readonly PhysicsWorld? physics;
     private CharacterWorld? characters;
+    private readonly NpcWorld? npcs;
 
     internal LuauSession(DataModel.DataModel game, IRuntimeClock clock, RuntimeEndpoint? endpoint = null)
     {
@@ -33,16 +35,22 @@ internal sealed class LuauSession : IDisposable
         write = Write;
         host = bindings.Dispatch;
         readClock = () => clock.ElapsedSeconds;
-        handle = woorf_create(write, host, bindings.GetId(game), bindings.GetId(game.Workspace));
+        if (OperatingSystem.IsBrowser())
+        {
+            callbacks = NativeCallbackLease.Create(write, host, readClock, bindings.GetId(game), bindings.GetId(game.Workspace));
+            handle = callbacks.Handle;
+        }
+        else handle = woorf_create(write, host, bindings.GetId(game), bindings.GetId(game.Workspace));
         if (handle == 0) throw new InvalidOperationException("Could not create Luau state.");
         bindings.AttachRuntime(handle);
-        woorf_set_clock(handle, readClock);
+        if (callbacks is null) woorf_set_clock(handle, readClock);
         try { InitializeScheduler(); }
-        catch { bindings.Dispose(); woorf_close(handle); throw; }
+        catch { bindings.Dispose(); CloseNative(); throw; }
         lifecycle = new ScriptLifecycle(game, this, endpoint?.IsClient == true);
         if (endpoint?.IsClient != true)
         {
             physics = new PhysicsWorld((Workspace)game.Workspace, clock.ElapsedSeconds);
+            npcs = new NpcWorld(game,physics);
             bindings.AttachCharacters(player => GetCharacters().LoadCharacter(player));
         }
     }
@@ -58,7 +66,10 @@ internal sealed class LuauSession : IDisposable
         using var backendReader = new StreamReader(backendStream, Encoding.UTF8);
         using var lifecycleStream = typeof(LuauSession).Assembly.GetManifestResourceStream("Woorf.Engine.Scripting.ScriptLifecycle.luau")!;
         using var lifecycleReader = new StreamReader(lifecycleStream, Encoding.UTF8);
-        var bytes = Encoding.UTF8.GetBytes(reader.ReadToEnd() + "\n" + lifecycleReader.ReadToEnd() + "\n" + remoteReader.ReadToEnd() + "\n" + backendReader.ReadToEnd());
+        using var guiStream = typeof(LuauSession).Assembly.GetManifestResourceStream("Woorf.Engine.Scripting.GuiTypes.luau")!;
+        using var guiReader = new StreamReader(guiStream, Encoding.UTF8);
+        var bytes = Encoding.UTF8.GetBytes(reader.ReadToEnd() + "\n" + lifecycleReader.ReadToEnd() + "\n" + remoteReader.ReadToEnd() + "\n" + backendReader.ReadToEnd()
+            + "\n" + Datatypes.GuiEnums.GetInitializationSource() + "\n" + guiReader.ReadToEnd());
         if (woorf_initialize_scheduler(handle, bytes, (nuint)bytes.Length) != 0)
             throw new InvalidOperationException("Could not initialize scheduler.");
     }
@@ -89,6 +100,7 @@ internal sealed class LuauSession : IDisposable
     {
         if (lifecycle.Synchronize() != 0) { hasLifecycleFailure = true; return -1; }
         if (physics is not null && game.FindService("Players") is not null) GetCharacters().Synchronize(now);
+        npcs?.Synchronize();
         physics?.Advance(now);
         var run = (RunService)game.GetService("RunService");
         if (now - lastHeartbeat >= 1d / 60)
@@ -137,13 +149,16 @@ internal sealed class LuauSession : IDisposable
         }
         hasFinishedFailure = HasFailed;
         characters?.Dispose();
+        npcs?.Dispose();
         physics?.Dispose();
         lifecycle.Dispose();
         bindings.Dispose();
-        woorf_close(handle);
+        CloseNative();
         GC.KeepAlive(write);
         GC.KeepAlive(host);
         GC.KeepAlive(readClock);
         isDisposed = true;
     }
+
+    private void CloseNative() { if (callbacks is null) woorf_close(handle); else callbacks.Dispose(); }
 }

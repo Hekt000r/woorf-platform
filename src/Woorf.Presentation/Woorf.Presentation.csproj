@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Woorf.Engine/Woorf.Engine.csproj" />
+    <ProjectReference Include="../Woorf.Graphics/Woorf.Graphics.csproj" />
+    <InternalsVisibleTo Include="Woorf.Cli" />
+    <InternalsVisibleTo Include="Woorf.Browser" />
+    <InternalsVisibleTo Include="Woorf.Cli.Tests" />
+  </ItemGroup>
+</Project>

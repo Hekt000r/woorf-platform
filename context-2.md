@@ -1,5 +1,178 @@
 # Woorf continuation context
 
+## Last Platform Standing — 2026-11-18
+
+User authorized a fun knockout arena with bots, TDD for engine/API work and official
+Roblox references for new APIs. The new game is `examples/last-platform`. It is
+implemented and uncommitted alongside the earlier GUI/parity changes; preserve all
+files. Run `dotnet run --project src/Woorf.Cli --no-restore -- examples/last-platform --play`;
+add `--clients 2` for a shared-server desktop session. Browser package is generated
+at `.local/browser-arena/wwwroot`; serve it on HTTP (example README uses port 8081).
+
+Gameplay: six-second opening countdown, four contestants by default, 65-second
+maximum rounds, frontal E shove with .3s visible windup/1.6s cooldown, Q higher jump
+with 6s cooldown, flashing outer-ring tiles with 1.6s warning before falling,
+elimination/viewing deck, automatic results/restart and first-to-three champion.
+Bots fill empty slots (three in solo, two with two humans). B/HUD bot toggle is
+host-only and applies next round. Bots-off solo is a valid practice mode. AI uses
+server Luau pursuit, safe-tile steering, shoves and escape jumps. Shove displacement
+is scripted with a small vertical launch, not an invented impulse API.
+
+Added shared engine support:
+- NpcWorld attaches the existing character controller to non-player Workspace
+  Models with Humanoid/Part PrimaryPart, excludes player-owned characters and
+  removes stale controllers. NpcFrameComposer shares CharacterView posing.
+- Client-only, non-creatable UserInputService supports keyboard InputBegan,
+  InputEnded and IsKeyDown for A-Z/Space, immutable typed InputObjects, real KeyCode
+  numeric values, held/repeat state and GUI-processed flags. Native/browser input
+  adapters forward to the same C# service. No server replication or AI in adapters.
+- Optional player `ViewDistance` and initial `ViewPitch` attributes configure the
+  shared viewer. These are documented Woorf conventions, not Roblox Camera APIs.
+
+Official API sources and precise boundaries are in docs/input.md. Relevant red/green
+tests are --arena-engine and --arena; the latter drives actual Luau combat, collapse,
+rounds and HUD/server state. Full suite caught a hidden legacy character-root
+regression from broader NPC rendering; restored that behavior and reran green.
+
+Current verification: complete native suite **279 PASS, zero FAIL**, all seven native
+OpenGL checks pass, plus a captured two-human/two-bot TCP arena session. Actual WASM
+arena runner passes four acceptance checks, including E/remote cooldown, bot toggle
+and subsequent practice rounds. Chrome passes all 13 native/WebGL pixel fixtures
+and two complete arena checks (E/Q combat and host bot toggle). Images were inspected.
+Logs: `.local/arena-full-tests-final.log`, `.local/arena-native-graphics.log`,
+`.local/arena-multiplayer.log`, `.local/arena-wasm-final.log`,
+`.local/arena-browser-graphics-final.log`. Captures: `.local/arena-preview.bmp`,
+`.local/arena-multiplayer.player1.bmp`, `.local/arena-parity/player.png`.
+Both arena and obby browser packages were rebuilt from current shared source.
+Commands: `node scripts/test-arena-runtime.mjs`,
+`node scripts/test-browser-graphics.mjs --arena`; normal browser tests still target
+the obby package. See examples/last-platform/README.md for launch and rules.
+
+## Mandatory architecture constraint and active animation report
+
+User requirement reiterated 2026-11-18: the **entire engine** must be as close to
+cross-platform/non-platform-bound reusable C# as possible. Only tiny native/browser
+integration shims are allowed. Simulation, animation state/timing, character and
+camera behavior, scene composition and GUI layout/rendering policy belong to shared
+code. Never add a platform-specific animation/gameplay patch or copy shared engine
+logic into a host. See project.md, "Cross-platform architecture requirement".
+
+The user reported WASM animations struggling/stopping after jumping and landing.
+Found a shared animation bug: CharacterView treated no new position on a render
+frame as idle, resetting limbs between physics publications. Actual WASM at 144 Hz
+reproduced pose dropouts (116/145 moving samples), while the native capped 60 Hz
+loop hid the cadence assumption. Shared CharacterView now advances gait from
+published horizontal velocity and elapsed time; it uses position travel as a
+fallback for manually moved characters, ignores large teleports and idles when
+actual motion stops. No platform-specific animation branch was added.
+
+Verification: **275 PASS, zero FAIL** in .local/landing-full-tests.log. Shared
+--character-animation regression passed red/green. Actual WASM passed **13 checks**,
+including jump/landing/walking and 144/240/30/5 Hz cadence tests; log
+.local/landing-wasm-green.log. Native/WebGL comparisons all passed and the complete
+Chrome player passed keyboard jump, landing and 45 subsequent walking frames;
+log .local/landing-browser-graphics.log. Its floor uses the obby's zero-elasticity
+material so a physical bounce is not misclassified as a failed landing animation.
+Browser package rebuilt at .local/browser-obby/wwwroot. The old parity checks had
+not exercised continued walking after landing; keep these regressions.
+
+## Native/browser rendering parity — 2026-11-18
+
+This section supersedes rendering details in the earlier GUI continuation below.
+The user requires platform-neutral reusable C# presentation, with thin platform
+display/input adapters. The browser previously had separate lighting shaders,
+different clear color and no skybox. Character facing also depended on rendering
+position deltas below four studs, so slow frames could prevent rotation entirely.
+
+Shared `src/Woorf.Presentation` now owns WorkspaceScene, WorkspaceSky, CharacterView,
+CharacterFrameComposer, CharacterControls, CharacterViewer, WorldView and packet
+encoding. Both CLI and Browser reference that assembly; linked CLI source files
+were removed from the browser project. CharacterViewer contains no window API;
+native polling lives in CharacterWindowInput. Facing uses replicated MoveDirection
+while limb animation still uses actual travel. Browser textbox focus now suppresses
+camera orbit consistently with desktop too.
+
+Graphics scene shaders, sky shaders, InstanceBatch and SkyImage now live in the
+platform-neutral Graphics namespace. SceneDrawState packs the same model/normal/
+color data for both GPU adapters. Skybox.LoadImages and camera sky projection are
+shared. Browser WebGL only compiles supplied shader sources, uploads packed data
+and decoded sky pixels, binds uniforms and draws. No browser-specific lighting
+math, camera calculations, sky substitute or character posing remains there.
+System fonts versus Canvas glyph rasterization remains a documented GUI boundary.
+
+Verification: full native runner **274 PASS, zero FAIL**, plus **7 PASS** OpenGL
+acceptance checks. Actual WASM runner has **8 PASS**, including the six shared
+sky textures, turning and long-frame facing. `node scripts/test-browser-graphics.mjs`
+passed 13 actual native/WebGL pixel comparisons with zero pixels exceeding 3/255
+channel error, plus a complete Chrome WASM player check for keyboard movement,
+turning, camera orbit, sky and HUD. Screenshot `.local/renderer-parity/player.png`
+was inspected. Final full-suite rerun also passed 274/0, exit code 0. Logs:
+`.local/parity-full-tests-final.log`, `.local/parity-native-graphics.log`,
+`.local/parity-wasm-final.log`, `.local/parity-browser-graphics-final.log`.
+
+Native/backend and browser builds passed without compiler warnings/errors. Browser
+package was rebuilt at `.local/browser-obby/wwwroot`. Run the same HTTP server as
+before and refresh the page after rebuilding. The graphics comparison requires
+Chrome (`CHROME_PATH` overrides its path) and writes disposable .local fixtures.
+The full Chrome test uses a local debugging endpoint owned by its headless child
+process and closes that process afterward. Do not mistake Node-only WASM testing
+for proof of WebGL appearance. No changes have been committed.
+
+## GUI continuation — 2026-11-18
+
+This section supersedes the historical handoff below. The user requested completion
+of another agent's GUI implementation. All implementation remains uncommitted;
+preserve the working tree, including untracked files.
+
+The GUI milestone includes Vector2/UDim/UDim2 and GUI enums, screen containers,
+text/buttons/images, scrolling, layouts and size modifiers, shared layout/hit
+testing, typed input payloads, text editing, local/TCP replication and StarterGui
+respawn handling. Desktop overlays render centrally in Woorf.Graphics. Local play
+uses isolated server/client VMs through LocalPlayHost, enabling LocalScripts and
+gameplay remotes. The obby now has a scripted stage/time/deaths HUD, finish status
+and authoritative restart button. Read docs/gui.md for supported behavior/limits.
+
+The previous agent also added a browser/WASM host, static per-VM native callbacks
+and build/export scripts. It uses the same managed engine and official Luau. It
+supports local single-player only; browser TCP multiplayer is absent. Read
+docs/browser.md. Generated package: .local/browser-obby/wwwroot. Custom assets are
+not automatically exported.
+
+Continuation fixes: missing caret/selection drawing, emoji backspace, selection
+collapse on arrow navigation, browser GUI JSON serialization of derived Vector2
+properties, stale game files/input state after browser reload, and browser keyboard
+navigation routing. The browser input fixture explicitly persists its screen across
+the initial character spawn. A full rebuild resolved stale incremental references.
+
+Useful verification commands:
+
+```powershell
+cmake --build build/native --target woorf_luau
+dotnet build tests/Woorf.Cli.Tests --no-restore -t:Rebuild
+dotnet run --project tests/Woorf.Cli.Tests --no-build --no-restore
+dotnet run --project tests/Woorf.Cli.Tests --no-build --no-restore -- --graphics
+dotnet run --project tests/Woorf.Cli.Tests --no-build --no-restore -- --gui-editing
+./scripts/build-browser.ps1 -Project examples/obby -Output .local/browser-obby
+node scripts/test-browser-runtime.mjs
+```
+
+Final complete custom runner: **273 PASS, zero FAIL**, exit code 0. Log:
+.local/gui-finish-tests-final.log. All seven real OpenGL checks passed, including GUI pixels, preserved 3D depth,
+multiplayer captures and visible windows. Actual WASM passed five acceptance checks:
+game/HUD startup, remote activation, text navigation/caret, walking and jumping.
+Desktop capture .local/gui-finished-obby.bmp was visually inspected. Native/managed
+builds succeeded with zero compiler warnings/errors. An isolated desktop build is
+.local/gui-finish-build; pass the same absolute ArtifactsPath for restore/build/run.
+Never rebuild a loaded output directory.
+
+One run overlapping WASM optimization failed the existing test "cancels server
+callbacks and client timers when their player disconnects", reporting "disconnected
+client timer resumed". Preserve this observation when investigating scheduler and
+disconnect ordering; do not weaken the fixture to hide it. It passed in the final
+complete-suite rerun without WASM optimization load.
+
+## Historical handoff (superseded by the GUI continuation above)
+
 Updated 2026-11-17. This is the current handoff and supersedes the older milestone
 notes that previously occupied this file. Read this before starting new work.
 

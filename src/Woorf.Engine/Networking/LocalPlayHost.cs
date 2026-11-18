@@ -1,0 +1,45 @@
+using Woorf.Engine.DataModel;
+using Woorf.Engine.Datatypes;
+using Woorf.Engine.Projects;
+using Woorf.Engine.Scheduling;
+
+namespace Woorf.Engine.Networking;
+
+public sealed class LocalPlayHost : IDisposable
+{
+    private readonly LocalNetworkHost host;
+    private readonly Player authority;
+    public DataModel.DataModel Game { get; }
+    public Player Player { get; }
+    public int StartupStatus { get; }
+    public bool HasFailed => host.HasFailed;
+
+    public LocalPlayHost(LoadedProject project, IRuntimeClock clock)
+    {
+        host = new(project, clock);
+        try
+        {
+            ((Players)project.Game.GetService("Players")).CharacterAutoLoads = true;
+            StartupStatus = host.Start();
+            if (StartupStatus != 0) throw new InvalidOperationException("Server script startup failed.");
+            authority = host.ConnectClient();
+            Game = host.GetClientGame(authority);
+            Player = ((Players)Game.GetService("Players")).LocalPlayer!;
+            Pump();
+        }
+        catch { host.Dispose(); throw; }
+    }
+
+    public int Pump() => host.Pump();
+
+    public void SendInput(Vector3 direction, bool shouldJump, bool shouldReset)
+    {
+        if (authority.Character?.FindFirstChild("Humanoid") is not Humanoid humanoid) return;
+        humanoid.Move(direction);
+        if (shouldJump) humanoid.Jump = true;
+        if (shouldReset) humanoid.Health = 0;
+    }
+
+    public int Finish(int status) { Dispose(); return status != 0 || HasFailed ? 1 : 0; }
+    public void Dispose() => host.Dispose();
+}

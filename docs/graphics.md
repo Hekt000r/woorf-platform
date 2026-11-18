@@ -21,6 +21,15 @@ drains; normal headless commands retain their existing lifetime behavior.
 
 ## Library and integration
 
+Desktop and browser now consume the same `Woorf.Presentation` world/character/sky
+capture and `Woorf.Graphics` meshes, instance packing, image decoding, camera math
+and lighting/sky shaders. `Woorf.Presentation` references Engine and Graphics; it
+has no window or input-device API. Native key polling stays in the CLI adapter.
+GPU-specific code binds resources and submits the shared data. The browser does
+not implement a separate lighting model or a substitute sky background. See
+[browser verification](browser.md#runtime-acceptance-checks) for real native/WebGL
+pixel comparisons and full WASM player checks.
+
 - `Woorf.Graphics` has no dependency on Woorf.Engine, Luau, or a window toolkit.
   It uses the .NET standard library, System.Numerics and direct OS/driver interop.
 - `Platform/OpenGlWindow` owns a resizable Win32 window, device context and WGL
@@ -33,7 +42,7 @@ drains; normal headless commands retain their existing lifetime behavior.
   colors use reusable buffers and instanced vertex attributes.
 - `MeshData` supplies outward-wound unit boxes and unit-radius spheres with normals.
   `RenderItem` supplies shape, model transform and linear RGB color. Mesh and program
-  ownership are currently internal; arbitrary asset mesh/shader APIs are not exposed.
+  ownership is internal to the GPU adapters; arbitrary asset mesh/shader APIs are not exposed.
 - `PerspectiveCamera` supplies a right-handed view and perspective projection with
   OpenGL's -1/+1 clip depth. It uses radians and looks along local negative Z.
   System.Numerics row-vector matrices map to GLSL column-vector matrices on upload.
@@ -43,7 +52,7 @@ drains; normal headless commands retain their existing lifetime behavior.
   state it uses; it does not preserve arbitrary external rendering state.
   The engine groups draw data by mesh: at most one indexed instanced draw for boxes
   and one for spheres per frame. Parts own no rendering methods or GPU resources.
-- The CLI's `WorkspaceScene` adapts CFrame and Size to draw items, excluding storage
+- Shared presentation's `WorkspaceScene` adapts CFrame and Size to draw items, excluding storage
   geometry and invalid transforms. Spheres use the physics radius rule: half the
   smallest Size component. Each frame observes insertion, removal, shape, transform
   and size changes. CanCollide=false Parts remain visible. Membership is cached;

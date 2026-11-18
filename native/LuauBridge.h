@@ -6,6 +6,7 @@
 #include <chrono>
 #include <string>
 #include <unordered_map>
+#include <functional>
 
 #ifdef _WIN32
 #define WOORF_EXPORT extern "C" __declspec(dllexport)
@@ -31,9 +32,9 @@ struct Runtime
     int executionDepth = 0;
     bool executionFailed = false;
     lua_State* state = nullptr;
-    WriteOutput write = nullptr;
-    HostCall host = nullptr;
-    ReadClock readClock = nullptr;
+    std::function<void(const char*, size_t, int)> write;
+    std::function<int(lua_State*, const char*)> host;
+    std::function<double()> readClock;
     std::unordered_map<int, ModuleResult> modules;
 
     ~Runtime()

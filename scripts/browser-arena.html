@@ -1,0 +1,31 @@
+<!doctype html><html><head><style>
+html,body{margin:0;overflow:hidden}canvas{position:absolute;inset:0;width:100%;height:100%}#gui{pointer-events:none}#status{position:absolute;bottom:0}#result{display:none}
+</style></head><body><canvas id="game"></canvas><canvas id="gui"></canvas><div id="status">Loading</div><pre id="result">RUNNING</pre>
+<script type="module" src="./main.js"></script>
+<script type="module">
+const output=document.getElementById('result');
+const key=(type,code,value)=>window.dispatchEvent(new KeyboardEvent(type,{code,key:value,bubbles:true}));
+const texts=()=>globalThis.woorf?.scene.gui.filter(item=>item.Kind==='Text').map(item=>item.Content)??[];
+async function until(check) {
+    for(let index=0;index<2400;index++) {
+        if(check())return;
+        if(document.getElementById('status').textContent.includes('failed'))throw new Error(document.getElementById('status').textContent);
+        await new Promise(resolve=>requestAnimationFrame(resolve));
+    }
+    throw new Error('Arena did not reach expected state.');
+}
+try {
+    await until(()=>texts().some(text=>text.includes('4 REMAIN')));
+    if(!texts().some(text=>text.includes('BOT BOLT'))||!woorf.scene.scene.sky)throw new Error('Arena opponents or sky missing.');
+    key('keydown','KeyE','e'); key('keyup','KeyE','e');
+    await until(()=>texts().some(text=>/^SHOVE\s+1\./.test(text)));
+    key('keydown','KeyQ','q'); key('keyup','KeyQ','q');
+    await until(()=>texts().some(text=>/^SKY JUMP\s+[56]\./.test(text)));
+    key('keydown','KeyB','b'); key('keyup','KeyB','b');
+    await until(()=>texts().includes('BOTS: OFF'));
+    output.textContent=JSON.stringify({passed:true,results:[
+        {name:'arena WASM browser renders opponents and receives E/Q combat through actual keyboard handlers',passed:true},
+        {name:'arena WASM browser host toggles bots through the authoritative remote',passed:true},
+    ]});
+}catch(error){output.textContent=JSON.stringify({passed:false,error:error.stack});}
+</script></body></html>

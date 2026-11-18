@@ -12,6 +12,26 @@ familiar to Roblox developers while giving creators control over where games run
 - Establish backend/runtime APIs before concentrating on rendering or editor work.
 - Aim for 99% compatibility, with the scope and denominator still to be defined.
 
+## Cross-platform architecture requirement
+
+The entire engine must stay as close to platform-neutral, reusable C# as possible.
+Only tiny native/browser shims are allowed for platform integration: windows,
+graphics-context creation, device input, resource uploads, draw submission and
+unavoidable operating-system interop. The official Luau VM remains a shared native
+dependency; it does not justify separate gameplay implementations.
+
+Simulation, character control, animation state and timing, camera behavior, scene
+composition, GUI layout and rendering policy must have one shared implementation.
+Do not implement browser-specific or native-specific versions of those behaviors,
+copy engine code into a host, or patch a shared bug inside a platform adapter.
+Adapters must translate platform events/data into the shared contracts.
+
+Different frame rates, clocks, suspension/resume and runtime execution costs must
+not change engine behavior. Reproduce platform discrepancies with shared behavioral
+tests and actual affected-platform tests, then fix the shared assumption or the
+adapter contract. Passing native tests alone does not establish browser correctness.
+This is an architectural requirement, not a measured percentage of source code.
+
 ## Current implementation
 
 The headless CLI and engine embed vendored Luau 0.745 through a native C++ bridge.
@@ -22,7 +42,7 @@ provide a headless spatial subset.
 
 Server and clients have separate VMs and object graphs. Local hosting and separate
 TCP processes support RemoteEvents, yielding RemoteFunctions, player join/removal,
-Kick and authoritative incremental replication. TCP protocol v7 includes dirty
+Kick and authoritative incremental replication. TCP protocol v8 includes dirty
 capture, bounded nonblocking outgoing queues and transport metrics.
 
 Backend APIs include attributes, tags, ValueObjects, BindableEvent, Color3, Random,
@@ -38,7 +58,7 @@ script lifecycle, VM budgets, inbound limits and atomic UpdateAsync are implemen
 DataStores use Woorf's local backend. Saved TCP credentials preserve server-issued identities across reconnects and restarts;
 in-process UserIds remain session identities. External account login is not implemented.
 
-Windows x64 is verified. Linux, macOS, mobile, WASM, standalone packaging and an
+Windows x64 and local single-player browser/WASM are verified. Linux, macOS, mobile, standalone packaging and an
 editor remain future work. See [runtime compatibility](docs/runtime-compatibility.md),
 [backend API boundaries](docs/backend-apis.md), [client/server behavior](docs/client-server.md)
 and [TCP transport](docs/socket-transport.md).

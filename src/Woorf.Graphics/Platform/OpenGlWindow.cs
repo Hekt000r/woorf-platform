@@ -10,6 +10,10 @@ public sealed class OpenGlWindow : IDisposable
     private readonly int threadId = Environment.CurrentManagedThreadId;
     private nint window, dc, context;
     private bool isRegistered, isDisposed, shouldClose;
+    private float pointerX = -1, pointerY = -1, wheel;
+    private bool isPointerDown;
+    private readonly System.Text.StringBuilder textInput = new();
+    private readonly List<WindowKeyInput> keyInput = [];
     [UnmanagedFunctionPointer(CallingConvention.Winapi)]
     private delegate nint CreateContext(nint dc, nint shared, int[] attributes);
 
@@ -80,6 +84,18 @@ public sealed class OpenGlWindow : IDisposable
         return !shouldClose;
     }
     public bool IsKeyDown(int key) => Win32.GetForegroundWindow() == window && (Win32.GetAsyncKeyState(key) & 0x8000) != 0;
+    public WindowPointerInput ReadPointerInput()
+    {
+        AssertThread();
+        var isFocused = Win32.GetForegroundWindow() == window;
+        var result = new WindowPointerInput(isFocused ? pointerX : -1, isFocused ? pointerY : -1,
+            isFocused && isPointerDown, isFocused ? wheel : 0, isFocused ? textInput.ToString() : "", isFocused);
+        wheel = 0; textInput.Clear(); return result;
+    }
+    public WindowKeyInput[] ReadKeyInput()
+    {
+        AssertThread(); var result = keyInput.ToArray(); keyInput.Clear(); return result;
+    }
     public void SetPosition(int x, int y)
     {
         AssertThread();
@@ -94,6 +110,21 @@ public sealed class OpenGlWindow : IDisposable
     private nint ProcessMessage(nint handle, uint message, nuint wparam, nint lparam)
     {
         if (message == 0x10) { shouldClose = true; return 0; }
+        if (message is 0x200 or 0x201 or 0x202)
+        {
+            pointerX = (short)((long)lparam & 0xFFFF); pointerY = (short)(((long)lparam >> 16) & 0xFFFF);
+            if (message == 0x201) isPointerDown = true;
+            if (message == 0x202) isPointerDown = false;
+        }
+        if (message == 0x20A) wheel += (short)((wparam >> 16) & 0xFFFF) / 120f;
+        if (message == 0x102) textInput.Append((char)wparam);
+        if (message == 0x100)
+        {
+            var key = (int)wparam switch { 0x25 => "Left", 0x27 => "Right", 0x24 => "Home", 0x23 => "End", 0x2E => "Delete", _ => "" };
+            if (wparam == 'A' && (Win32.GetAsyncKeyState(0x11) & 0x8000) != 0) key = "SelectAll";
+            if (key.Length > 0) keyInput.Add(new(key, (Win32.GetAsyncKeyState(0x10) & 0x8000) != 0));
+        }
+        if (message == 0x8) { isPointerDown = false; textInput.Clear(); }
         return Win32.DefWindowProcW(handle, message, wparam, lparam);
     }
     private void AssertThread()
@@ -113,3 +144,6 @@ public sealed class OpenGlWindow : IDisposable
         GC.KeepAlive(procedure);
     }
 }
+
+public readonly record struct WindowPointerInput(float X, float Y, bool IsDown, float Wheel, string Text, bool IsFocused);
+public readonly record struct WindowKeyInput(string Key, bool IsShiftDown);
