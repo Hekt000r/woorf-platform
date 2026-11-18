@@ -7,6 +7,7 @@ internal sealed class RigidBody(int id)
 {
     internal int Id { get; } = id;
     internal CFrame Frame;
+    internal CFrame CharacterRotation;
     internal Vector3 LinearVelocity, AngularVelocity, Size;
     internal PhysicalProperties Material;
     internal bool IsAnchored, CanCollide;

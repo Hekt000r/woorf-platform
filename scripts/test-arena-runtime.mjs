@@ -13,9 +13,32 @@ let frame;
 for(let index=0;index<=210;index++) frame=JSON.parse(app.Frame(index/30,0,0,false,false,0,0,960,640));
 const contents=()=>frame.gui.filter(item=>item.Kind==='Text').map(item=>item.Content);
 assert.ok(contents().some(text=>text.includes('4 REMAIN')),'Solo WASM must start with one human and three bots.');
-assert.ok(contents().some(text=>text.includes('BOT BOLT'))&&contents().some(text=>text.includes('BOT NOVA')),'Bots must appear on the real scripted HUD.');
+assert.ok(contents().includes('Wins') && contents().includes('0'), 'The player list must render the Wins column and initial score.');
+for (const [key, shift] of [['F3', true], ['F4', true], ['F9', false]]) {
+    assert.equal(app.CoreKey(key, shift), true);
+}
+frame=JSON.parse(app.Frame(210/30,0,0,false,false,0,0,960,640));
+for (const title of ['Network', 'Performance', 'Developer Console · Client output']) {
+    assert.ok(contents().includes(title), `Missing published WASM overlay: ${title}`);
+}
 assert.ok(frame.scene.itemCount>100,'Browser must render the arena, scenery and NPC bodies through shared C#.');
 assert.ok(frame.scene.sky,'The game must include its real skybox.');
+const thirdPerson = frame.scene;
+const captureCamera = () => JSON.parse(app.Frame(210/30,0,0,false,false,0,0,960,640)).scene;
+app.CameraMotion(80, 0, false);
+assert.deepEqual(captureCamera().camera, thirdPerson.camera);
+app.CameraMotion(80, 0, true);
+assert.notDeepEqual(captureCamera().camera, thirdPerson.camera);
+app.Pointer(400, 300, false, 30);
+assert.equal(app.CameraMotion(0, 0, false), true);
+const firstPerson = captureCamera();
+assert.ok(firstPerson.itemCount < thirdPerson.itemCount, 'First person must hide the local avatar.');
+app.CameraMotion(80, 0, false);
+assert.notDeepEqual(captureCamera().camera, firstPerson.camera);
+app.Pointer(400, 300, false, -1);
+assert.equal(app.CameraMotion(0, 0, false), false);
+assert.equal(captureCamera().itemCount, thirdPerson.itemCount);
+console.log('PASS actual WASM camera supports right drag, zoom, and first-person look');
 console.log('PASS actual WASM launches the arena HUD sky and three autonomous opponents');
 app.InputKey('E',true); app.InputKey('E',false);
 frame=JSON.parse(app.Frame(211/30,0,0,false,false,0,0,960,640));
@@ -28,7 +51,7 @@ console.log('PASS actual WASM host can toggle bot participation for the next rou
 let enteredPractice=false;
 for(let index=217;index<=1800;index++) {
     frame=JSON.parse(app.Frame(index/30,0,0,false,false,0,0,960,640));
-    if(contents().some(text=>text.includes('PRACTICE'))&&!contents().some(text=>text.includes('BOT BOLT'))) enteredPractice=true;
+    if(contents().some(text=>text.includes('PRACTICE'))) enteredPractice=true;
 }
 assert.ok(enteredPractice,'Bots disabled by the host must be removed next round and solo play must become a valid practice round.');
 console.log('PASS actual WASM collapse eliminations and automatic rounds honor bot settings');

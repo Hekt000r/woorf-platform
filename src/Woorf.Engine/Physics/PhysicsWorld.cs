@@ -66,6 +66,12 @@ internal sealed class PhysicsWorld : IDisposable
             body.LinearVelocity = part.AssemblyLinearVelocity; body.AngularVelocity = part.AssemblyAngularVelocity;
             body.Shape = part is Part shaped ? shaped.Shape : PartType.Block;
             body.IsRotationLocked = rotationLocked.Contains(part);
+            if (body.IsRotationLocked)
+            {
+                body.CharacterRotation = part.CFrame.Rotation;
+                // Turning the avatar must not change its contact footprint.
+                body.Frame = CFrame.Identity.WithPosition(part.Position);
+            }
             body.UpdateBounds();
         }
         touches.Synchronize(bodies, changedTouchGeometry);
@@ -94,8 +100,9 @@ internal sealed class PhysicsWorld : IDisposable
         {
             if (part.IsDestroyed || part.Anchored || !part.IsDescendantOf(workspace) || !IsFinite(body.Frame)) continue;
             if (Snapshot.Capture(part) != originals[part]) continue;
-            expectedStates[part] = originals[part] with { Frame = body.Frame, Linear = body.LinearVelocity, Angular = body.AngularVelocity };
-            part.ApplyPhysicsState(body.Frame, body.LinearVelocity, body.AngularVelocity);
+            var frame = body.IsRotationLocked ? body.CharacterRotation.WithPosition(body.Frame.Position) : body.Frame;
+            expectedStates[part] = originals[part] with { Frame = frame, Linear = body.LinearVelocity, Angular = body.AngularVelocity };
+            part.ApplyPhysicsState(frame, body.LinearVelocity, body.AngularVelocity);
         }
         touches.Publish();
     }

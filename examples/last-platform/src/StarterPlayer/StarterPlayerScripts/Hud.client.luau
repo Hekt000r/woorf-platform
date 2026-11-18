@@ -11,10 +11,6 @@ Ui.label(header,"Kicker",UDim2.fromOffset(16,10),UDim2.fromOffset(270,18),"SURVI
 local title=Ui.label(header,"Title",UDim2.fromOffset(16,31),UDim2.fromOffset(280,31),"LAST PLATFORM",25)
 title.Font=Enum.Font.GothamBold
 local round=Ui.label(header,"Round",UDim2.fromOffset(16,71),UDim2.fromOffset(280,25),"ROUND 1 · GET READY",16)
-local board=Ui.panel(screen,"Board",UDim2.new(1,-240,0,18),UDim2.fromOffset(220,188))
-Ui.label(board,"Heading",UDim2.fromOffset(15,12),UDim2.fromOffset(190,23),"RACE TO 3 WINS",16,Ui.gold)
-local scores=Ui.label(board,"Scores",UDim2.fromOffset(15,44),UDim2.fromOffset(190,128),"",15)
-scores.TextYAlignment=Enum.TextYAlignment.Top; scores.LineHeight=1.55
 local timerPanel=Ui.panel(screen,"TimerPanel",UDim2.new(.5,-65,0,18),UDim2.fromOffset(130,86))
 Ui.label(timerPanel,"Caption",UDim2.fromOffset(14,9),UDim2.fromOffset(102,18),"TIME LEFT",12,Ui.cyan)
 local timer=Ui.label(timerPanel,"Time",UDim2.fromOffset(14,28),UDim2.fromOffset(104,45),"06",34)
@@ -29,7 +25,7 @@ local boost=Ui.button(screen,"Boost",UDim2.new(.5,8,1,-90),UDim2.fromOffset(218,
 local bots=Ui.button(screen,"Bots",UDim2.new(0,20,1,-66),UDim2.fromOffset(165,36),"BOTS: ON",Ui.white)
 bots.TextSize=14
 Ui.label(screen,"BotHint",UDim2.new(0,20,1,-25),UDim2.fromOffset(170,17),"Next round · host only",11)
-local controls=Ui.label(screen,"Controls",UDim2.new(.5,-245,1,-23),UDim2.fromOffset(490,18),"WASD move · SPACE jump · ARROWS orbit · E shove · Q sky jump",12)
+local controls=Ui.label(screen,"Controls",UDim2.new(.5,-245,1,-23),UDim2.fromOffset(490,18),"WASD move · SPACE jump · RMB look · SCROLL zoom · E shove · Q sky jump",12)
 controls.TextXAlignment=Enum.TextXAlignment.Center
 
 local function refresh()
@@ -37,7 +33,6 @@ local function refresh()
     local isAlive=player:GetAttribute("ArenaAlive")==true
     round.Text=string.format("ROUND %d  ·  %s",math.max(1,state:GetAttribute("Round") or 1),phase=="Fight" and ((state:GetAttribute("Alive") or 0).." REMAIN") or string.upper(phase))
     timer.Text=string.format("%02d",state:GetAttribute("TimeLeft") or 0)
-    scores.Text=state:GetAttribute("Leaderboard") or ""
     message.Text=state:GetAttribute("Message") or ""
     status.Text=phase=="Fight" and (isAlive and "Stay on blue tiles. Dodge the amber wind-up, then strike back." or "ELIMINATED · Watch the survivors. You return next round.")
         or "Shove rivals off the island. Cracking orange tiles fall after a short warning."
@@ -60,7 +55,7 @@ game:GetService("UserInputService").InputBegan:Connect(function(input,processed)
     if input.KeyCode==Enum.KeyCode.Q then action:FireServer("Boost") end
     if input.KeyCode==Enum.KeyCode.B then action:FireServer("Bots") end
 end)
-for _,name in {"Phase","TimeLeft","Round","Alive","BotsEnabled","Leaderboard","Message","HostId"} do
+for _,name in {"Phase","TimeLeft","Round","Alive","BotsEnabled","Message","HostId"} do
     state:GetAttributeChangedSignal(name):Connect(refresh)
 end
 for _,name in {"ArenaAlive","ShoveCooldown","BoostCooldown"} do player:GetAttributeChangedSignal(name):Connect(refresh) end

@@ -1,5 +1,49 @@
 # Woorf continuation context
 
+## Resume here — saved 2026-11-18
+
+This is the current handoff. It supersedes older working-tree claims below.
+HEAD is `0617959`; git status was clean before this documentation edit, so the
+implementation has been committed by the user. Inspect status on resume. Never
+reset, clean, discard or commit work without authorization.
+
+Completed: GUI/obby HUD, shared C# native/WASM presentation and sky/lighting parity,
+animation timing fixes after landing, and Last Platform Standing with solo bots,
+combat, collapsing tiles, scoring and automatic rounds. Latest native regression:
+**279 PASS, zero FAIL**, plus seven OpenGL checks. Actual WASM arena tests, Chrome
+game/input checks, 13 native/WebGL pixel comparisons and obby animation regressions
+passed. Detailed logs and architecture are recorded in the sections below.
+
+Latest user clarification: the arena game itself is **entirely Luau**. Geometry,
+bots, combat, collapse, rounds, scoring and HUD live in examples/last-platform/src.
+Reusable C# additions are UserInputService keyboard InputBegan/InputEnded/IsKeyDown,
+A-Z/Space KeyCodes, existing Humanoid movement/jumping extended to NPC Models and
+shared NPC posing. ViewDistance/ViewPitch are Woorf viewer attributes, not Roblox
+Camera APIs. No ApplyImpulse API exists; the shove uses scripted displacement.
+
+Mandatory: keep the entire engine as platform-neutral reusable C# as possible.
+Only tiny native/browser integration shims are allowed. No separate platform
+gameplay, animation, physics or rendering-policy implementations. Apply TDD and
+the coding/testing skills; consult official Roblox documentation for new APIs.
+See project.md and docs/input.md. Do not claim full Roblox compatibility or
+production readiness.
+
+```powershell
+dotnet run --project src/Woorf.Cli --no-restore -- examples/last-platform --play
+# Add --clients 2 for desktop multiplayer.
+python -m http.server 8081 --directory .local/browser-arena/wwwroot
+# Open http://localhost:8081 for the already-built browser solo game.
+./scripts/build-browser.ps1 -Project examples/last-platform -Output .local/browser-arena
+```
+
+Controls: WASD, Space, arrows; E shove, Q charged jump, B host-only bot toggle for
+the next round. Solo defaults to three bots. Browser multiplayer is absent. Read
+examples/last-platform/README.md, docs/browser.md, docs/gui.md and docs/input.md.
+.local contains ignored generated builds, logs and captures, not source.
+
+No implementation task is pending. This request was only to save continuation
+context. Follow the next user instruction, and handle simple requests promptly.
+
 ## Last Platform Standing — 2026-11-18
 
 User authorized a fun knockout arena with bots, TDD for engine/API work and official

@@ -4,7 +4,7 @@ html,body{margin:0;overflow:hidden}canvas{position:absolute;inset:0;width:100%;h
 <script type="module" src="./main.js"></script>
 <script type="module">
 const output=document.getElementById('result');
-const key=(type,code,value)=>window.dispatchEvent(new KeyboardEvent(type,{code,key:value,bubbles:true}));
+const key=(type,code,value,shiftKey=false)=>window.dispatchEvent(new KeyboardEvent(type,{code,key:value,shiftKey,bubbles:true}));
 const texts=()=>globalThis.woorf?.scene.gui.filter(item=>item.Kind==='Text').map(item=>item.Content)??[];
 async function until(check) {
     for(let index=0;index<2400;index++) {
@@ -16,7 +16,11 @@ async function until(check) {
 }
 try {
     await until(()=>texts().some(text=>text.includes('4 REMAIN')));
-    if(!texts().some(text=>text.includes('BOT BOLT'))||!woorf.scene.scene.sky)throw new Error('Arena opponents or sky missing.');
+    if(!texts().includes('Wins')||!woorf.scene.scene.sky)throw new Error('Arena player list or sky missing.');
+    key('keydown','F4','F4',true);
+    await until(()=>texts().includes('Performance'));
+    key('keydown','F4','F4',true);
+    await until(()=>!texts().includes('Performance'));
     key('keydown','KeyE','e'); key('keyup','KeyE','e');
     await until(()=>texts().some(text=>/^SHOVE\s+1\./.test(text)));
     key('keydown','KeyQ','q'); key('keyup','KeyQ','q');

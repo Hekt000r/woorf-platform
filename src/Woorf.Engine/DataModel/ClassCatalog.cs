@@ -26,14 +26,14 @@ public static class ClassCatalog
         ["ServerStorage"] = "Instance", ["ServerScriptService"] = "Instance",
         ["StarterGui"] = "BasePlayerGui", ["BasePlayerGui"] = "Instance",
         ["StarterPack"] = "Instance", ["StarterPlayer"] = "Instance",
-        ["Players"] = "Instance", ["Player"] = "Instance", ["RunService"] = "Instance",
+        ["CoreGui"] = "BasePlayerGui", ["GuiService"] = "Instance", ["Players"] = "Instance", ["Player"] = "Instance", ["RunService"] = "Instance",
         ["RemoteFunction"] = "Instance", ["BaseRemoteEvent"] = "Instance", ["RemoteEvent"] = "BaseRemoteEvent",
         ["StarterPlayerScripts"] = "Instance", ["PlayerScripts"] = "Instance", ["PlayerGui"] = "BasePlayerGui",
     };
 
     public static bool IsService(string className) => className is "Workspace" or "ReplicatedStorage"
         or "ReplicatedFirst" or "ServerStorage" or "ServerScriptService" or "StarterGui"
-        or "StarterPack" or "StarterPlayer" or "Players" or "RunService"
+        or "CoreGui" or "GuiService" or "StarterPack" or "StarterPlayer" or "Players" or "RunService"
         or "CollectionService" or "HttpService" or "Debris" or "DataStoreService" or "Teams" or "Lighting" or "UserInputService";
 
     public static bool IsCreatable(string className) => GuiDefaults.IsCreatable(className) || className is "Folder" or "Model"

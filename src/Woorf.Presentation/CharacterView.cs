@@ -10,7 +10,7 @@ internal sealed class CharacterView
     private Part? previousRoot;
     private Vector3 previousPosition;
     private double previousTime;
-    private float phase, yaw;
+    private float phase;
 
     internal RenderItem[] Capture(Part root, Humanoid humanoid, double now)
     {
@@ -25,13 +25,8 @@ internal sealed class CharacterView
         var isMoving = speed > .001f || distance > .001f && distance < 4;
         if (previousRoot != root) phase = 0;
         phase = (phase + travel * 1.1f) % MathF.Tau;
-        if (distance > 0.001f && distance < 4)
-        {
-            yaw = MathF.Atan2(-motion.X, -motion.Z);
-        }
-        var direction = humanoid.MoveDirection;
-        if (humanoid.Health > 0 && direction.X * direction.X + direction.Z * direction.Z > 0.00001f)
-            yaw = MathF.Atan2(-direction.X, -direction.Z);
+        var forward = root.CFrame.LookVector;
+        var yaw = MathF.Atan2(-forward.X, -forward.Z);
         previousRoot = root; previousPosition = position; previousTime = now;
         var isAlive = humanoid.Health > 0;
         var isAirborne = isAlive && MathF.Abs(root.AssemblyLinearVelocity.Y) > 3;

@@ -10,6 +10,19 @@ public sealed class DataModel : Instance
 
     internal string DataDirectory { get; set; } = Path.Combine(Environment.CurrentDirectory, ".woorf", "data");
 
+    public Gui.CoreGuiOverlay CoreOverlay { get; } = new();
+    public IReadOnlyCollection<string> ScriptOutput => scriptOutput;
+    private readonly Queue<string> scriptOutput = new();
+
+    internal void RecordScriptOutput(string text)
+    {
+        foreach (var line in text.TrimEnd().Split('\n'))
+        {
+            if (scriptOutput.Count == 120) scriptOutput.Dequeue();
+            scriptOutput.Enqueue(line.Length > 1024 ? line[..1024] : line);
+        }
+    }
+
     public Instance Workspace { get; }
 
     public Instance? FindService(string className) =>

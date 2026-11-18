@@ -26,6 +26,7 @@ static class CharacterViewTests
             if (MathF.Abs(turned.MoveDirection.X + 1) > 0.0001f || !turned.ShouldJump)
                 throw new Exception("Movement must follow a rotated camera and permit a new jump after release.");
             CheckViewer();
+            CheckMouseCamera();
             Console.WriteLine("PASS character controls follow camera heading cap diagonal speed and edge-trigger jump/reset");
             return 0;
         }
@@ -71,6 +72,59 @@ static class CharacterViewTests
         var respawned = composer.Capture(scene, 0.3);
         if (MathF.Abs(respawned[1].Transform.M41 + 20) > 0.0001f || respawned[1].Color.Z <= respawned[1].Color.X)
             throw new Exception("Composition must follow the replacement character and restore its living appearance.");
+    }
+
+    private static void CheckMouseCamera()
+    {
+        var game = new DataModel();
+        var player = (Player)Instance.Create("Player");
+        var model = (Model)Instance.Create("Model");
+        var root = (Part)Instance.Create("Part");
+        root.Parent = model;
+        model.PrimaryPart = root;
+        Instance.Create("Humanoid").Parent = model;
+        model.Parent = game.Workspace;
+        player.Parent = game.GetService("Players");
+        player.Character = model;
+        var viewer = new CharacterViewer(player);
+        var camera = new PerspectiveCamera();
+        viewer.Follow(camera, 0);
+        var initial = camera.Position;
+        viewer.ApplyPointer(100, 0, 0, false);
+        viewer.Follow(camera, 0);
+        if (camera.Position != initial) throw new Exception("Third-person look requires right drag.");
+        viewer.ApplyPointer(100, 0, 1, true);
+        viewer.Follow(camera, 0);
+        if (camera.Position.X == initial.X || Vector3.Distance(camera.Position, camera.Target) >= 12)
+            throw new Exception("Right drag and wheel must orbit and zoom.");
+        viewer.ApplyPointer(0, 0, 30, false);
+        viewer.Follow(camera, 0);
+        using var world = new WorldView(game, player);
+        if (!viewer.IsFirstPerson || world.Capture(0, viewer.IsFirstPerson).Items.Length != 0)
+            throw new Exception("Full zoom must enter first person and hide the local avatar.");
+        var heading = camera.Target - camera.Position;
+        viewer.ApplyPointer(100, 0, 0, false);
+        viewer.Follow(camera, 0);
+        if (camera.Target - camera.Position == heading) throw new Exception("First-person mouse look must work without right drag.");
+        viewer.ApplyPointer(0, 0, -1, false);
+        if (viewer.IsFirstPerson || world.Capture(0, viewer.IsFirstPerson).Items.Length == 0)
+            throw new Exception("Scrolling out must restore the third-person avatar.");
+
+        using var session = new Woorf.Engine.Scripting.LuauSession(game, new Woorf.Engine.Scheduling.MonotonicClock());
+        if (session.Execute("""
+            local player = game:GetService("Players"):GetPlayers()[1]
+            player.CameraMinZoomDistance = 5
+            player.CameraMaxZoomDistance = 10
+            assert(player.CameraMinZoomDistance == 5 and player.CameraMaxZoomDistance == 10)
+            assert(player.CameraMode == Enum.CameraMode.Classic)
+            """, "camera-settings") != 0)
+            throw new Exception("Documented Roblox Player camera properties must be scriptable.");
+        viewer.ApplyPointer(0, 0, 30, false);
+        if (viewer.IsFirstPerson) throw new Exception("The configured minimum must prevent first person.");
+        if (session.Execute("""
+            game:GetService("Players"):GetPlayers()[1].CameraMode = Enum.CameraMode.LockFirstPerson
+            """, "camera-mode") != 0 || !viewer.IsFirstPerson)
+            throw new Exception("CameraMode.LockFirstPerson must override the zoom range.");
     }
 
     internal static int Run()

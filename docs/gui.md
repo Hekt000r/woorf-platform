@@ -112,3 +112,30 @@ Implementation references were researched in the official Roblox documentation:
 [scrolling frames](https://create.roblox.com/docs/ui/scrolling-frames).
 These guide the API; tests establish Woorf's supported behavior, not general
 Roblox conformance.
+
+## Built-in play overlays
+
+Desktop and browser play use the same managed overlay. Tab toggles the session
+player list. Server scripts populate it using a Folder named exactly
+`leaderstats` under each Player and value objects under that folder. The list
+shows up to three columns and honors `IsPrimary` and `Priority` markers.
+LocalScripts can control it with `StarterGui:SetCoreGuiEnabled` and
+`GetCoreGuiEnabled` using `Enum.CoreGuiType.PlayerList` or `All`.
+
+Escape opens the session menu. Escape or Resume closes it. The menu blocks local
+movement and game GUI input while the shared simulation continues. LocalScripts
+can observe `GuiService.MenuIsOpen`, `MenuOpened` and `MenuClosed`.
+
+| Shortcut | Overlay |
+| --- | --- |
+| Shift+F3 | Network transport and connected player count. Data ping is currently unavailable. |
+| Shift+F4 | Frame time, FPS, viewport size and managed heap. |
+| F9 | Recent client Luau output. Also available via `StarterGui:SetCore("DevConsoleVisible", true)`. |
+
+The player list covers the current session. The menu currently offers Resume.
+The console shows client output and the diagnostics expose the metrics above.
+
+References: [Leaderboards](https://create.roblox.com/docs/players/leaderboards),
+[StarterGui](https://create.roblox.com/docs/reference/engine/classes/StarterGui),
+[GuiService](https://create.roblox.com/docs/reference/engine/classes/GuiService),
+[Diagnostic tools](https://create.roblox.com/docs/performance-optimization/identify).

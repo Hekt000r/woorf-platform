@@ -12,6 +12,12 @@ internal sealed partial class BackendBindings
     {
         if (instance is Player player)
         {
+            switch (property)
+            {
+                case "CameraMinZoomDistance": Push(state, player.CameraMinZoomDistance); return true;
+                case "CameraMaxZoomDistance": Push(state, player.CameraMaxZoomDistance); return true;
+                case "CameraMode": Push(state, player.CameraMode); return true;
+            }
             if (property == "Character") { Push(state, player.Character); return true; }
             if (property is "CharacterAdded" or "CharacterRemoving")
             {
@@ -27,7 +33,7 @@ internal sealed partial class BackendBindings
         object? value = property switch
         {
             "WalkSpeed" => humanoid.WalkSpeed, "JumpPower" => humanoid.JumpPower,
-            "MoveDirection" => humanoid.MoveDirection, "Jump" => humanoid.Jump, _ => null,
+            "AutoRotate" => humanoid.AutoRotate, "MoveDirection" => humanoid.MoveDirection, "Jump" => humanoid.Jump, _ => null,
         };
         if (value is null) return false;
         Push(state, value); return true;
@@ -35,6 +41,17 @@ internal sealed partial class BackendBindings
 
     private bool TryWriteCharacter(nint state, Instance instance, string property)
     {
+        if (instance is Player player)
+        {
+            switch (property)
+            {
+                case "CameraMinZoomDistance": player.CameraMinZoomDistance = Number(state, 3); return true;
+                case "CameraMaxZoomDistance": player.CameraMaxZoomDistance = Number(state, 3); return true;
+                case "CameraMode":
+                    player.CameraMode = Read(state, 3) as GuiEnum ?? throw new ArgumentException("Expected Enum.CameraMode.");
+                    return true;
+            }
+        }
         if (instance is Players players)
         {
             if (property == "CharacterAutoLoads") { players.CharacterAutoLoads = Read(state, 3) is bool value ? value : throw new ArgumentException("Expected boolean."); return true; }
@@ -43,6 +60,7 @@ internal sealed partial class BackendBindings
         if (instance is not Humanoid humanoid) return false;
         switch (property)
         {
+            case "AutoRotate": humanoid.AutoRotate = Read(state, 3) is bool rotate ? rotate : throw new ArgumentException("Expected boolean."); break;
             case "WalkSpeed": humanoid.WalkSpeed = Number(state, 3); break;
             case "JumpPower": humanoid.JumpPower = Number(state, 3); break;
             case "Jump": humanoid.Jump = Read(state, 3) is bool jump ? jump : throw new ArgumentException("Expected boolean."); break;

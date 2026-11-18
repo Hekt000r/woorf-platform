@@ -54,6 +54,23 @@ internal sealed class CharacterController : IDisposable
         if (shouldJump && isGrounded && humanoid.Health > 0) velocityY = (float)humanoid.JumpPower;
         desired = ClipAgainstWalls(desired);
         body.LinearVelocity = new(desired.X, velocityY, desired.Z);
+        Rotate(body, elapsed);
+    }
+
+    private void Rotate(RigidBody body, float elapsed)
+    {
+        if (!humanoid.AutoRotate || humanoid.Health <= 0) return;
+        var heading = humanoid.CameraHeading;
+        if (heading.X == 0 && heading.Z == 0) heading = humanoid.MoveDirection;
+        if (heading.X * heading.X + heading.Z * heading.Z < 1e-6f) return;
+        var forward = body.CharacterRotation.LookVector;
+        var current = MathF.Atan2(-forward.X, -forward.Z);
+        var target = MathF.Atan2(-heading.X, -heading.Z);
+        var delta = MathF.IEEERemainder(target - current, MathF.Tau);
+        if (MathF.Abs(delta) < 1e-5f) return;
+        var turn = Math.Clamp(delta, -10 * elapsed, 10 * elapsed);
+        body.CharacterRotation = CFrame.FromAxisAngle(new(0, 1, 0), current + turn);
+
     }
 
     private Vector3 ClipAgainstWalls(Vector3 desired)

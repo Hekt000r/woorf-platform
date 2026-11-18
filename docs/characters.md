@@ -111,3 +111,21 @@ and procedural pose behavior are Woorf viewer conventions.
 The [playground](../examples/character-playground/README.md) offers walls, jump
 platforms, a ramp, an arch and a fall boundary as a concrete acceptance scene.
 Use the normal complete regression command before shipping further character work.
+
+## Play camera
+
+Hold the right mouse button and drag to rotate the third-person camera. The
+cursor stays at the drag origin. Scroll
+to zoom. At full zoom, the camera enters first person, follows mouse movement,
+and hides the local avatar. Scroll out to restore third person. Arrow keys still
+rotate the camera. The browser may require a click to grant pointer lock.
+
+Scripts can configure `Player.CameraMinZoomDistance`, `Player.CameraMaxZoomDistance`
+and `Player.CameraMode` using `Enum.CameraMode.Classic` or `LockFirstPerson`.
+These settings apply to the shared desktop and browser viewer.
+[Roblox camera settings](https://create.roblox.com/docs/workspace/camera)
+
+With `Humanoid.AutoRotate` enabled, characters gradually turn toward movement
+in third person and toward the camera heading in first person, even when standing
+still. Setting `AutoRotate` to false preserves the character’s facing.
+[Roblox Humanoid.AutoRotate](https://create.roblox.com/docs/reference/engine/classes/Humanoid#AutoRotate)

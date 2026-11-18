@@ -29,6 +29,7 @@ internal sealed class SocketPlayClient : IDisposable
     }
 
     internal void Pump() => runtime.PumpPlay();
-    internal void SendInput(Vector3 direction, bool shouldJump, bool shouldReset) => runtime.SendPlayInput(direction, shouldJump, shouldReset);
+    internal void SendInput(Vector3 direction, bool shouldJump, bool shouldReset, Vector3 cameraHeading = default) =>
+        runtime.SendPlayInput(direction, shouldJump, shouldReset, cameraHeading);
     public void Dispose() => runtime.Dispose();
 }

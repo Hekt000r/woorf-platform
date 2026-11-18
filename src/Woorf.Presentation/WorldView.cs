@@ -21,11 +21,12 @@ public sealed class WorldView : IDisposable
         if (player is not null) characters = new(player);
     }
 
-    public WorldFrame Capture(double now)
+    public WorldFrame Capture(double now, bool isFirstPerson = false)
     {
         scene.SetHiddenPart(player?.Character?.PrimaryPart as Part);
+        scene.SetHiddenCharacter(isFirstPerson ? player?.Character : null);
         var items = scene.Capture();
-        return new(npcs.Capture(characters?.Capture(items, now) ?? items,now), sky.Capture());
+        return new(npcs.Capture(isFirstPerson ? items : characters?.Capture(items, now) ?? items,now), sky.Capture());
     }
 
     public void Dispose() { characters?.Dispose(); npcs.Dispose(); sky.Dispose(); scene.Dispose(); }

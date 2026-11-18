@@ -73,14 +73,14 @@ public sealed class OpenGlWindow : IDisposable
         if (!Win32.GetClientRect(window, out var rectangle)) throw new Win32Exception();
         return (rectangle.Right, rectangle.Bottom);
     }
-    public bool PollEvents()
+    public bool PollEvents(bool escapeClosesWindow = true)
     {
         AssertThread();
         while (Win32.PeekMessageW(out var message, window, 0, 0, 1))
         {
             Win32.TranslateMessage(ref message); Win32.DispatchMessageW(ref message);
         }
-        if (IsKeyDown(0x1B)) shouldClose = true;
+        if (escapeClosesWindow && IsKeyDown(0x1B)) shouldClose = true;
         return !shouldClose;
     }
     public bool IsKeyDown(int key) => Win32.GetForegroundWindow() == window && (Win32.GetAsyncKeyState(key) & 0x8000) != 0;
@@ -92,6 +92,37 @@ public sealed class OpenGlWindow : IDisposable
             isFocused && isPointerDown, isFocused ? wheel : 0, isFocused ? textInput.ToString() : "", isFocused);
         wheel = 0; textInput.Clear(); return result;
     }
+    private Win32.Point? cameraAnchor;
+    private Win32.Point cameraLockPoint;
+    private bool wasCentered;
+
+    public (int X, int Y) ReadCameraMotion(bool shouldCapture, bool shouldCenter)
+    {
+        if (!shouldCapture || Win32.GetForegroundWindow() != window)
+        {
+            if (cameraAnchor is { } anchor && Win32.GetForegroundWindow() == window)
+                Win32.SetCursorPos(anchor.X, anchor.Y);
+            cameraAnchor = null;
+            return default;
+        }
+        if (!Win32.GetCursorPos(out var cursor)) return default;
+        var motion = cameraAnchor.HasValue ? (cursor.X - cameraLockPoint.X, cursor.Y - cameraLockPoint.Y) : default;
+        if (!cameraAnchor.HasValue || shouldCenter != wasCentered)
+        {
+            cameraAnchor ??= cursor;
+            cameraLockPoint = cameraAnchor.Value;
+            if (shouldCenter)
+            {
+                var (width, height) = GetSize();
+                var center = new Win32.Point(width / 2, height / 2);
+                if (Win32.ClientToScreen(window, ref center)) cameraLockPoint = center;
+            }
+            wasCentered = shouldCenter;
+        }
+        Win32.SetCursorPos(cameraLockPoint.X, cameraLockPoint.Y);
+        return motion;
+    }
+
     public WindowKeyInput[] ReadKeyInput()
     {
         AssertThread(); var result = keyInput.ToArray(); keyInput.Clear(); return result;
@@ -120,8 +151,9 @@ public sealed class OpenGlWindow : IDisposable
         if (message == 0x102) textInput.Append((char)wparam);
         if (message == 0x100)
         {
-            var key = (int)wparam switch { 0x25 => "Left", 0x27 => "Right", 0x24 => "Home", 0x23 => "End", 0x2E => "Delete", _ => "" };
+            var key = (int)wparam switch { 0x25 => "Left", 0x27 => "Right", 0x24 => "Home", 0x23 => "End", 0x2E => "Delete", 0x1B => "Escape", 0x09 => "Tab", 0x72 => "F3", 0x73 => "F4", 0x78 => "F9", _ => "" };
             if (wparam == 'A' && (Win32.GetAsyncKeyState(0x11) & 0x8000) != 0) key = "SelectAll";
+            if (((long)lparam & (1L << 30)) != 0 && key is ("Escape" or "Tab" or "F3" or "F4" or "F9")) return 0;
             if (key.Length > 0) keyInput.Add(new(key, (Win32.GetAsyncKeyState(0x10) & 0x8000) != 0));
         }
         if (message == 0x8) { isPointerDown = false; textInput.Clear(); }

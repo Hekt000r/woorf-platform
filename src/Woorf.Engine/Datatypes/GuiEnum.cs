@@ -36,6 +36,8 @@ internal static class GuiEnums
         ["BorderMode"] = ["Outline", "Middle", "Inset"],
         ["UserInputType"] = ["MouseButton1", "MouseButton2", "MouseButton3", "MouseWheel", "MouseMovement", "Keyboard", "Focus", "Touch"],
         ["UserInputState"] = ["Begin", "Change", "End", "Cancel", "None"],
+        ["CameraMode"] = ["Classic", "LockFirstPerson"],
+        ["CoreGuiType"] = ["PlayerList", "Health", "Backpack", "Chat", "All"],
         ["KeyCode"] = ["Unknown","Space","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"],
     };
     internal static string[] Types => Definitions.Keys.ToArray();

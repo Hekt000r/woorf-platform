@@ -125,10 +125,11 @@ internal sealed class LuauSession : IDisposable
         return woorf_run(handle, bytes, (nuint)bytes.Length, "@" + filePath, bindings.GetId(script));
     }
 
-    private static void Write(nint data, nuint length, int isError)
+    private void Write(nint data, nuint length, int isError)
     {
         var text = Marshal.PtrToStringUTF8(data, checked((int)length));
         var writer = isError != 0 ? Console.Error : Console.Out;
+        if (text is not null) game.RecordScriptOutput(text);
         writer.Write(text);
     }
 

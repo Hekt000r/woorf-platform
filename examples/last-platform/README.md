@@ -16,12 +16,13 @@ Browser local single-player with bots:
 python -m http.server 8081 --directory .local/browser-arena/wwwroot
 ```
 
-Open http://localhost:8081. The verified package is already generated at
-`.local/browser-arena/wwwroot`. Browser multiplayer remains unsupported.
+Open http://localhost:8081 after rebuilding the package. Browser multiplayer remains unsupported.
 
 ## Play
 
-- WASD moves; Space jumps; arrow keys orbit the camera.
+- WASD moves and Space jumps. Hold right mouse and drag to orbit. Scroll in
+  all the way to look around in first person, then scroll out to return to third
+  person. Arrow keys also rotate the camera.
 - **E / SHOVE:** visible amber wind-up, then a short-range frontal shove. Cooldown:
   1.6 seconds. Evade the warning, approach from the side or counterattack.
 - **Q / SKY JUMP:** higher jump with a six-second cooldown. Dodge a shove or escape
@@ -30,6 +31,9 @@ Open http://localhost:8081. The verified package is already generated at
   first, forcing everyone toward the center.
 - Falling or dying eliminates you for the round and returns you to the viewing
   deck. Last survivor earns a win. First to three becomes champion; the match resets.
+- **Tab** toggles the built-in player list. Its Wins column shows each human
+  player's round wins for the current match. Bots can still win rounds and
+  become champion through the round announcements.
 - **B / BOTS:** the first connected human can toggle bots for the next round.
   Solo play with bots off is a collapse-survival practice mode.
 

@@ -34,7 +34,7 @@ function Match:finish(winner)
     self.message=winner and (winner.name.." WINS THE ROUND!") or "DOUBLE KNOCKOUT · No winner!"
     if winner then
         winner.wins+=1
-        if winner.player then winner.player:SetAttribute("ArenaWins",winner.wins) else self.roster.scores[winner.name]=winner.wins end
+        if winner.winStat then winner.winStat.Value=winner.wins else self.roster.scores[winner.name]=winner.wins end
         if winner.wins>=3 then
             self.message=winner.name.." IS THE SKY CHAMPION!"; self.untilTime=self.time+8; self.champion=true
         end
@@ -63,7 +63,7 @@ function Match:publish()
     for _,actor in self.roster.actors do if actor.alive then alive+=1 end end
     local host=game:GetService("Players"):GetPlayers()[1]
     local values={Phase=self.phase,TimeLeft=math.max(0,math.ceil(self.untilTime-self.time)),Round=self.round,
-        Alive=alive,BotsEnabled=self.botsEnabled,Leaderboard=self.roster:leaderboard(),Message=self.message,HostId=host and host.UserId or 0}
+        Alive=alive,BotsEnabled=self.botsEnabled,Message=self.message,HostId=host and host.UserId or 0}
     for name,value in values do self.state:SetAttribute(name,value) end
 end
 
@@ -77,7 +77,7 @@ function Match:update(delta)
         elseif self.time>=self.untilTime or #living==0 then self:finish(nil) end
     elseif self.time>=self.untilTime and #game:GetService("Players"):GetPlayers()>0 then
         if self.champion then
-            for _,actor in self.roster.actors do actor.wins=0; if actor.player then actor.player:SetAttribute("ArenaWins",0) end end
+            for _,actor in self.roster.actors do actor.wins=0; if actor.winStat then actor.winStat.Value=0 end end
             self.roster.scores={}; self.champion=false; self.round=0
         end
         self:startRound()

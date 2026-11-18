@@ -24,13 +24,19 @@ internal static class ArenaGameTests
             var player=((Players)project.Game.GetService("Players")).GetPlayers()[0];
             foreach(var bot in bots) ((Humanoid)bot.FindFirstChild("Humanoid")!).Health=0;
             for(var index=481;index<=500;index++) { clock.Now=index/60d; host.Pump(); }
-            if(!Equals(player.GetAttribute("ArenaWins"),1d)||state.GetAttribute("Phase") as string!="Result")
+            if(!Equals((player.FindFirstChild("leaderstats")?.FindFirstChild("Wins") as ValueObject)?.Value,1d)||state.GetAttribute("Phase") as string!="Result")
                 throw new Exception("Eliminating all bots must award the surviving human exactly one round win.");
             for(var index=501;index<=950;index++) { clock.Now=index/60d; host.Pump(); }
             if(state.GetAttribute("Phase") as string!="Fight"||!Equals(state.GetAttribute("Round"),2d))
                 throw new Exception("Results must automatically rebuild the arena and begin the next round.");
             var screen=host.Player.FindFirstChild("PlayerGui")?.FindFirstChild("ArenaHud");
             if(screen?.FindFirstChild("Shove") is not GuiInstance) throw new Exception("Client HUD must expose the shove action.");
+            var players = ((Players)host.Game.GetService("Players")).GetPlayers();
+            var leaderboard = host.Game.CoreOverlay.Capture(players, 800, 600);
+            if (screen.FindFirstChild("Board") is not null ||
+                !leaderboard.Any(item => item.Content == "Wins") ||
+                !leaderboard.Any(item => item.Content == "1"))
+                throw new Exception("The built-in leaderboard must render the replicated win count.");
             CheckRules();
             if(host.HasFailed) throw new Exception("Arena scripts failed during acceptance.");
             Console.WriteLine("PASS arena solo bots fight elimination scoring HUD and automatic round restart"); return 0;
@@ -75,6 +81,12 @@ internal static class ArenaGameTests
             assert(not match:request(stranger,'Bots'),'Only the host may change bot settings')
             assert(match:request(p,'Bots'),'Host must be able to disable bots for the next round')
             assert(match.botsEnabled==false)
+            match:finish(actor)
+            match:finish(actor)
+            match:finish(actor)
+            assert(p.leaderstats.Wins.Value==3 and match.champion)
+            match:update(8.1)
+            assert(p.leaderstats.Wins.Value==0 and match.round==1)
             """;
         if(session.Execute(source,"arena-rules")!=0||session.HasFailed) throw new Exception("Arena combat/collapse/host authority checks failed.");
     }

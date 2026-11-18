@@ -10,6 +10,7 @@ static class CharacterControllerTests
         var failures = 0;
         foreach (var (name, check) in new (string, Action)[]
         {
+            ("character turns gradually, follows an idle camera heading, and respects AutoRotate", CheckFacing),
             ("character walks at capped speed and stops without input", CheckWalking),
             ("default jump stays below six studs in playground gravity", CheckDefaultJumpHeight),
             ("moving unrelated hazards preserves grounded jump input", CheckJumpWithMovingHazard),
@@ -26,6 +27,26 @@ static class CharacterControllerTests
             catch (Exception error) { failures++; Console.Error.WriteLine("FAIL " + name + ": " + error.Message); }
         }
         return failures;
+    }
+
+    private static void CheckFacing()
+    {
+        using var scene = new Scene();
+        scene.Move(new(1, 0, 0));
+        scene.Advance(1);
+        var forward = scene.Collider.CFrame.LookVector;
+        Require(forward.X is > 0 and < .5f, "Movement facing snapped instead of turning gradually.");
+        scene.Advance(90);
+        Require(scene.Collider.CFrame.LookVector.X > .99f, "The root must face the movement direction.");
+        scene.Move(default);
+        scene.Humanoid.CameraHeading = new(-.6f, 0, -.8f);
+        scene.Advance(90);
+        Require(scene.Collider.CFrame.LookVector.Dot(new(-.6f, 0, -.8f)) > .99f,
+            "First-person facing must follow the camera without movement.");
+        scene.Humanoid.AutoRotate = false;
+        scene.Humanoid.CameraHeading = new(1, 0, 0);
+        scene.Advance(90);
+        Require(scene.Collider.CFrame.LookVector.X < -.59f, "AutoRotate=false must preserve root facing.");
     }
 
     private static void CheckWalking()

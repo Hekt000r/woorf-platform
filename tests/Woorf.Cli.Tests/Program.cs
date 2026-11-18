@@ -1,5 +1,6 @@
 using System.Diagnostics;
 
+if (args is ["--core-gui"]) return CoreGuiTests.Run();
 if (args.Length == 1 && args[0] == "--arena") return ArenaGameTests.Run();
 if (args.Length == 1 && args[0] == "--arena-engine") return ArenaEngineTests.Run();
 if (args.Length == 1 && args[0] == "--character-animation") return CharacterAnimationTests.Run();

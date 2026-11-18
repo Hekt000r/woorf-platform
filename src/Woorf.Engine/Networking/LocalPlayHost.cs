@@ -32,9 +32,10 @@ public sealed class LocalPlayHost : IDisposable
 
     public int Pump() => host.Pump();
 
-    public void SendInput(Vector3 direction, bool shouldJump, bool shouldReset)
+    public void SendInput(Vector3 direction, bool shouldJump, bool shouldReset, Vector3 cameraHeading = default)
     {
         if (authority.Character?.FindFirstChild("Humanoid") is not Humanoid humanoid) return;
+        humanoid.CameraHeading = cameraHeading;
         humanoid.Move(direction);
         if (shouldJump) humanoid.Jump = true;
         if (shouldReset) humanoid.Health = 0;

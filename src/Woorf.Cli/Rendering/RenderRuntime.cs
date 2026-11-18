@@ -42,8 +42,8 @@ internal sealed class RenderRuntime : IDisposable
     internal CharacterViewer? CreateViewer() => Player is null ? null : new(Player, client is null && local is null ? null : SendInput);
     private void SendInput(CharacterInput input)
     {
-        if (local is not null) local.SendInput(input.MoveDirection, input.ShouldJump, input.ShouldReset);
-        else client!.SendInput(input.MoveDirection, input.ShouldJump, input.ShouldReset);
+        if (local is not null) local.SendInput(input.MoveDirection, input.ShouldJump, input.ShouldReset, input.CameraHeading);
+        else client!.SendInput(input.MoveDirection, input.ShouldJump, input.ShouldReset, input.CameraHeading);
     }
     internal void Step(double now) { if (local is not null) local.Pump(); else if (client is null) session!.Step(now); else client.Pump(); }
     internal int Finish(int status) => local?.Finish(status) ?? session?.Finish(status) ?? status;

@@ -27,7 +27,14 @@ function Roster:addPlayer(player)
     actor.color=colors[(actor.slot-1)%#colors+1]; actor.face=Vector3.new(0,0,-1)
     actor.spawn=spawns[(actor.slot-1)%#spawns+1]
     self.byPlayer[player]=actor; table.insert(self.actors,actor)
-    player:SetAttribute("ArenaWins",0); player:SetAttribute("ArenaAlive",false)
+    local leaderstats=Instance.new("Folder")
+    leaderstats.Name="leaderstats"
+    local wins=Instance.new("IntValue")
+    wins.Name="Wins"
+    wins.Parent=leaderstats
+    leaderstats.Parent=player
+    actor.winStat=wins
+    player:SetAttribute("ArenaAlive",false)
     player:SetAttribute("ViewDistance",30); player:SetAttribute("ViewPitch",.82)
     player.CharacterAdded:Connect(function(character) self:attach(actor,character) end)
     if player.Character then self:attach(actor,player.Character) end
@@ -86,12 +93,6 @@ function Roster:update(time, delta)
         end
     end
     return living
-end
-
-function Roster:leaderboard()
-    local lines={}
-    for _,actor in self.actors do table.insert(lines,(actor.isBot and "BOT " or "")..actor.name.."   "..actor.wins.." / 3") end
-    return table.concat(lines,"\n")
 end
 
 return Roster

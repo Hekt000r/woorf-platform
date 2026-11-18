@@ -33,6 +33,15 @@ internal sealed class WorkspaceScene : IDisposable
         hiddenPart = part; isHierarchyDirty = true;
     }
 
+    private Model? hiddenCharacter;
+
+    internal void SetHiddenCharacter(Model? character)
+    {
+        if (hiddenCharacter == character) return;
+        hiddenCharacter = character;
+        isHierarchyDirty = true;
+    }
+
     internal RenderItem[] Capture()
     {
         if (isHierarchyDirty) return Rebuild();
@@ -54,7 +63,7 @@ internal sealed class WorkspaceScene : IDisposable
         slots.Clear();
         foreach (var part in workspace.GetDescendants().OfType<BasePart>())
         {
-            if (part == hiddenPart) continue;
+            if (part == hiddenPart || hiddenCharacter is not null && part.IsDescendantOf(hiddenCharacter)) continue;
             if (part.Parent is Model model && (part.Name=="HumanoidRootPart" && model.GetAttribute("WoorfCharacter") is true
                 || model.PrimaryPart==part && model.GetChildren().OfType<Humanoid>().FirstOrDefault() is not null)) continue;
             var item = CapturePart(part);

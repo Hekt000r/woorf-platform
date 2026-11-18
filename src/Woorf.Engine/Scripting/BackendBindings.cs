@@ -34,6 +34,8 @@ internal sealed partial class BackendBindings : IDisposable
             { signals.PushSignal(state,property=="InputBegan"?input.InputBegan:input.InputEnded); return true; }
             if(property=="IsKeyDown") { woorf_push_method(state,property); return true; }
         }
+        if (TryReadCoreGui(state, instance, property, out result)) return true;
+        result = 1;
         if (TryReadGui(state, instance, property)) return true;
         if (TryReadSky(state, instance, property)) return true;
         if (TryReadCharacter(state, instance, property)) return true;

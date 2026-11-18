@@ -56,6 +56,11 @@ internal static class Win32
     [DllImport("user32")] internal static extern bool GetClientRect(nint window, out Rectangle rectangle);
     [DllImport("user32")] internal static extern bool AdjustWindowRect(ref Rectangle rectangle, uint style, bool menu);
     [DllImport("user32")] internal static extern short GetAsyncKeyState(int key);
+    [StructLayout(LayoutKind.Sequential)]
+    internal record struct Point(int X, int Y);
+    [DllImport("user32")] internal static extern bool GetCursorPos(out Point point);
+    [DllImport("user32")] internal static extern bool ClientToScreen(nint window, ref Point point);
+    [DllImport("user32")] internal static extern bool SetCursorPos(int x, int y);
     [DllImport("user32")] internal static extern nint GetForegroundWindow();
     [DllImport("user32")] internal static extern bool SetWindowPos(nint window, nint insertAfter, int x, int y, int width, int height, uint flags);
     [DllImport("kernel32", CharSet = CharSet.Unicode)] internal static extern nint GetModuleHandleW(string? name);
